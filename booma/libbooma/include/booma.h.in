@@ -1,0 +1,3 @@
+/* Empty header */
+
+extern void BoomaInit(bool verbose);
