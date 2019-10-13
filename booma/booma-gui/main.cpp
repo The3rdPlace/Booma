@@ -5,7 +5,7 @@
 #include "booma.h"
 
 int main(int argc, char** argv) {
-	BoomaInit(true);
+	BoomaInit(argc, argv, true);
 
 	return 0;
 }
