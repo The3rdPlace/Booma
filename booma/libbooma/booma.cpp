@@ -3,42 +3,9 @@
 
 #include <hardtapi.h>
 
-enum InputSourceType {
-    NO_INPUT_TYPE = 0,
-    AUDIO_DEVICE = 1
-};
+#include <booma.h>
+#include "internals.h"
 
-enum ReceiverModeType {
-    NO_RECEIVE_MODE = 0,
-    CW = 1
-};
-
-struct ConfigOptions {
-
-    // Output audio device
-    int outputAudioDevice = -1;
-
-    // Input type
-    InputSourceType inputSourceType = AUDIO_DEVICE;
-
-    // InputSourceType = AUDIO_DEVICE
-    int inputAudioDevice = -1;
-
-    // Initial or last used frequency
-    long int frequency = 17200;
-
-    // Receiver mode
-    ReceiverModeType receiverModeType = CW;
-
-    // Beattone frequency for CW operation
-    int BeattoneFrequency = 1200;
-
-    // Remote head configuration
-    bool IsRemoteHead = false;
-    char* RemoteServer = NULL;
-    int RemotePort = 0;
-    bool UseRemoteHead = false;
-};
 
 std::string tr(std::string source) {
     return source;
@@ -148,7 +115,11 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
     }
 }
 
-static ConfigOptions configOptions;
+ConfigOptions configOptions;
+
+HProcessor<int16_t>* processor;
+HReader<int16_t>* inputReader;
+HWriterint16_t>* outputWriter;
 
 void BoomaInit(int argc, char** argv, bool verbose) {
 
@@ -163,10 +134,41 @@ void BoomaInit(int argc, char** argv, bool verbose) {
     std::cout << "booma: using Hardt " + getversion() << std::endl;
 
     // Setup input
+    BoomaSetInput();
 
     // Setup output
+    BoomaSetOutput(&configOptions);
 
     // Setup receiver chain for selected mode
+    BoomaBuildReceiverChain(&configOptions);
+}
 
-    // Run
+bool BoomaSetInput(ConfigOptions* configOptions) {
+    // If remote head, initialize network rocessor
+    // else...
+
+    switch( configOptions.inputSourceType ) {
+        case AUDIO_DEVICE:
+            HLog("Initializing audio input device %d", configOptions.inputAudioDevice);
+            inputReader = new HSoundcardReader<int16_t>(...);
+            processor = new HStreamProcessor<int16_t>(inputReader, ...); // or networkprocessor
+            return true;
+        default:
+            std::cout << "No input source type defined" << std::endl;
+            exit(1);
+    }
+}
+
+bool BoomaSetOutput(ConfigOptions* configOptions) {
+    HLog("Initializing audio output device");
+    outputWriter = new HSoundcardWriter<int16_t>();
+}
+
+bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
+    // processor::SetWriter('first-writer')
+    // 'last-writer'->SetWriter(outputWriter.Consumer());
+}
+
+void BoomaRun() {
+    // processor::run()
 }
