@@ -7,5 +7,7 @@
 int main(int argc, char** argv) {
 	BoomaInit(argc, argv, true);
 
+    BoomaRun();
+
 	return 0;
 }

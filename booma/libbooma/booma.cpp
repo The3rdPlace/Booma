@@ -24,7 +24,7 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
             std::cout << tr("Select CW receive mode       -m CW") << std::endl;
             std::cout << tr("Select frequency             -f frequecy") << std::endl;
             std::cout << tr("Server for remote input      -s port");
-            std::cout << tr("Receiver for remote inpu     -r address port");
+            std::cout << tr("Receiver for remote input    -r address port");
             exit(0);
         }
         if( strcmp(argv[i], "-v" ) == 0 ) {
@@ -36,15 +36,15 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
     // Second pass: config options
     for( int i = 0; i < argc; i++ ) {
         if( strcmp(argv[i], "-o") == 0 && i < argc + 1) {
-            configOptions->outputAudioDevice = atoi(argv[i + 1]);
+            configOptions->OutputAudioDevice = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         if( strcmp(argv[i], "-i") == 0 && i < argc + 2) {
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
-                configOptions->inputSourceType = AUDIO_DEVICE;
-                configOptions->inputAudioDevice = atoi(argv[i + 2]);
+                configOptions->InputSourceType = AUDIO_DEVICE;
+                configOptions->InputAudioDevice = atoi(argv[i + 2]);
             }
             i += 2;
             continue;
@@ -52,20 +52,21 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
 
         if( strcmp(argv[i], "-m") == 0 && i < argc + 1) {
             if( strcmp(argv[i + 1], "CW") == 0 ) {
-                configOptions->receiverModeType = CW;
+                configOptions->ReceiverModeType = CW;
             }
             i++;
             continue;
         }
 
         if( strcmp(argv[i], "-f") == 0 && i < argc + 1) {
-            configOptions->frequency = atoi(argv[i + 1]);
+            configOptions->Frequency = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
             configOptions->RemotePort = atoi(argv[i + 1]);
+            configOptions->UseRemoteHead = true;
             i++;
             continue;
         }
@@ -73,6 +74,7 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
         if( strcmp(argv[i], "-r") == 0 && argc < argc + 2) {
             configOptions->RemoteServer = argv[i + 1];
             configOptions->RemotePort = atoi(argv[i + 2]);
+            configOptions->IsRemoteHead = true;
             i++;
             continue;
         }
@@ -94,21 +96,21 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
 
     // Check that the required minimum of settings has been provided
     if( configOptions->UseRemoteHead == false ) {
-        if( configOptions->outputAudioDevice < 0 ) {
+        if( configOptions->OutputAudioDevice < 0 ) {
             std::cout << tr("Please select the output audio device with '-o devicenumber'") << std::endl;
             exit(1);
         }
-        if( configOptions->receiverModeType == NO_RECEIVE_MODE ) {
+        if( configOptions->ReceiverModeType == NO_RECEIVE_MODE ) {
             std::cout << tr("Please select the receive mode with '-m [CW]'") << std::endl;
             exit(1);
         }
     }
     if( configOptions->IsRemoteHead == false ) {
-        if( configOptions->inputSourceType == NO_INPUT_TYPE ) {
+        if( configOptions->InputSourceType == NO_INPUT_TYPE ) {
             std::cout << tr("Please select the input type with '-i [AUDIO] devicenumber'") << std::endl;
             exit(1);
         }
-        if( configOptions->inputSourceType == AUDIO_DEVICE && configOptions->inputAudioDevice < 0 ) {
+        if( configOptions->InputSourceType == AUDIO_DEVICE && configOptions->InputAudioDevice < 0 ) {
             std::cout << tr("Please select the input audio device with '-i [AUDIO] devicenumber'") << std::endl;
             exit(1);
         }
@@ -117,11 +119,13 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
 
 ConfigOptions configOptions;
 
+bool terminated = false;
+
 HProcessor<int16_t>* processor;
 HReader<int16_t>* inputReader;
-HWriterint16_t>* outputWriter;
+HWriter<int16_t>* outputWriter;
 
-void BoomaInit(int argc, char** argv, bool verbose) {
+ConfigOptions* BoomaInit(int argc, char** argv, bool verbose) {
 
     // Initialize the Hardt toolkit.
     // Set the last argument to 'true' to enable verbose output instead of logging to a local file
@@ -134,41 +138,82 @@ void BoomaInit(int argc, char** argv, bool verbose) {
     std::cout << "booma: using Hardt " + getversion() << std::endl;
 
     // Setup input
-    BoomaSetInput();
+    BoomaSetInput(&configOptions);
 
     // Setup output
     BoomaSetOutput(&configOptions);
 
     // Setup receiver chain for selected mode
     BoomaBuildReceiverChain(&configOptions);
+
+    // Return the configured options
+    return &configOptions;
 }
 
 bool BoomaSetInput(ConfigOptions* configOptions) {
-    // If remote head, initialize network rocessor
-    // else...
 
-    switch( configOptions.inputSourceType ) {
+    // If we are a remote head, then initialize a network processor
+    if( configOptions->IsRemoteHead ) {
+        HLog("Initializing network processor with remote input at %s:%d", configOptions->RemoteServer, configOptions->RemotePort);
+        processor = new HNetworkProcessor<int16_t>(configOptions->RemoteServer, configOptions->RemotePort, BLOCKSIZE, &terminated);
+        return true;
+    }
+
+    // If we are a server for a remote head, then initialize the input and a network processor
+    if( configOptions->UseRemoteHead) {
+        HLog("Initializing network processor with local audio input device %d", configOptions->InputAudioDevice);
+        inputReader = new HSoundcardReader<int16_t>(configOptions->InputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        processor = new HNetworkProcessor<int16_t>(configOptions->RemotePort, inputReader, BLOCKSIZE, &terminated);
+        return true;
+    }
+
+    // Otherwise configure a local input
+    switch( configOptions->InputSourceType ) {
         case AUDIO_DEVICE:
-            HLog("Initializing audio input device %d", configOptions.inputAudioDevice);
-            inputReader = new HSoundcardReader<int16_t>(...);
-            processor = new HStreamProcessor<int16_t>(inputReader, ...); // or networkprocessor
+            HLog("Initializing audio input device %d", configOptions->InputAudioDevice);
+            inputReader = new HSoundcardReader<int16_t>(configOptions->InputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            processor = new HStreamProcessor<int16_t>(inputReader, BLOCKSIZE, &terminated);
             return true;
         default:
             std::cout << "No input source type defined" << std::endl;
-            exit(1);
+            return false;
     }
 }
 
 bool BoomaSetOutput(ConfigOptions* configOptions) {
+
+    // If we have a remote head, then do nothing
+    if( configOptions->UseRemoteHead ) {
+        HLog("Using remote head, no local output");
+        return true;
+    }
+
+    // Otherwise initialize the audio output
     HLog("Initializing audio output device");
-    outputWriter = new HSoundcardWriter<int16_t>();
+    //outputWriter = new HSoundcardWriter<int16_t>(configOptions->OutputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+    outputWriter = new HWavWriter<int16_t>("/Users/henrik/Git/Booma/build/booma_out.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
+
+    return true;
 }
 
 bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
-    // processor::SetWriter('first-writer')
-    // 'last-writer'->SetWriter(outputWriter.Consumer());
+
+    // If we have a remote head, then do nothing
+    if( configOptions->UseRemoteHead ) {
+    HLog("Using remote head, no local receiver chain");
+        return true;
+    }
+
+    HLog("Creating receiver chain for selected rx mode");
+    switch( configOptions->ReceiverModeType ) {
+        case CW:
+            return CreateCwReceiverChain(configOptions);
+        default:
+            std::cout << "Unknown receiver type defined" << std::endl;
+            return false;
+    }
 }
 
 void BoomaRun() {
-    // processor::run()
+    processor->Run(50);
 }

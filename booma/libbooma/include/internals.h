@@ -11,19 +11,19 @@ enum ReceiverModeType {
 struct ConfigOptions {
 
     // Output audio device
-    int outputAudioDevice = -1;
+    int OutputAudioDevice = -1;
 
     // Input type
-    InputSourceType inputSourceType = AUDIO_DEVICE;
+    InputSourceType InputSourceType = AUDIO_DEVICE;
 
     // InputSourceType = AUDIO_DEVICE
-    int inputAudioDevice = -1;
+    int InputAudioDevice = -1;
 
     // Initial or last used frequency
-    long int frequency = 17200;
+    long int Frequency = 17200;
 
     // Receiver mode
-    ReceiverModeType receiverModeType = CW;
+    ReceiverModeType ReceiverModeType = CW;
 
     // Beattone frequency for CW operation
     int BeattoneFrequency = 1200;
@@ -35,8 +35,15 @@ struct ConfigOptions {
     bool UseRemoteHead = false;
 };
 
+extern bool terminated;
+
+#define BLOCKSIZE 4096
+#define SAMPLERATE H_SAMPLE_RATE_48K
+
 extern ConfigOptions configOptions;
 
 extern HProcessor<int16_t>* processor;
 extern HReader<int16_t>* inputReader;
-extern HWriterint16_t>* outputWriter;
+extern HWriter<int16_t>* outputWriter;
+
+bool CreateCwReceiverChain(ConfigOptions* configOptions);
