@@ -17,7 +17,7 @@ bool CreateCwReceiverChain(ConfigOptions* configOptions) {
     // Set mixer (multiplier local oscillator input frequency). This could also be 18.240 which
     // would give more or less the same result - allthough the highpass filter should be adjusted
     // then - otherwise the 17.200 signal we are looking for will be reduced.
-    const int LOCAL_OSCILATOR = 16160;
+    const int LOCAL_OSCILATOR = configOptions->Frequency - 1024;
 
     // -------------------------------------------------------------------------------------
     // Setup dsp chain for readers - first to last
@@ -32,7 +32,7 @@ bool CreateCwReceiverChain(ConfigOptions* configOptions) {
     HHumFilter<int16_t> humFilter(processor->Consumer(), H_SAMPLE_RATE_48K, 50, 500, BLOCKSIZE);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
-    HGain<int16_t> gain(humFilter.Consumer(), 100, BLOCKSIZE);
+    HGain<int16_t> gain(humFilter.Consumer(), configOptions->FirstStageGain, BLOCKSIZE);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
@@ -57,13 +57,13 @@ bool CreateCwReceiverChain(ConfigOptions* configOptions) {
         0.00048828125, 0.0009765625, 0.00048828125, 1.9683639531082289, -0.9877622267827567,// b0, b1, b2, -a1, -a2
         0.00048828125, 0.0009765625, 0.00048828125, 1.9742906058109615, -0.9947853486870636// b0, b1, b2, -a1, -a2
     };
-    //HCascadedBiQuadFilter<int16_t> bandpass(multiplier.Consumer(), coeffs, 20, BLOCKSIZE);
+    HCascadedBiQuadFilter<int16_t> bandpass(multiplier.Consumer(), coeffs, 20, BLOCKSIZE);
 
     // General lowpass filtering after mixing down to IF
-    HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t> lowpass(multiplier.Consumer(), 2000, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
+    HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t> lowpass(bandpass.Consumer(), 2000, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
 
     // Final boost of signal (output volume)
-    HGain<int16_t> volume(lowpass.Consumer(), 200, BLOCKSIZE);
+    HGain<int16_t> volume(lowpass.Consumer(), configOptions->Volume, BLOCKSIZE);
 
     // -------------------------------------------------------------------------------------
     // Setup dsp chain for writers - first to last

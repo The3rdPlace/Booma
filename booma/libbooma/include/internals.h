@@ -33,6 +33,12 @@ struct ConfigOptions {
     char* RemoteServer = NULL;
     int RemotePort = 0;
     bool UseRemoteHead = false;
+
+    // First stage gain
+    int FirstStageGain = 50;
+
+    // Output volume
+    int Volume = 200;
 };
 
 extern bool terminated;

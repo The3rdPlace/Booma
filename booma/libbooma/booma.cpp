@@ -19,15 +19,18 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
             std::cout << tr("Usage: booma-console [-option [parameter, ...]]") << std::endl;
             std::cout << std::endl;
             std::cout << tr("Options:") << std::endl;
-            std::cout << tr("Select output device         -o devicenumber") << std::endl;
-            std::cout << tr("Use audio input source       -i AUDIO devicenumber ") << std::endl;
-            std::cout << tr("Select CW receive mode       -m CW") << std::endl;
-            std::cout << tr("Select frequency             -f frequecy") << std::endl;
-            std::cout << tr("Server for remote input      -s port");
-            std::cout << tr("Receiver for remote input    -r address port");
+            std::cout << tr("Select output device                -o devicenumber") << std::endl;
+            std::cout << tr("Use audio input source              -i AUDIO devicenumber ") << std::endl;
+            std::cout << tr("Select CW receive mode (default)    -m CW") << std::endl;
+            std::cout << tr("Select frequency (default 17.2KHz)  -f frequecy") << std::endl;
+            std::cout << tr("Server for remote input             -s port") << std::endl;
+            std::cout << tr("Receiver for remote input           -r address port") << std::endl;
+            std::cout << tr("First stage gain (default 30)       -g gain") << std::endl;
+            std::cout << tr("Output volume (default 200)         -v volume") << std::endl;
+            std::cout << tr("Show version and exit               --version") << std::endl;
             exit(0);
         }
-        if( strcmp(argv[i], "-v" ) == 0 ) {
+        if( strcmp(argv[i], "--version" ) == 0 ) {
             std::cout << tr("Booma-console version 1.0.0 using Booma x and Hardt y") << std::endl;
             exit(0);
         }
@@ -75,6 +78,18 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
             configOptions->RemoteServer = argv[i + 1];
             configOptions->RemotePort = atoi(argv[i + 2]);
             configOptions->IsRemoteHead = true;
+            i++;
+            continue;
+        }
+
+        if( strcmp(argv[i], "-g") == 0 && i < argc + 1) {
+            configOptions->FirstStageGain = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
+        if( strcmp(argv[i], "-v") == 0 && i < argc + 1) {
+            configOptions->Volume = atoi(argv[i + 1]);
             i++;
             continue;
         }
@@ -190,8 +205,8 @@ bool BoomaSetOutput(ConfigOptions* configOptions) {
 
     // Otherwise initialize the audio output
     HLog("Initializing audio output device");
-    //outputWriter = new HSoundcardWriter<int16_t>(configOptions->OutputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-    outputWriter = new HWavWriter<int16_t>("/Users/henrik/Git/Booma/build/booma_out.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
+    outputWriter = new HSoundcardWriter<int16_t>(configOptions->OutputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+    //outputWriter = new HWavWriter<int16_t>("/Users/henrik/Git/Booma/build/booma_out.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
 
     return true;
 }
