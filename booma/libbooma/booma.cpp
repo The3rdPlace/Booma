@@ -215,5 +215,5 @@ bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
 }
 
 void BoomaRun() {
-    processor->Run(50);
+    //processor->Run(50);
 }
