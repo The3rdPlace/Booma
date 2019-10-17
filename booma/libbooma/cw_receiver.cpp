@@ -6,13 +6,9 @@
 
 HGain<int16_t>* gain;
 
-bool CreateCwReceiverChain(ConfigOptions* configOptions) {
+bool CreateCwReceiverChain(ConfigOptions* configOptions, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next) {
 
     HLog("Creating CW receiver chain");
-    //gain = new HGain<int16_t>(processor->Consumer(), 1, BLOCKSIZE);
-    //gain->Consumer()->SetWriter(outputWriter->Writer());
-
-
 
     // Set mixer (multiplier local oscillator input frequency). This could also be 18.240 which
     // would give more or less the same result - allthough the highpass filter should be adjusted
@@ -29,7 +25,7 @@ bool CreateCwReceiverChain(ConfigOptions* configOptions) {
     // Add hum filter to remove 50Hz harmonics and the very lowest part of the spectrum (incl. 50Hz)
     // These components, which have very high levels, will completely botch the rest of the chain
     // if allowed through (50Hz input is here a.o., with an insanely high level)
-    HHumFilter<int16_t> humFilter(processor->Consumer(), H_SAMPLE_RATE_48K, 50, 500, BLOCKSIZE);
+    HHumFilter<int16_t> humFilter(previous, H_SAMPLE_RATE_48K, 50, 500, BLOCKSIZE);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HGain<int16_t> gain(humFilter.Consumer(), configOptions->FirstStageGain, BLOCKSIZE);
@@ -72,26 +68,17 @@ bool CreateCwReceiverChain(ConfigOptions* configOptions) {
     //bool terminated = false;
     //HStreamProcessor<int16_t> rxProcessor(volume.Reader(), BLOCKSIZE, &terminated);
 
-    // Create a splitter that splits the samples into two streams,
-    // one goes to the fader->soundcard and the other to the signallevel indicator
-//    HSplitter<int16_t> splitter(processor.Consumer());
 
-    // Create a signal level writer so that we can show the current signal level.
-    // The signallevel writer needs a way to report results so we create a HCustomWriter that
-    // wraps a callback function defined in our code. We could also have implemented a writer
-    // that accepted the HSignalLevelResult as datatype locally - but the callback is simpler to use
-//    HSignalLevel<int16_t> level(splitter.Consumer(), 2);
-//    HCustomWriter<HSignalLevelResult>* result = HCustomWriter<HSignalLevelResult>::Create(callback, level.Consumer());
 
     // Create a fader that turns up the output volume when we begin to process samples.
     // This hides a naste "Click" in the beginning of the file, and other spurious noise
     // coming from filters that needs to stabilize
     // This writer registers as the second writer in the splitter
-    HFade<int16_t> fade(volume.Consumer(), 0, 1000, true, BLOCKSIZE);
+    HFade<int16_t> fade(volume.Consumer(), 0, 500, true, BLOCKSIZE);
 
     // Register the outputWriter with the fade component
-    fade.Consumer()->SetWriter(outputWriter);
+    fade.Consumer()->SetWriter(next);
 
-    processor->Run(50);
+    processor->Run();
     return true;
 }

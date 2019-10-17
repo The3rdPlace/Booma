@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
+#include <signal.h>
 
 #include <hardtapi.h>
 
@@ -21,12 +22,16 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
             std::cout << tr("Options:") << std::endl;
             std::cout << tr("Select output device                -o devicenumber") << std::endl;
             std::cout << tr("Use audio input source              -i AUDIO devicenumber ") << std::endl;
+            std::cout << tr("Dump output audio pcm to file       -a PCM") << std::endl;
+            std::cout << tr("Dump output audio to wav file       -a WAV") << std::endl;
             std::cout << tr("Select CW receive mode (default)    -m CW") << std::endl;
             std::cout << tr("Select frequency (default 17.2KHz)  -f frequecy") << std::endl;
             std::cout << tr("Server for remote input             -s port") << std::endl;
             std::cout << tr("Receiver for remote input           -r address port") << std::endl;
             std::cout << tr("First stage gain (default 30)       -g gain") << std::endl;
             std::cout << tr("Output volume (default 200)         -v volume") << std::endl;
+            std::cout << tr("Dump raw input pcm to file          -p PCM") << std::endl;
+            std::cout << tr("Dump input pcm to wav file          -p WAV") << std::endl;
             std::cout << tr("Show version and exit               --version") << std::endl;
             exit(0);
         }
@@ -93,6 +98,28 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
             i++;
             continue;
         }
+
+        if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {
+            configOptions->DumpAudio = true;
+            if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                configOptions->DumpFileFormat = PCM;
+            } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+               configOptions->DumpFileFormat = WAV;
+            }
+            i++;
+            continue;
+        }
+
+        if( strcmp(argv[i], "-p") == 0) {
+            configOptions->DumpPcm = true;
+            if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                configOptions->DumpFileFormat = PCM;
+            } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+               configOptions->DumpFileFormat = WAV;
+            }
+            i++;
+            continue;
+        }
     }
 
     // Check configuration for remote server/head
@@ -134,11 +161,29 @@ void parseArgs(int argc, char** argv, ConfigOptions *configOptions) {
 
 ConfigOptions configOptions;
 
-bool terminated = false;
 
 HProcessor<int16_t>* processor;
 HReader<int16_t>* inputReader;
 HWriter<int16_t>* outputWriter;
+
+HWriter<int16_t>* pcmWriter;
+HWriter<int16_t>* audioWriter;
+HSplitter<int16_t>* pcmSplitter;
+HSplitter<int16_t>* audioSplitter;
+HMute<int16_t>* pcmMute;
+HMute<int16_t>* audioMute;
+
+bool terminated = false;
+
+void setupSignalHandling()
+{
+    struct sigaction action;
+    action.sa_handler = [](int) { terminated = true; };
+    action.sa_flags = 0;
+    sigemptyset (&action.sa_mask);
+    sigaction (SIGINT, &action, NULL);
+    sigaction (SIGTERM, &action, NULL);
+}
 
 ConfigOptions* BoomaInit(int argc, char** argv, bool verbose) {
 
@@ -148,6 +193,9 @@ ConfigOptions* BoomaInit(int argc, char** argv, bool verbose) {
 
     // Parse input arguments
     parseArgs(argc, argv, &configOptions);
+
+    // Capture signals so that we can exit cleanly
+    setupSignalHandling();
 
     // Show library name and and Hardt version.
     std::cout << "booma: using Hardt " + getversion() << std::endl;
@@ -206,7 +254,6 @@ bool BoomaSetOutput(ConfigOptions* configOptions) {
     // Otherwise initialize the audio output
     HLog("Initializing audio output device");
     outputWriter = new HSoundcardWriter<int16_t>(configOptions->OutputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-    //outputWriter = new HWavWriter<int16_t>("/Users/henrik/Git/Booma/build/booma_out.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
 
     return true;
 }
@@ -219,10 +266,29 @@ bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
         return true;
     }
 
+    // Setup a splitter and a filewriter so that we can dump pcm data on request
+    pcmSplitter = new HSplitter<int16_t>(processor->Consumer());
+    pcmMute = new HMute<int16_t>(pcmSplitter->Consumer(), !configOptions->DumpPcm, BLOCKSIZE);
+    if( configOptions->DumpFileFormat == WAV ) {
+        pcmWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE, pcmMute->Consumer());
+    } else {
+        pcmWriter = new HFileWriter<int16_t>("input.pcm", pcmMute->Consumer());
+    }
+
+    // Setup a splitter and a filewriter so that we can dump audio data on request
+    if( configOptions->DumpFileFormat == WAV ) {
+        audioWriter = new HWavWriter<int16_t>("output.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
+    } else {
+        audioWriter = new HFileWriter<int16_t>("output.pcm");
+    }
+    audioMute = new HMute<int16_t>(audioWriter, !configOptions->DumpAudio, BLOCKSIZE);
+    audioSplitter = new HSplitter<int16_t>(audioMute, outputWriter);
+
+    // Setup the selected receiver
     HLog("Creating receiver chain for selected rx mode");
     switch( configOptions->ReceiverModeType ) {
         case CW:
-            return CreateCwReceiverChain(configOptions);
+            return CreateCwReceiverChain(configOptions, pcmSplitter->Consumer(), audioSplitter);
         default:
             std::cout << "Unknown receiver type defined" << std::endl;
             return false;

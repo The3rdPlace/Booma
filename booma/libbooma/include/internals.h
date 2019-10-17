@@ -8,6 +8,11 @@ enum ReceiverModeType {
     CW = 1
 };
 
+enum DumpFileFormatType {
+    PCM = 0,
+    WAV = 1
+};
+
 struct ConfigOptions {
 
     // Output audio device
@@ -39,6 +44,11 @@ struct ConfigOptions {
 
     // Output volume
     int Volume = 200;
+
+    // Dump pcm and audio
+    bool DumpPcm = false;
+    bool DumpAudio = false;
+    DumpFileFormatType DumpFileFormat = WAV;
 };
 
 extern bool terminated;
@@ -52,4 +62,11 @@ extern HProcessor<int16_t>* processor;
 extern HReader<int16_t>* inputReader;
 extern HWriter<int16_t>* outputWriter;
 
-bool CreateCwReceiverChain(ConfigOptions* configOptions);
+extern HWriter<int16_t>* pcmWriter;
+extern HWriter<int16_t>* audioWriter;
+extern HSplitter<int16_t>* pcmSplitter;
+extern HSplitter<int16_t>* audioSplitter;
+extern HMute<int16_t>* pcmMute;
+extern HMute<int16_t>* audioMute;
+
+bool CreateCwReceiverChain(ConfigOptions* configOptions, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
