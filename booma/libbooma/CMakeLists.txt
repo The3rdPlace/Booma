@@ -15,7 +15,7 @@ set_target_properties( booma PROPERTIES
 target_sources(booma
     PRIVATE
         booma.cpp
-        cw_receiver.cpp
+        cwreceiver.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")

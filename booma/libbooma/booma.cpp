@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <iostream>
 #include <signal.h>
+#include <thread>
 
 #include <hardtapi.h>
 
 #include <booma.h>
 #include "internals.h"
-
+#include "receiver.h"
+#include "cwreceiver.h"
 
 std::string tr(std::string source) {
     return source;
@@ -173,6 +175,10 @@ HSplitter<int16_t>* audioSplitter;
 HMute<int16_t>* pcmMute;
 HMute<int16_t>* audioMute;
 
+BoomaReceiver* receiver;
+
+std::thread* current;
+
 bool terminated = false;
 
 void setupSignalHandling()
@@ -200,17 +206,41 @@ ConfigOptions* BoomaInit(int argc, char** argv, bool verbose) {
     // Show library name and and Hardt version.
     std::cout << "booma: using Hardt " + getversion() << std::endl;
 
-    // Setup input
-    BoomaSetInput(&configOptions);
-
-    // Setup output
-    BoomaSetOutput(&configOptions);
-
-    // Setup receiver chain for selected mode
-    BoomaBuildReceiverChain(&configOptions);
+    // Set initial receiver
+    BoomaSetReceiver(&configOptions);
 
     // Return the configured options
     return &configOptions;
+}
+
+bool BoomaSetReceiver(ConfigOptions* opts) {
+
+    // Setup input
+    if( !BoomaSetInput(opts) ) {
+        HError("Failed to configure input");
+        return false;
+    }
+
+    // Setup output
+    if( !BoomaSetOutput(opts) ) {
+        HError("Failed to configure output");
+        return false;
+    }
+
+    if( !BoomaSetDumps(opts) ) {
+        HError("Failed to configure dumps");
+        return false;
+    }
+
+    // Create receiver
+    switch( opts->ReceiverModeType ) {
+        case CW:
+            receiver = new BoomaCwReceiver(opts, pcmSplitter->Consumer(), audioSplitter);
+            return true;
+        default:
+            std::cout << "Unknown receiver type defined" << std::endl;
+            return false;
+    }
 }
 
 bool BoomaSetInput(ConfigOptions* configOptions) {
@@ -255,10 +285,11 @@ bool BoomaSetOutput(ConfigOptions* configOptions) {
     HLog("Initializing audio output device");
     outputWriter = new HSoundcardWriter<int16_t>(configOptions->OutputAudioDevice, SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
 
+    // Output configured
     return true;
 }
 
-bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
+bool BoomaSetDumps(ConfigOptions* configOptions) {
 
     // If we have a remote head, then do nothing
     if( configOptions->UseRemoteHead ) {
@@ -284,17 +315,24 @@ bool BoomaBuildReceiverChain(ConfigOptions* configOptions) {
     audioMute = new HMute<int16_t>(audioWriter, !configOptions->DumpAudio, BLOCKSIZE);
     audioSplitter = new HSplitter<int16_t>(audioMute, outputWriter);
 
-    // Setup the selected receiver
-    HLog("Creating receiver chain for selected rx mode");
-    switch( configOptions->ReceiverModeType ) {
-        case CW:
-            return CreateCwReceiverChain(configOptions, pcmSplitter->Consumer(), audioSplitter);
-        default:
-            std::cout << "Unknown receiver type defined" << std::endl;
-            return false;
-    }
+    // Ready
+    return true;
 }
 
-void BoomaRun() {
-    //processor->Run(50);
+void runner() {
+    processor->Run();
+}
+
+void BoomaRun(ConfigOptions* configOptions) {
+
+    // Setup the selected receiver
+    HLog("Creating receiver chain for selected rx mode");
+    terminated = false;
+
+    current = new std::thread(runner);
+
+}
+
+void BoomaHaltReceiver() {
+    terminated = true;
 }

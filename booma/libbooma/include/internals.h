@@ -1,3 +1,10 @@
+#ifndef __INTERNALS_H
+#define __INTERNALS_H
+
+#include <thread>
+
+#include "receiver.h"
+
 enum InputSourceType {
     NO_INPUT_TYPE = 0,
     AUDIO_DEVICE = 1
@@ -69,4 +76,14 @@ extern HSplitter<int16_t>* audioSplitter;
 extern HMute<int16_t>* pcmMute;
 extern HMute<int16_t>* audioMute;
 
+extern BoomaReceiver* receiver;
+
+extern std::thread* current;
+
+extern bool BoomaSetInput(ConfigOptions* configOptions);
+extern bool BoomaSetOutput(ConfigOptions* configOptions);
+extern bool BoomaSetDumps(ConfigOptions* configOptions);
+
 bool CreateCwReceiverChain(ConfigOptions* configOptions, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
+
+#endif

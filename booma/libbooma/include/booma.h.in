@@ -1,7 +1,7 @@
 struct ConfigOptions;
 
 extern ConfigOptions* BoomaInit(int argc, char** argv, bool verbose);
-extern bool BoomaSetInput(ConfigOptions* configOptions);
-extern bool BoomaSetOutput(ConfigOptions* configOptions);
-extern bool BoomaBuildReceiverChain(ConfigOptions* configOptions);
-extern void BoomaRun();
+
+extern bool BoomaSetReceiver(ConfigOptions* opts);
+extern void BoomaRun(ConfigOptions* opts);
+extern void BoomaHaltReceiver();
