@@ -14,7 +14,7 @@ set_target_properties( booma PROPERTIES
 
 target_sources(booma
     PRIVATE
-        booma.cpp
+        application.cpp
         cwreceiver.cpp
         config.cpp
 )

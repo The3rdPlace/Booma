@@ -1,3 +1,6 @@
+#ifndef __LANGUAGE_H
+#define __LANGUAGE_H
+
 #include <stdlib.h>
 #include <iostream>
 
@@ -5,3 +8,5 @@
 inline std::string tr(std::string source) {
     return source;
 }
+
+#endif

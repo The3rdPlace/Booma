@@ -1,8 +1,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#include "internals.h"
-
 /** Type of input device */
 enum InputSourceType {
     NO_INPUT_TYPE = 0,

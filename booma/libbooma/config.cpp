@@ -1,4 +1,9 @@
-#include "internals.h"
+#include <stdlib.h>
+#include <iostream>
+#include <cstring>
+
+#include "config.h"
+#include "language.h"
 
 ConfigOptions::ConfigOptions(int argc, char** argv) {
 

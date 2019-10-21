@@ -1,13 +1,17 @@
 #ifndef __CWRECEIVER_H
 #define __CWRECEIVER_H
 
-#include "cwreceiver.h"
+#include <hardtapi.h>
+
+#include "booma.h"
+#include "config.h"
+#include "receiver.h"
 
 class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(ConfigOptions* configOptions, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
+        BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
 
     private:
 

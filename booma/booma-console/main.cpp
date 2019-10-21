@@ -7,10 +7,10 @@
 int main(int argc, char** argv) {
 
 	// Initialize Booma
-	ConfigOptions* opts = BoomaInit(argc, argv, true);
+	BoomaApplication app(argc, argv, true);
 
     // Run initial receiver (if any configured)
-    BoomaRun(opts);
+    app.Run();
 
     // Read commands
     std::string cmd;
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     while( cmd != "q" && cmd != "quit" );
 
     // Stop a running receiver (if any)
-    BoomaHaltReceiver();
+    app.Halt();
 
     // Leave peacefully
 	return 0;

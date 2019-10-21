@@ -1,7 +1,9 @@
-struct ConfigOptions;
+#ifndef __BOOMA_H
+#define __BOOMA_H
 
-extern ConfigOptions* BoomaInit(int argc, char** argv, bool verbose);
+#define BLOCKSIZE 4096
+#define SAMPLERATE H_SAMPLE_RATE_48K
 
-extern bool BoomaSetReceiver(ConfigOptions* opts);
-extern void BoomaRun(ConfigOptions* opts);
-extern void BoomaHaltReceiver();
+#include "application.h"
+
+#endif
