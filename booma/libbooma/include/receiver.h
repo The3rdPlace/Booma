@@ -1,10 +1,8 @@
 #ifndef __RECEIVER_H
 #define __RECEIVER_H
 
-#include <hardtapi.h>
-
-#include <booma.h>
 #include "internals.h"
+#include <hardtapi.h>
 
 class BoomaReceiver {
 

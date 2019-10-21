@@ -1,11 +1,7 @@
 #ifndef __CWRECEIVER_H
 #define __CWRECEIVER_H
 
-#include <hardtapi.h>
-
-#include <booma.h>
-#include "internals.h"
-#include "receiver.h"
+#include "cwreceiver.h"
 
 class BoomaCwReceiver : public BoomaReceiver {
 
