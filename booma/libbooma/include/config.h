@@ -46,7 +46,7 @@ class ConfigOptions {
         bool _useRemoteHead = false;
 
         // First stage gain
-        int _firstStageGain = 50;
+        int _firstStageGain = 20;
 
         // Output volume
         int _volume = 200;

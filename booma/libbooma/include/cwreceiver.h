@@ -21,7 +21,8 @@ class BoomaCwReceiver : public BoomaReceiver {
         HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
         HMultiplier<int16_t>* _multiplier;
 
-        static float _bandpassCoeffs[];
+        static float _bandpassCoeffs800[];
+        static float _bandpassCoeffs1050[];
 
         HCascadedBiQuadFilter<int16_t>* _bandpass;
         HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpass;
