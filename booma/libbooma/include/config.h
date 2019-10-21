@@ -39,9 +39,6 @@ class ConfigOptions {
         // Receiver mode
         ReceiverModeType _receiverModeType = CW;
 
-        // Beattone frequency for CW operation
-        int _beattoneFrequency = 1200;
-
         // Remote head configuration
         bool _isRemoteHead = false;
         char* _remoteServer = NULL;
@@ -81,10 +78,6 @@ class ConfigOptions {
 
         ReceiverModeType getReceiverModeType() {
             return _receiverModeType;
-        }
-
-        int getBeattoneFrequency() {
-            return _beattoneFrequency;
         }
 
         bool getIsRemoteHead() {

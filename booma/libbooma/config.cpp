@@ -13,19 +13,19 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             std::cout << tr("Usage: booma-console [-option [parameter, ...]]") << std::endl;
             std::cout << std::endl;
             std::cout << tr("Options:") << std::endl;
-            std::cout << tr("Select output device                -o devicenumber") << std::endl;
-            std::cout << tr("Use audio input source              -i AUDIO devicenumber ") << std::endl;
-            std::cout << tr("Dump output audio pcm to file       -a PCM") << std::endl;
-            std::cout << tr("Dump output audio to wav file       -a WAV") << std::endl;
-            std::cout << tr("Select CW receive mode (default)    -m CW") << std::endl;
-            std::cout << tr("Select frequency (default 17.2KHz)  -f frequecy") << std::endl;
-            std::cout << tr("Server for remote input             -s port") << std::endl;
-            std::cout << tr("Receiver for remote input           -r address port") << std::endl;
-            std::cout << tr("First stage gain (default 30)       -g gain") << std::endl;
-            std::cout << tr("Output volume (default 200)         -v volume") << std::endl;
-            std::cout << tr("Dump raw input pcm to file          -p PCM") << std::endl;
-            std::cout << tr("Dump input pcm to wav file          -p WAV") << std::endl;
-            std::cout << tr("Show version and exit               --version") << std::endl;
+            std::cout << tr("Select output device                   -o devicenumber") << std::endl;
+            std::cout << tr("Use audio input source                 -i AUDIO devicenumber ") << std::endl;
+            std::cout << tr("Dump output audio pcm to file          -a PCM") << std::endl;
+            std::cout << tr("Dump output audio to wav file          -a WAV") << std::endl;
+            std::cout << tr("Select CW receive mode (default)       -m CW") << std::endl;
+            std::cout << tr("Select frequency (default 17.2KHz)     -f frequecy") << std::endl;
+            std::cout << tr("Server for remote input                -s port") << std::endl;
+            std::cout << tr("Receiver for remote input              -r address port") << std::endl;
+            std::cout << tr("First stage gain (default 30)          -g gain") << std::endl;
+            std::cout << tr("Output volume (default 200)            -v volume") << std::endl;
+            std::cout << tr("Dump raw input pcm to file             -p PCM") << std::endl;
+            std::cout << tr("Dump input pcm to wav file (default)   -p WAV") << std::endl;
+            std::cout << tr("Show version and exit                  --version") << std::endl;
             exit(0);
         }
         if( strcmp(argv[i], "--version" ) == 0 ) {

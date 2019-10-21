@@ -22,7 +22,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* 
     // Set mixer (multiplier local oscillator input frequency). This could also be 18.240 which
     // would give more or less the same result - allthough the highpass filter should be adjusted
     // then - otherwise the 17.200 signal we are looking for will be reduced.
-    const int LOCAL_OSCILATOR = opts->getFrequency() - 1024;
+    const int LOCAL_OSCILATOR = opts->getFrequency() - 1050;
 
     // Add hum filter to remove 50Hz harmonics and the very lowest part of the spectrum (incl. 50Hz)
     // These components, which have very high levels, will completely botch the rest of the chain
