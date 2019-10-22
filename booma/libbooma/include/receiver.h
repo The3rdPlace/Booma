@@ -9,10 +9,7 @@ class BoomaReceiver {
 
         BoomaReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next) {};
 
-        bool SetFrequency(ConfigOptions* opts, long int frequency) {
-            opts->setFrequency(frequency);
-            return SetFrequency(frequency);
-        }
+        bool SetFrequency(ConfigOptions* opts, long int frequency);
 
     private:
 
