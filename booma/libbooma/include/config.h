@@ -76,6 +76,10 @@ class ConfigOptions {
             return _frequency;
         }
 
+        void setFrequency(long int frequency) {
+            _frequency = frequency;
+        }
+
         ReceiverModeType getReceiverModeType() {
             return _receiverModeType;
         }

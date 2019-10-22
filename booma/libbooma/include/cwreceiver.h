@@ -13,6 +13,8 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
 
+        bool SetFrequency(long int frequency);
+
     private:
 
         HHumFilter<int16_t>* _humFilter;

@@ -73,3 +73,8 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* 
     // Register the outputWriter with the fade component
     _fade->Consumer()->SetWriter(next);
 }
+
+bool BoomaCwReceiver::SetFrequency(long int frequency) {
+    _multiplier->SetFrequency(frequency);
+    return true;
+}

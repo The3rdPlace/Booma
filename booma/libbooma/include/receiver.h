@@ -7,7 +7,16 @@ class BoomaReceiver {
 
     public:
 
-        BoomaReceiver(ConfigOptions* configOptions, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next) {};
+        BoomaReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next) {};
+
+        bool SetFrequency(ConfigOptions* opts, long int frequency) {
+            opts->setFrequency(frequency);
+            return SetFrequency(frequency);
+        }
+
+    private:
+
+        virtual bool SetFrequency(long int frequency) = 0;
 };
 
 #endif
