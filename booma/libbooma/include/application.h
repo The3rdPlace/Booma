@@ -17,14 +17,14 @@ class BoomaApplication {
 
         void Run() {
             IsTerminated = false;
-            current = new std::thread( [this]()  { this->processor->Run(); } );
+            _current = new std::thread( [this]()  { this->processor->Run(); } );
         }
 
         void Halt() {
             IsTerminated = true;
-            if( current != NULL ) {
-                current->join();
-                current = NULL;
+            if( _current != NULL ) {
+                _current->join();
+                _current = NULL;
             }
         }
 
@@ -40,20 +40,20 @@ class BoomaApplication {
 
         ConfigOptions* _opts;
         bool IsTerminated;
-        std::thread* current;
+        std::thread* _current;
 
-        HReader<int16_t>* inputReader;
-        HGain<int16_t>* outputWriter;
+        HReader<int16_t>* _inputReader;
+        HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
 
-        HWriter<int16_t>* pcmWriter;
-        HWriter<int16_t>* audioWriter;
-        HSplitter<int16_t>* pcmSplitter;
-        HSplitter<int16_t>* audioSplitter;
-        HMute<int16_t>* pcmMute;
-        HMute<int16_t>* audioMute;
+        HWriter<int16_t>* _pcmWriter;
+        HWriter<int16_t>* _audioWriter;
+        HSplitter<int16_t>* _pcmSplitter;
+        HSplitter<int16_t>* _audioSplitter;
+        HMute<int16_t>* _pcmMute;
+        HMute<int16_t>* _audioMute;
 
-        BoomaReceiver* receiver;
+        BoomaReceiver* _receiver;
 
         bool SetInput();
         bool SetOutput();
