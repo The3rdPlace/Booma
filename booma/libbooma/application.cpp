@@ -145,3 +145,15 @@ bool BoomaApplication::ChangeVolume(int stepSize) {
     _outputWriter->SetGain(_opts->GetVolume());
     return true;
 }
+
+bool BoomaApplication::ToggleDumpPcm() {
+    _opts->SetDumpPcm(!_opts->GetDumpPcm());
+    _pcmMute->SetMuted(!_opts->GetDumpPcm());
+    return true;
+}
+
+bool BoomaApplication::ToggleDumpAudio() {
+    _opts->SetDumpAudio(!_opts->GetDumpAudio());
+    _audioMute->SetMuted(!_opts->GetDumpAudio());
+    return true;
+}

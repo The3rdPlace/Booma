@@ -116,8 +116,16 @@ class ConfigOptions {
             return _dumpPcm;
         }
 
+        void SetDumpPcm(bool enabled) {
+            _dumpPcm = enabled;
+        }
+
         bool GetDumpAudio() {
             return _dumpAudio;
+        }
+
+        void SetDumpAudio(bool enabled) {
+            _dumpAudio = enabled;
         }
 
         DumpFileFormatType GetDumpFileFormat() {

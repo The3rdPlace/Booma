@@ -35,6 +35,14 @@ int main(int argc, char** argv) {
         if( cmd == "-" ) {
             app.ChangeVolume(-10);
         }
+
+        // Dump pcm/audio
+        if( cmd == "p" ) {
+            app.ToggleDumpPcm();
+        }
+        if( cmd == "a" ) {
+            app.ToggleDumpAudio();
+        }
     }
     while( cmd != "q" && cmd != "quit" );
 

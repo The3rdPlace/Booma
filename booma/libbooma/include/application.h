@@ -35,6 +35,8 @@ class BoomaApplication {
         bool SetFrequency(long int frequency);
         bool ChangeFrequency(int stepSize);
         bool ChangeVolume(int stepSize);
+        bool ToggleDumpPcm();
+        bool ToggleDumpAudio();
 
     private:
 
