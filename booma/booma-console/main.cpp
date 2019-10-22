@@ -19,6 +19,22 @@ int main(int argc, char** argv) {
         std::cin >> cmd;
 
         std::cout << "read " << cmd << std::endl;
+
+        // Increase/Decrease frequency
+        if( cmd == "u" ) {
+            app.ChangeFrequency(100);
+        }
+        if( cmd == "d" ) {
+            app.ChangeFrequency(-100);
+        }
+
+        // Increase/Decrease volume
+        if( cmd == "+" ) {
+            app.ChangeVolume(10);
+        }
+        if( cmd == "-" ) {
+            app.ChangeVolume(-10);
+        }
     }
     while( cmd != "q" && cmd != "quit" );
 

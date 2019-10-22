@@ -39,7 +39,7 @@ BoomaApplication::BoomaApplication(int argc, char** argv, bool verbose):
 bool BoomaApplication::SetReceiver() {
 
     // Create receiver
-    switch( _opts->getReceiverModeType() ) {
+    switch( _opts->GetReceiverModeType() ) {
         case CW:
             receiver = new BoomaCwReceiver(_opts, pcmSplitter->Consumer(), audioSplitter);
             return true;
@@ -52,25 +52,25 @@ bool BoomaApplication::SetReceiver() {
 bool BoomaApplication::SetInput() {
 
     // If we are a remote head, then initialize a network processor
-    if( _opts->getIsRemoteHead() ) {
-        HLog("Initializing network processor with remote input at %s:%d", _opts->getRemoteServer(), _opts->getRemotePort());
-        processor = new HNetworkProcessor<int16_t>(_opts->getRemoteServer(), _opts->getRemotePort(), BLOCKSIZE, &IsTerminated);
+    if( _opts->GetIsRemoteHead() ) {
+        HLog("Initializing network processor with remote input at %s:%d", _opts->GetRemoteServer(), _opts->GetRemotePort());
+        processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
         return true;
     }
 
     // If we are a server for a remote head, then initialize the input and a network processor
-    if( _opts->getUseRemoteHead()) {
-        HLog("Initializing network processor with local audio input device %d", _opts->getInputAudioDevice());
-        inputReader = new HSoundcardReader<int16_t>(_opts->getInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-        processor = new HNetworkProcessor<int16_t>(_opts->getRemotePort(), inputReader, BLOCKSIZE, &IsTerminated);
+    if( _opts->GetUseRemoteHead()) {
+        HLog("Initializing network processor with local audio input device %d", _opts->GetInputAudioDevice());
+        inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        processor = new HNetworkProcessor<int16_t>(_opts->GetRemotePort(), inputReader, BLOCKSIZE, &IsTerminated);
         return true;
     }
 
     // Otherwise configure a local input
-    switch( _opts->getInputSourceType() ) {
+    switch( _opts->GetInputSourceType() ) {
         case AUDIO_DEVICE:
-            HLog("Initializing audio input device %d", _opts->getInputAudioDevice());
-            inputReader = new HSoundcardReader<int16_t>(_opts->getInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
+            inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
             processor = new HStreamProcessor<int16_t>(inputReader, BLOCKSIZE, &IsTerminated);
             return true;
         default:
@@ -82,14 +82,15 @@ bool BoomaApplication::SetInput() {
 bool BoomaApplication::SetOutput() {
 
     // If we have a remote head, then do nothing
-    if( _opts->getUseRemoteHead() ) {
+    if( _opts->GetUseRemoteHead() ) {
         HLog("Using remote head, no local output");
         return true;
     }
 
-    // Otherwise initialize the audio output
+    // Otherwise initialize the audio output and the output gain control (volume)
     HLog("Initializing audio output device");
-    outputWriter = new HSoundcardWriter<int16_t>(_opts->getOutputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+    _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+    outputWriter = new HGain<int16_t>(_soundcardWriter, _opts->GetVolume(), BLOCKSIZE);
 
     // Output configured
     return true;
@@ -98,29 +99,49 @@ bool BoomaApplication::SetOutput() {
 bool BoomaApplication::SetDumps() {
 
     // If we have a remote head, then do nothing
-    if( _opts->getUseRemoteHead() ) {
+    if( _opts->GetUseRemoteHead() ) {
     HLog("Using remote head, no local receiver chain");
         return true;
     }
 
     // Setup a splitter and a filewriter so that we can dump pcm data on request
     pcmSplitter = new HSplitter<int16_t>(processor->Consumer());
-    pcmMute = new HMute<int16_t>(pcmSplitter->Consumer(), !_opts->getDumpPcm(), BLOCKSIZE);
-    if( _opts->getDumpFileFormat() == WAV ) {
+    pcmMute = new HMute<int16_t>(pcmSplitter->Consumer(), !_opts->GetDumpPcm(), BLOCKSIZE);
+    if( _opts->GetDumpFileFormat() == WAV ) {
         pcmWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE, pcmMute->Consumer());
     } else {
         pcmWriter = new HFileWriter<int16_t>("input.pcm", pcmMute->Consumer());
     }
 
     // Setup a splitter and a filewriter so that we can dump audio data on request
-    if( _opts->getDumpFileFormat() == WAV ) {
+    if( _opts->GetDumpFileFormat() == WAV ) {
         audioWriter = new HWavWriter<int16_t>("output.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
     } else {
         audioWriter = new HFileWriter<int16_t>("output.pcm");
     }
-    audioMute = new HMute<int16_t>(audioWriter, !_opts->getDumpAudio(), BLOCKSIZE);
+    audioMute = new HMute<int16_t>(audioWriter, !_opts->GetDumpAudio(), BLOCKSIZE);
     audioSplitter = new HSplitter<int16_t>(audioMute, outputWriter);
 
     // Ready
+    return true;
+}
+
+bool BoomaApplication::SetFrequency(long int frequency) {
+    return receiver->SetFrequency(_opts, frequency);
+}
+
+bool BoomaApplication::ChangeFrequency(int stepSize) {
+    if( _opts->GetFrequency() + stepSize >= SAMPLERATE / 2 || _opts->GetFrequency() + stepSize <= 0 ) {
+        return false;
+    }
+    return receiver->SetFrequency(_opts, _opts->GetFrequency() + stepSize);
+}
+
+bool BoomaApplication::ChangeVolume(int stepSize) {
+    if( _opts->GetVolume() + stepSize >= 500 || _opts->GetVolume() + stepSize <= 0 ) {
+        return false;
+    }
+    _opts->SetVolume(_opts->GetVolume() + stepSize);
+    outputWriter->SetGain(_opts->GetVolume());
     return true;
 }

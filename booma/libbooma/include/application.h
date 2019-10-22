@@ -32,6 +32,10 @@ class BoomaApplication {
 
         HProcessor<int16_t>* processor;
 
+        bool SetFrequency(long int frequency);
+        bool ChangeFrequency(int stepSize);
+        bool ChangeVolume(int stepSize);
+
     private:
 
         ConfigOptions* _opts;
@@ -39,7 +43,8 @@ class BoomaApplication {
         std::thread* current;
 
         HReader<int16_t>* inputReader;
-        HWriter<int16_t>* outputWriter;
+        HGain<int16_t>* outputWriter;
+        HSoundcardWriter<int16_t>* _soundcardWriter;
 
         HWriter<int16_t>* pcmWriter;
         HWriter<int16_t>* audioWriter;

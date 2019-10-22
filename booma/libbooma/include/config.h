@@ -60,63 +60,67 @@ class ConfigOptions {
 
         ConfigOptions(int argc, char** argv);
 
-        int getOutputAudioDevice() {
+        int GetOutputAudioDevice() {
             return _outputAudioDevice;
         }
 
-        InputSourceType getInputSourceType() {
+        InputSourceType GetInputSourceType() {
             return _inputSourceType;
         }
 
-        int getInputAudioDevice() {
+        int GetInputAudioDevice() {
             return _inputAudioDevice;
         }
 
-        long int getFrequency() {
+        long int GetFrequency() {
             return _frequency;
         }
 
-        void setFrequency(long int frequency) {
+        void SetFrequency(long int frequency) {
             _frequency = frequency;
         }
 
-        ReceiverModeType getReceiverModeType() {
+        ReceiverModeType GetReceiverModeType() {
             return _receiverModeType;
         }
 
-        bool getIsRemoteHead() {
+        bool GetIsRemoteHead() {
             return _isRemoteHead;
         }
 
-        char* getRemoteServer() {
+        char* GetRemoteServer() {
             return _remoteServer;
         }
 
-        int getRemotePort() {
+        int GetRemotePort() {
             return _remotePort;
         }
 
-        bool getUseRemoteHead() {
+        bool GetUseRemoteHead() {
             return _useRemoteHead;
         }
 
-        int getFirstStageGain() {
+        int GetFirstStageGain() {
             return _firstStageGain;
         }
 
-        int getVolume() {
+        int GetVolume() {
             return _volume;
         }
 
-        bool getDumpPcm() {
+        void SetVolume(int volume) {
+            _volume = volume;
+        }
+
+        bool GetDumpPcm() {
             return _dumpPcm;
         }
 
-        bool getDumpAudio() {
+        bool GetDumpAudio() {
             return _dumpAudio;
         }
 
-        DumpFileFormatType getDumpFileFormat() {
+        DumpFileFormatType GetDumpFileFormat() {
             return _dumpFileFormat;
         }
 };

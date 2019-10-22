@@ -17,6 +17,7 @@ target_sources(booma
         application.cpp
         cwreceiver.cpp
         config.cpp
+        receiver.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")
