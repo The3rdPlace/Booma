@@ -46,7 +46,7 @@ class ConfigOptions {
         bool _useRemoteHead = false;
 
         // First stage gain
-        int _firstStageGain = 20;
+        int _rfGain = 20;
 
         // Output volume
         int _volume = 200;
@@ -100,8 +100,12 @@ class ConfigOptions {
             return _useRemoteHead;
         }
 
-        int GetFirstStageGain() {
-            return _firstStageGain;
+        int GetRfGain() {
+            return _rfGain;
+        }
+
+        void SetRfGain(int gain) {
+            _rfGain = gain;
         }
 
         int GetVolume() {

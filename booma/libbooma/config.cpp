@@ -21,7 +21,7 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             std::cout << tr("Select frequency (default 17.2KHz)     -f frequecy") << std::endl;
             std::cout << tr("Server for remote input                -s port") << std::endl;
             std::cout << tr("Receiver for remote input              -r address port") << std::endl;
-            std::cout << tr("First stage gain (default 30)          -g gain") << std::endl;
+            std::cout << tr("Rf gain (default 30)                   -g gain") << std::endl;
             std::cout << tr("Output volume (default 200)            -v volume") << std::endl;
             std::cout << tr("Dump raw input pcm to file             -p PCM") << std::endl;
             std::cout << tr("Dump input pcm to wav file (default)   -p WAV") << std::endl;
@@ -81,7 +81,7 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
         }
 
         if( strcmp(argv[i], "-g") == 0 && i < argc + 1) {
-            _firstStageGain = atoi(argv[i + 1]);
+            _rfGain = atoi(argv[i + 1]);
             i++;
             continue;
         }

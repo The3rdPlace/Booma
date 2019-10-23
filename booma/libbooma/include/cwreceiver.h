@@ -14,21 +14,20 @@ class BoomaCwReceiver : public BoomaReceiver {
         BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
 
         bool SetFrequency(long int frequency);
+        bool SetRfGain(int gain);
 
     private:
 
         HHumFilter<int16_t>* _humFilter;
 
         HGain<int16_t>* _gain;
-        HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
+        HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HMultiplier<int16_t>* _multiplier;
 
         static float _bandpassCoeffs[];
 
         HCascadedBiQuadFilter<int16_t>* _bandpass;
         HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpass;
-        HGain<int16_t>* _volume;
-        HFade<int16_t>* _fade;
 };
 
 #endif

@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
 
 	// Initialize Booma
-	BoomaApplication app(argc, argv, true);
+	BoomaApplication app(argc, argv, false);
 
     // Run initial receiver (if any configured)
     app.Run();
@@ -15,12 +15,15 @@ int main(int argc, char** argv) {
     // Read commands
     std::string cmd;
     do {
-        std::cout << "Booma# ";
+        std::cout << "Booma [" << app.GetFrequency() << "]# ";
         std::cin >> cmd;
 
-        std::cout << "read " << cmd << std::endl;
-
-        // Increase/Decrease frequency
+        // Set/Increase/Decrease frequency
+        if( cmd == "f" ) {
+            std::cin >> cmd;
+            int frequency = atoi(cmd.c_str());
+            app.SetFrequency(frequency);
+        }
         if( cmd == "u" ) {
             app.ChangeFrequency(100);
         }
@@ -42,6 +45,19 @@ int main(int argc, char** argv) {
         }
         if( cmd == "a" ) {
             app.ToggleDumpAudio();
+        }
+
+        // Increase/decrease rf gain
+        if( cmd == "g" ) {
+            std::cin >> cmd;
+            int gain = atoi(cmd.c_str());
+            app.SetRfGain(gain);
+        }
+        if( cmd == "r") {
+            app.ChangeRfGain(5);
+        }
+        if( cmd == "e") {
+            app.ChangeRfGain(-5);
         }
     }
     while( cmd != "q" && cmd != "quit" );

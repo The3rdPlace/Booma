@@ -130,6 +130,10 @@ bool BoomaApplication::SetFrequency(long int frequency) {
     return _receiver->SetFrequency(_opts, frequency);
 }
 
+long int BoomaApplication::GetFrequency() {
+    return _opts->GetFrequency();
+}
+
 bool BoomaApplication::ChangeFrequency(int stepSize) {
     if( _opts->GetFrequency() + stepSize >= SAMPLERATE / 2 || _opts->GetFrequency() + stepSize <= 0 ) {
         return false;
@@ -138,7 +142,7 @@ bool BoomaApplication::ChangeFrequency(int stepSize) {
 }
 
 bool BoomaApplication::ChangeVolume(int stepSize) {
-    if( _opts->GetVolume() + stepSize >= 500 || _opts->GetVolume() + stepSize <= 0 ) {
+    if( _opts->GetVolume() + stepSize >= 1000 || _opts->GetVolume() + stepSize <= 0 ) {
         return false;
     }
     _opts->SetVolume(_opts->GetVolume() + stepSize);
@@ -156,4 +160,15 @@ bool BoomaApplication::ToggleDumpAudio() {
     _opts->SetDumpAudio(!_opts->GetDumpAudio());
     _audioMute->SetMuted(!_opts->GetDumpAudio());
     return true;
+}
+
+bool BoomaApplication::SetRfGain(int gain) {
+    return _receiver->SetRfGain(_opts, gain);
+}
+
+bool BoomaApplication::ChangeRfGain(int stepSize) {
+    if( _opts->GetRfGain() + stepSize > 100 || _opts->GetRfGain() + stepSize < 0 ) {
+        return false;
+    }
+    return _receiver->SetRfGain(_opts, _opts->GetRfGain() + stepSize);
 }

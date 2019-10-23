@@ -39,43 +39,39 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* 
     // Add hum filter to remove 50Hz harmonics and the very lowest part of the spectrum (incl. 50Hz)
     // These components, which have very high levels, will completely botch the rest of the chain
     // if allowed through (50Hz input is here a.o., with an insanely high level)
-    _humFilter = new HHumFilter<int16_t>(previous, H_SAMPLE_RATE_48K, 50, 500, BLOCKSIZE);
+    _humFilter = new HHumFilter<int16_t>(previous, H_SAMPLE_RATE_48K, 50, 600, BLOCKSIZE);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
-    _gain = new HGain<int16_t>(_humFilter->Consumer(), opts->GetFirstStageGain(), BLOCKSIZE);
+    _gain = new HGain<int16_t>(_humFilter->Consumer(), opts->GetRfGain(), BLOCKSIZE);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
     // (In this receiver, the results are good when the cutoff frequency is located at the local oscillator frequency)
-    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), LOCAL_OSCILATOR, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), LOCAL_OSCILATOR, H_SAMPLE_RATE_48K, 0.8071f, 1, BLOCKSIZE);
 
     // Mix down to the output frequency.
     // 17200Hz - 16160Hz = 1040Hz  (place it somewhere inside the bandpass filter pass region)
-    _multiplier = new HMultiplier<int16_t>(_gain->Consumer(), H_SAMPLE_RATE_48K, LOCAL_OSCILATOR, BLOCKSIZE);
+    _multiplier = new HMultiplier<int16_t>(_preselect->Consumer(), H_SAMPLE_RATE_48K, LOCAL_OSCILATOR, BLOCKSIZE);
 
     // Narrow butterworth bandpass filter, bandwidth 100Hz around 1000-1100. 4th. order, 4 biquads cascaded
     _bandpass = new HCascadedBiQuadFilter<int16_t>(_multiplier->Consumer(), _bandpassCoeffs, 20, BLOCKSIZE);
 
     // General lowpass filtering after mixing down to IF
-    _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 2000, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
-
-    // Final boost of signal (output volume)
-    //_volume = new HGain<int16_t>(_lowpass->Consumer(), opts->GetVolume(), BLOCKSIZE);
-
-    // Create a fader that turns up the output volume when we begin to process samples.
-    // This hides a naste "Click" in the beginning of the file, and other spurious noise
-    // coming from filters that needs to stabilize
-    // This writer registers as the second writer in the splitter
-    _fade = new HFade<int16_t>(_lowpass->Consumer(), 0, 500, true, BLOCKSIZE);
+    _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
 
     // Register the outputWriter with the fade component
-    _fade->Consumer()->SetWriter(next);
+    _lowpass->Consumer()->SetWriter(next);
 }
 
 bool BoomaCwReceiver::SetFrequency(long int frequency) {
     _multiplier->SetFrequency(frequency - 820);
+    ((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency - 820, H_SAMPLE_RATE_48K, 0.8071f, 1, BLOCKSIZE);
 
-    ((HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>*) _highpass)->SetCoefficients(frequency - 820, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
+    return true;
+}
+
+bool BoomaCwReceiver::SetRfGain(int gain) {
+    _gain->SetGain(gain);
 
     return true;
 }

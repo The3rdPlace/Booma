@@ -33,10 +33,13 @@ class BoomaApplication {
         HProcessor<int16_t>* processor;
 
         bool SetFrequency(long int frequency);
+        long int GetFrequency();
         bool ChangeFrequency(int stepSize);
         bool ChangeVolume(int stepSize);
         bool ToggleDumpPcm();
         bool ToggleDumpAudio();
+        bool SetRfGain(int gain);
+        bool ChangeRfGain(int stepSize);
 
     private:
 
