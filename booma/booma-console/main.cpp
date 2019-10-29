@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires options ?
-            if( cmd == 'f' || cmd == 'g' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' ) {
                 std::cin >> opt;
             }
             else
@@ -64,11 +64,22 @@ int main(int argc, char** argv) {
         }
 
         // Increase/Decrease volume
-        if( cmd == '+' ) {
-            app.ChangeVolume(10);
-        }
-        if( cmd == '-' ) {
-            app.ChangeVolume(-10);
+        if( cmd == 'v' ) {
+            int volume;
+
+            if( opt.at(0) == '+' ) {
+                volume = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeVolume( volume );
+            }
+            else if( opt.at(0) == '-' ) {
+                volume = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeVolume( -1 * volume );
+            }
+            else
+            {
+                volume = atoi(opt.c_str());
+                app.SetVolume( volume );
+            }
         }
 
         // Dump pcm/audio

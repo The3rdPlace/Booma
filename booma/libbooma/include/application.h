@@ -35,6 +35,7 @@ class BoomaApplication {
         bool SetFrequency(long int frequency);
         long int GetFrequency();
         bool ChangeFrequency(int stepSize);
+        bool SetVolume(int volume);
         bool ChangeVolume(int stepSize);
         int GetVolume();
         bool ToggleDumpPcm();

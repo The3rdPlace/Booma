@@ -15,6 +15,14 @@ BoomaApplication::BoomaApplication(int argc, char** argv, bool verbose):
     // Parse input arguments
     _opts = new ConfigOptions(argc, argv);
 
+    // Set initial receiver
+    SetReceiver();
+}
+
+bool BoomaApplication::SetReceiver() {
+
+    // Todo: Stop existing receiver and close all readers/writers before creating new
+
     // Setup input
     if( !SetInput() ) {
         HError("Failed to configure input");
@@ -31,12 +39,6 @@ BoomaApplication::BoomaApplication(int argc, char** argv, bool verbose):
         HError("Failed to configure dumps");
         exit(1);
     }
-
-    // Set initial receiver
-    SetReceiver();
-}
-
-bool BoomaApplication::SetReceiver() {
 
     // Create receiver
     switch( _opts->GetReceiverModeType() ) {
@@ -156,6 +158,15 @@ bool BoomaApplication::ChangeFrequency(int stepSize) {
         return false;
     }
     return _receiver->SetFrequency(_opts, _opts->GetFrequency() + stepSize);
+}
+
+bool BoomaApplication::SetVolume(int volume) {
+    if( volume >= SAMPLERATE / 2 || volume <= 0 ) {
+        return false;
+    }
+    _opts->SetVolume(volume);
+    _outputWriter->SetGain(_opts->GetVolume());
+    return true;
 }
 
 bool BoomaApplication::ChangeVolume(int stepSize) {
