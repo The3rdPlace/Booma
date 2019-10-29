@@ -59,7 +59,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* 
     // General lowpass filtering after mixing down to IF
     _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, H_SAMPLE_RATE_48K, 0.7071f, 1, BLOCKSIZE);
 
-    // Register the outputWriter with the fade component
+    // Register the outputWriter with the next writer
     _lowpass->Consumer()->SetWriter(next);
 }
 

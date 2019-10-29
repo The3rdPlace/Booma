@@ -73,6 +73,11 @@ bool BoomaApplication::SetInput() {
             _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
             processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
             return true;
+        case SIGNAL_GENERATOR:
+            HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
+            _inputReader = new HSineGenerator<int16_t>(SAMPLERATE, _opts->GetSignalGeneratorFrequency(), 10);
+            processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
+            return true;
         default:
             std::cout << "No input source type defined" << std::endl;
             return false;
@@ -89,8 +94,20 @@ bool BoomaApplication::SetOutput() {
 
     // Otherwise initialize the audio output and the output gain control (volume)
     HLog("Initializing audio output device");
-    _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-    _outputWriter = new HGain<int16_t>(_soundcardWriter, _opts->GetVolume(), BLOCKSIZE);
+    if( _opts->GetOutputAudioDevice() == -1 ) {
+        HLog("Writing output audio to /dev/null device");
+        _audioWriter = NULL;
+        _nullWriter = new HNullWriter<int16_t>();
+        _outputWriter = new HGain<int16_t>(_nullWriter->Writer(), _opts->GetVolume(), BLOCKSIZE);
+    }
+    else
+    {
+        HLog("Initializing audio output device %d", _opts->GetOutputAudioDevice());
+        _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        _nullWriter = NULL;
+        _outputWriter = new HGain<int16_t>(_soundcardWriter, _opts->GetVolume(), BLOCKSIZE);
+    }
+
 
     // Output configured
     return true;
@@ -150,6 +167,10 @@ bool BoomaApplication::ChangeVolume(int stepSize) {
     return true;
 }
 
+int BoomaApplication::GetVolume() {
+    return _opts->GetVolume();
+}
+
 bool BoomaApplication::ToggleDumpPcm() {
     _opts->SetDumpPcm(!_opts->GetDumpPcm());
     _pcmMute->SetMuted(!_opts->GetDumpPcm());
@@ -171,4 +192,8 @@ bool BoomaApplication::ChangeRfGain(int stepSize) {
         return false;
     }
     return _receiver->SetRfGain(_opts, _opts->GetRfGain() + stepSize);
+}
+
+int BoomaApplication::GetRfGain() {
+    return _opts->GetRfGain();
 }

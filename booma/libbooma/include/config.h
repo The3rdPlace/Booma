@@ -4,7 +4,8 @@
 /** Type of input device */
 enum InputSourceType {
     NO_INPUT_TYPE = 0,
-    AUDIO_DEVICE = 1
+    AUDIO_DEVICE = 1,
+    SIGNAL_GENERATOR = 2
 };
 
 /** Type of receiver */
@@ -55,6 +56,9 @@ class ConfigOptions {
         bool _dumpPcm = false;
         bool _dumpAudio = false;
         DumpFileFormatType _dumpFileFormat = WAV;
+
+        // Debug options
+        int _signalGeneratorFrequency = -1;
 
     public:
 
@@ -134,6 +138,10 @@ class ConfigOptions {
 
         DumpFileFormatType GetDumpFileFormat() {
             return _dumpFileFormat;
+        }
+
+        int GetSignalGeneratorFrequency() {
+            return _signalGeneratorFrequency;
         }
 };
 

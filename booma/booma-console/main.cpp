@@ -13,54 +13,97 @@ int main(int argc, char** argv) {
     app.Run();
 
     // Read commands
-    std::string cmd;
+    char cmd;
+    char lastCmd;
+    std::string opt;
+    std::string lastOpt;
     do {
-        std::cout << "Booma [" << app.GetFrequency() << "]# ";
-        std::cin >> cmd;
+        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " ]# ";
+        cmd = (char) std::cin.get();
+
+        // Remove leading whitespace
+        if( cmd == ' ' ) {
+            cmd = (char) std::cin.get();
+        }
+
+        // Repeat last command ?
+        if( cmd == '\n' ) {
+            cmd = lastCmd;
+            opt = lastOpt;
+        }
+        else
+        {
+            // Does the command requires options ?
+            if( cmd == 'f' || cmd == 'g' ) {
+                std::cin >> opt;
+            }
+            else
+            {
+                opt = "";
+            }
+            std::cin.get();
+        }
 
         // Set/Increase/Decrease frequency
-        if( cmd == "f" ) {
-            std::cin >> cmd;
-            int frequency = atoi(cmd.c_str());
-            app.SetFrequency(frequency);
-        }
-        if( cmd == "u" ) {
-            app.ChangeFrequency(100);
-        }
-        if( cmd == "d" ) {
-            app.ChangeFrequency(-100);
+        if( cmd == 'f' ) {
+            int frequency;
+
+            if( opt.at(0) == '+' ) {
+                frequency = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeFrequency( frequency );
+            }
+            else if( opt.at(0) == '-' ) {
+                frequency = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeFrequency( -1 * frequency );
+            }
+            else
+            {
+                frequency = atoi(opt.c_str());
+                app.SetFrequency(frequency);
+            }
         }
 
         // Increase/Decrease volume
-        if( cmd == "+" ) {
+        if( cmd == '+' ) {
             app.ChangeVolume(10);
         }
-        if( cmd == "-" ) {
+        if( cmd == '-' ) {
             app.ChangeVolume(-10);
         }
 
         // Dump pcm/audio
-        if( cmd == "p" ) {
+        if( cmd == 'p' ) {
             app.ToggleDumpPcm();
         }
-        if( cmd == "a" ) {
+        if( cmd == 'a' ) {
             app.ToggleDumpAudio();
         }
 
         // Increase/decrease rf gain
-        if( cmd == "g" ) {
-            std::cin >> cmd;
-            int gain = atoi(cmd.c_str());
-            app.SetRfGain(gain);
+        if( cmd == 'g' ) {
+            int gain;
+
+            if( opt.at(0) == '+' ) {
+                gain = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeRfGain( gain );
+            }
+            else if( opt.at(0) == '-' ) {
+                gain = atoi(opt.substr(1, std::string::npos).c_str());
+                app.ChangeRfGain( -1 * gain );
+            }
+            else
+            {
+                gain = atoi(opt.c_str());
+                app.SetRfGain(gain);
+            }
+
         }
-        if( cmd == "r") {
-            app.ChangeRfGain(5);
-        }
-        if( cmd == "e") {
-            app.ChangeRfGain(-5);
-        }
+
+        // Save last command and options
+        lastCmd = cmd;
+        lastOpt = opt;
     }
-    while( cmd != "q" && cmd != "quit" );
+    while( cmd != 'q' );
 
     // Stop a running receiver (if any)
     app.Halt();

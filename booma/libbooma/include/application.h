@@ -36,10 +36,12 @@ class BoomaApplication {
         long int GetFrequency();
         bool ChangeFrequency(int stepSize);
         bool ChangeVolume(int stepSize);
+        int GetVolume();
         bool ToggleDumpPcm();
         bool ToggleDumpAudio();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
+        int GetRfGain();
 
     private:
 
@@ -50,6 +52,7 @@ class BoomaApplication {
         HReader<int16_t>* _inputReader;
         HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
+        HNullWriter<int16_t>* _nullWriter;
 
         HWriter<int16_t>* _pcmWriter;
         HWriter<int16_t>* _audioWriter;
