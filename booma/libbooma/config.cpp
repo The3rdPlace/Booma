@@ -34,7 +34,7 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             std::cout << std::endl;
 
             std::cout << tr("==[Debugging]==") << std::endl;;
-            std::cout << tr("Use sine generator as input              -is frequency") << std::endl;
+            std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
             std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
 
             exit(0);
@@ -80,15 +80,11 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
                 _inputSourceType = AUDIO_DEVICE;
                 _inputAudioDevice = atoi(argv[i + 2]);
             }
+            if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
+                _inputSourceType = SIGNAL_GENERATOR;
+                _signalGeneratorFrequency = atoi(argv[i + 2]);
+            }
             i += 2;
-            continue;
-        }
-
-        // DEBUG: use sine generator as input
-        if( strcmp(argv[i], "-is") == 0 && i < argc + 1) {
-            _inputSourceType = SIGNAL_GENERATOR;
-            _signalGeneratorFrequency = atoi(argv[i + 1]);
-            i++;
             continue;
         }
 
