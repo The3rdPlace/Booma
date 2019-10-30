@@ -146,9 +146,6 @@ bool BoomaApplication::SetDumps() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
-    if( frequency >= SAMPLERATE / 2 || frequency <= 0 ) {
-        return false;
-    }
     return _receiver->SetFrequency(_opts, frequency);
 }
 
@@ -157,9 +154,6 @@ long int BoomaApplication::GetFrequency() {
 }
 
 bool BoomaApplication::ChangeFrequency(int stepSize) {
-    if( _opts->GetFrequency() + stepSize >= SAMPLERATE / 2 || _opts->GetFrequency() + stepSize <= 0 ) {
-        return false;
-    }
     return _receiver->SetFrequency(_opts, _opts->GetFrequency() + stepSize);
 }
 
@@ -202,9 +196,6 @@ bool BoomaApplication::SetRfGain(int gain) {
 }
 
 bool BoomaApplication::ChangeRfGain(int stepSize) {
-    if( _opts->GetRfGain() + stepSize > 100 || _opts->GetRfGain() + stepSize < 0 ) {
-        return false;
-    }
     return _receiver->SetRfGain(_opts, _opts->GetRfGain() + stepSize);
 }
 
