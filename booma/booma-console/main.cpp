@@ -21,11 +21,6 @@ int main(int argc, char** argv) {
         std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " ]# ";
         cmd = (char) std::cin.get();
 
-        // Remove leading whitespace
-        if( cmd == ' ' ) {
-            cmd = (char) std::cin.get();
-        }
-
         // Repeat last command ?
         if( cmd == '\n' ) {
             cmd = lastCmd;
@@ -33,7 +28,7 @@ int main(int argc, char** argv) {
         }
         else
         {
-            // Does the command requires options ?
+            // Does the command requires an option ?
             if( cmd == 'f' || cmd == 'g' || cmd == 'v' ) {
                 std::cin >> opt;
             }
@@ -50,21 +45,27 @@ int main(int argc, char** argv) {
 
             if( opt.at(0) == '+' ) {
                 frequency = atoi(opt.substr(1, std::string::npos).c_str());
-                app.ChangeFrequency( frequency );
+                if( !app.ChangeFrequency( frequency ) ) {
+                    std::cout << "Unsupported frequency" << std::endl;
+                }
             }
             else if( opt.at(0) == '-' ) {
                 frequency = atoi(opt.substr(1, std::string::npos).c_str());
-                app.ChangeFrequency( -1 * frequency );
+                if( !app.ChangeFrequency( -1 * frequency ) ){
+                    std::cout << "Unsupported frequency" << std::endl;
+                }
             }
             else
             {
                 frequency = atoi(opt.c_str());
-                app.SetFrequency(frequency);
+                if( !app.SetFrequency(frequency) ) {
+                    std::cout << "Unsupported frequency" << std::endl;
+                }
             }
         }
 
         // Increase/Decrease volume
-        if( cmd == 'v' ) {
+        else if( cmd == 'v' ) {
             int volume;
 
             if( opt.at(0) == '+' ) {
@@ -83,15 +84,15 @@ int main(int argc, char** argv) {
         }
 
         // Dump pcm/audio
-        if( cmd == 'p' ) {
+        else if( cmd == 'p' ) {
             app.ToggleDumpPcm();
         }
-        if( cmd == 'a' ) {
+        else if( cmd == 'a' ) {
             app.ToggleDumpAudio();
         }
 
         // Increase/decrease rf gain
-        if( cmd == 'g' ) {
+        else if( cmd == 'g' ) {
             int gain;
 
             if( opt.at(0) == '+' ) {
@@ -108,6 +109,12 @@ int main(int argc, char** argv) {
                 app.SetRfGain(gain);
             }
 
+        }
+
+        // Unknown command
+        else if( cmd != 'q') {
+            std::cout << "Unknown command !" << std::endl;
+            while( std::cin.get() != '\n' ) {}
         }
 
         // Save last command and options

@@ -146,6 +146,9 @@ bool BoomaApplication::SetDumps() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
+    if( frequency >= SAMPLERATE / 2 || frequency <= 0 ) {
+        return false;
+    }
     return _receiver->SetFrequency(_opts, frequency);
 }
 
