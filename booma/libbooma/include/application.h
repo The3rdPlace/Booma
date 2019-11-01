@@ -13,7 +13,7 @@ class BoomaApplication {
     public:
 
 
-        BoomaApplication(int argc, char** argv, bool verbose);
+        BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose);
 
         void Run() {
             IsTerminated = false;

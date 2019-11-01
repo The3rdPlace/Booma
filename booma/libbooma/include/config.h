@@ -67,7 +67,7 @@ class ConfigOptions {
 
     public:
 
-        ConfigOptions(int argc, char** argv);
+        ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
 
         int GetOutputAudioDevice() {
             return _outputAudioDevice;

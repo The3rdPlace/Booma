@@ -1,7 +1,7 @@
 #include "application.h"
 #include "cwreceiver.h"
 
-BoomaApplication::BoomaApplication(int argc, char** argv, bool verbose):
+BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose):
     _current(NULL)
 {
 
@@ -13,7 +13,7 @@ BoomaApplication::BoomaApplication(int argc, char** argv, bool verbose):
     HLog("booma: using Hardt %s", getversion().c_str());
 
     // Parse input arguments
-    _opts = new ConfigOptions(argc, argv);
+    _opts = new ConfigOptions(appName, appVersion, argc, argv);
 
     // Set initial receiver
     SetReceiver();

@@ -4,6 +4,10 @@
 #define BLOCKSIZE 4096
 #define SAMPLERATE H_SAMPLE_RATE_48K
 
+#define BOOMA_MAJORVERSION @Booma_VERSION_MAJOR@
+#define BOOMA_MINORVERSION @Booma_VERSION_MINOR@
+#define BOOMA_BUILDNO @Booma_VERSION_BUILD@
+
 #include "application.h"
 
 #endif

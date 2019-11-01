@@ -14,7 +14,7 @@ set (Booma_VERSION Booma_VERSION_MAJOR + "." + Booma_VERSION_MINOR + "." + Booma
 # Use the CLang compiler
 set(CMAKE_CXX_COMPILER "clang++")
 
-# Configure the hardt.h header
+# Configure the booma.h header
 configure_file (
   "${PROJECT_SOURCE_DIR}/booma/libbooma/include/booma.h.in"
   "${PROJECT_BINARY_DIR}/booma/libbooma/include/booma.h"

@@ -2,10 +2,11 @@
 #include <iostream>
 #include <cstring>
 
+#include "booma.h"
 #include "config.h"
 #include "language.h"
 
-ConfigOptions::ConfigOptions(int argc, char** argv) {
+ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
@@ -41,7 +42,7 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             exit(0);
         }
         if( strcmp(argv[i], "--version" ) == 0 ) {
-            std::cout << tr("Booma-console version 1.0.0 using Booma x and Hardt y") << std::endl;
+            std::cout << appName << " " << appVersion << " " << tr("using") << " Booma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << " " << tr("and") << " Hardt " << getversion() << std::endl;
             exit(0);
         }
     }

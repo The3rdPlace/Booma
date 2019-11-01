@@ -5,6 +5,18 @@ include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")
 include_directories("${PROJECT_SOURCE_DIR}/booma/libbooma/include")
 include_directories ("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/booma/booma-console/include")
+include_directories("${PROJECT_BINARY_DIR}/booma/booma-console")
+
+# Set the application major and minor version here
+set (BoomaConsole_VERSION_MAJOR 1)
+set (BoomaConsole_VERSION_MINOR 0)
+set (BoomaConsole_VERSION_BUILD 0)
+
+# Configure the main.h header
+configure_file (
+  "${PROJECT_SOURCE_DIR}/booma/booma-console/main.h.in"
+  "${PROJECT_BINARY_DIR}/booma/booma-console/main.h"
+)
 
 # add the executable
 add_executable (booma-console main.cpp)

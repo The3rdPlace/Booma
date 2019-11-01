@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "main.h"
 #include "booma.h"
 
 int main(int argc, char** argv) {
 
 	// Initialize Booma
-	BoomaApplication app(argc, argv, false);
+	std::stringstream ss;
+    ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
+	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
 
     // Run initial receiver (if any configured)
     app.Run();

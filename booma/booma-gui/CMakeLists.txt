@@ -6,6 +6,17 @@ include_directories("${PROJECT_SOURCE_DIR}/booma/libbooma/include")
 include_directories ("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/booma/booma-console/include")
 
+# Set the application major and minor version here
+set (BoomaGui_VERSION_MAJOR 1)
+set (BoomaGui_VERSION_MINOR 0)
+set (BoomaGui_VERSION_BUILD 0)
+
+# Configure the main.h header
+configure_file (
+  "${PROJECT_SOURCE_DIR}/booma/booma-gui/main.h.in"
+  "${PROJECT_BINARY_DIR}/booma/booma-gui/main.h"
+)
+
 # add the executable
 add_executable (booma-gui main.cpp)
 target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES})
