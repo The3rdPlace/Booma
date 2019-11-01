@@ -1,0 +1,8 @@
+#ifndef __MAIN_H
+#define __MAIN_H
+
+#define BOOMAGUI_MAJORVERSION @BoomaGui_VERSION_MAJOR@
+#define BOOMAGUI_MINORVERSION @BoomaGui_VERSION_MINOR@
+#define BOOMAGUI_BUILDNO @BoomaGui_VERSION_BUILD@
+
+#endif

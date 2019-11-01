@@ -1,0 +1,8 @@
+#ifndef __MAIN_H
+#define __MAIN_H
+
+#define BOOMACONSOLE_MAJORVERSION @BoomaConsole_VERSION_MAJOR@
+#define BOOMACONSOLE_MINORVERSION @BoomaConsole_VERSION_MINOR@
+#define BOOMACONSOLE_BUILDNO @BoomaConsole_VERSION_BUILD@
+
+#endif
