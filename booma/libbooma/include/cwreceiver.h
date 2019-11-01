@@ -11,7 +11,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
+        BoomaCwReceiver(ConfigOptions* opts, int sampleRate, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
 
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);
