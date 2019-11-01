@@ -28,6 +28,7 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             std::cout << tr("Select output device                     -o devicenumber") << std::endl;
             std::cout << tr("Dump raw input as pcm to file            -p PCM") << std::endl;
             std::cout << tr("Dump raw input as wav to file (default)  -p WAV") << std::endl;
+            std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
             std::cout << tr("Receiver for remote input                -r address port") << std::endl;
             std::cout << tr("Server for remote input                  -s port") << std::endl;
             std::cout << tr("Output volume (default 200)              -v volume") << std::endl;
@@ -112,6 +113,13 @@ ConfigOptions::ConfigOptions(int argc, char** argv) {
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
                _dumpFileFormat = WAV;
             }
+            i++;
+            continue;
+        }
+
+        // Server for remote input
+        if( strcmp(argv[i], "-q") == 0 && argc < argc + 1) {
+            _sampleRate = atoi(argv[i + 1]);
             i++;
             continue;
         }

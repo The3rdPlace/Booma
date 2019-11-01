@@ -43,7 +43,7 @@ bool BoomaApplication::SetReceiver() {
     // Create receiver
     switch( _opts->GetReceiverModeType() ) {
         case CW:
-            _receiver = new BoomaCwReceiver(_opts, SAMPLERATE, _pcmSplitter->Consumer(), _audioSplitter);
+            _receiver = new BoomaCwReceiver(_opts, _pcmSplitter->Consumer(), _audioSplitter);
             return true;
         default:
             std::cout << "Unknown receiver type defined" << std::endl;
@@ -63,7 +63,7 @@ bool BoomaApplication::SetInput() {
     // If we are a server for a remote head, then initialize the input and a network processor
     if( _opts->GetUseRemoteHead()) {
         HLog("Initializing network processor with local audio input device %d", _opts->GetInputAudioDevice());
-        _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
         processor = new HNetworkProcessor<int16_t>(_opts->GetRemotePort(), _inputReader, BLOCKSIZE, &IsTerminated);
         return true;
     }
@@ -72,12 +72,12 @@ bool BoomaApplication::SetInput() {
     switch( _opts->GetInputSourceType() ) {
         case AUDIO_DEVICE:
             HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
-            _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
             processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
             return true;
         case SIGNAL_GENERATOR:
             HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
-            _inputReader = new HSineGenerator<int16_t>(SAMPLERATE, _opts->GetSignalGeneratorFrequency(), 10);
+            _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 10);
             processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
             return true;
         default:
@@ -105,7 +105,7 @@ bool BoomaApplication::SetOutput() {
     else
     {
         HLog("Initializing audio output device %d", _opts->GetOutputAudioDevice());
-        _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), SAMPLERATE, 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
         _nullWriter = NULL;
         _outputWriter = new HGain<int16_t>(_soundcardWriter, _opts->GetVolume(), BLOCKSIZE);
     }
@@ -127,14 +127,14 @@ bool BoomaApplication::SetDumps() {
     _pcmSplitter = new HSplitter<int16_t>(processor->Consumer());
     _pcmMute = new HMute<int16_t>(_pcmSplitter->Consumer(), !_opts->GetDumpPcm(), BLOCKSIZE);
     if( _opts->GetDumpFileFormat() == WAV ) {
-        _pcmWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE, _pcmMute->Consumer());
+        _pcmWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _pcmMute->Consumer());
     } else {
         _pcmWriter = new HFileWriter<int16_t>("input.pcm", _pcmMute->Consumer());
     }
 
     // Setup a splitter and a filewriter so that we can dump audio data on request
     if( _opts->GetDumpFileFormat() == WAV ) {
-        _audioWriter = new HWavWriter<int16_t>("output.wav", H_SAMPLE_FORMAT_INT_16, 1, SAMPLERATE);
+        _audioWriter = new HWavWriter<int16_t>("output.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate());
     } else {
         _audioWriter = new HFileWriter<int16_t>("output.pcm");
     }
@@ -158,7 +158,7 @@ bool BoomaApplication::ChangeFrequency(int stepSize) {
 }
 
 bool BoomaApplication::SetVolume(int volume) {
-    if( volume >= SAMPLERATE / 2 || volume <= 0 ) {
+    if( volume >= _opts->GetSampleRate() / 2 || volume <= 0 ) {
         return false;
     }
     _opts->SetVolume(volume);

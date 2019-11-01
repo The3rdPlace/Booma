@@ -1,6 +1,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <hardtapi.h>
+
 /** Type of input device */
 enum InputSourceType {
     NO_INPUT_TYPE = 0,
@@ -24,6 +26,9 @@ enum DumpFileFormatType {
 class ConfigOptions {
 
     private:
+
+        // Samplerate
+        int _sampleRate = H_SAMPLE_RATE_48K;
 
         // Output audio device
         int _outputAudioDevice = -1;
@@ -142,6 +147,14 @@ class ConfigOptions {
 
         int GetSignalGeneratorFrequency() {
             return _signalGeneratorFrequency;
+        }
+
+        int GetSampleRate() {
+            return _sampleRate;
+        }
+
+        void SetSampleRate(int sampleRate) {
+            _sampleRate = sampleRate;
         }
 };
 

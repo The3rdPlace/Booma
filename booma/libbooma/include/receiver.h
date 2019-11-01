@@ -7,15 +7,15 @@ class BoomaReceiver {
 
     public:
 
-        BoomaReceiver(ConfigOptions* opts, int sampleRate,  HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next):
-            _sampleRate(sampleRate) {};
+        BoomaReceiver(ConfigOptions* opts,  HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next):
+            _sampleRate(opts->GetSampleRate()) {};
 
         bool SetFrequency(ConfigOptions* opts, long int frequency);
         bool SetRfGain(ConfigOptions* opts, int gain);
 
     protected:
 
-        int getSampleRate() {
+        int GetSampleRate() {
             return _sampleRate;
         }
 
