@@ -3,17 +3,17 @@
 #include "receiver.h"
 
 bool BoomaReceiver::SetFrequency(ConfigOptions* opts, long int frequency) {
-    if( frequency >= H_SAMPLE_RATE_48K / 2 || frequency <= 0 ) {
-        return false;
+    if( SetFrequency(frequency) ) {
+        opts->SetFrequency(frequency);
+        return true;
     }
-    opts->SetFrequency(frequency);
-    return SetFrequency(frequency);
+    return false;
 }
 
 bool BoomaReceiver::SetRfGain(ConfigOptions* opts, int gain) {
-    if( gain < 0 || gain > 200 ) {
-        return false;
+    if( SetRfGain(gain) ) {
+        opts->SetRfGain(gain);
+        return true;
     }
-    opts->SetRfGain(gain);
-    return SetRfGain(gain);
+    return false;
 }

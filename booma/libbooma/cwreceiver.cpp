@@ -64,14 +64,32 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, HWriterConsumer<int16_t>* 
 }
 
 bool BoomaCwReceiver::SetFrequency(long int frequency) {
+
+    // This receiver only operates from 820 - samplerate/2
+    if( frequency >= H_SAMPLE_RATE_48K / 2 || frequency <= 820 ) {
+        HError("Unsupported frequency %ld, must be greater than  820 and less than %d", frequency, H_SAMPLE_RATE_48K / 2);
+        return false;
+    }
+
+    // Set new multiplier frequency and adjust the preselect bandpass filter
     _multiplier->SetFrequency(frequency - 820);
     ((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency - 820, H_SAMPLE_RATE_48K, 0.8071f, 1, BLOCKSIZE);
 
+    // Ready
     return true;
 }
 
 bool BoomaCwReceiver::SetRfGain(int gain) {
+
+    // Sane gain values are between 1 and 100
+    if( gain < 1 || gain > 200 ) {
+        HError("Unsupported rf gain value %d, must be between 1 and 200", gain);
+        return false;
+    }
+
+    // Set rf gain
     _gain->SetGain(gain);
 
+    // Done
     return true;
 }
