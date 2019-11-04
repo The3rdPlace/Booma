@@ -3,25 +3,33 @@
 
 #include <hardtapi.h>
 
-class BoomaReceiver {
+class BoomaReceiver: public HWriterConsumer<int16_t> {
 
-    public:
+    private:
 
-        BoomaReceiver(int sampleRate,  HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next):
-            _sampleRate(sampleRate) {};
-
-        virtual bool SetFrequency(long int frequency) = 0;
-        virtual bool SetRfGain(int gain) = 0;
+        int _sampleRate;
 
     protected:
+
+        virtual HWriterConsumer<int16_t>* GetLastWriterConsumer() = 0;
 
         int GetSampleRate() {
             return _sampleRate;
         }
 
-    private:
+    public:
 
-        int _sampleRate;
+        BoomaReceiver(int sampleRate):
+            _sampleRate(sampleRate) {};
+
+        virtual ~BoomaReceiver() = default;
+
+        virtual bool SetFrequency(long int frequency) = 0;
+        virtual bool SetRfGain(int gain) = 0;
+
+        void SetWriter (HWriter<int16_t> *writer) {
+            GetLastWriterConsumer()->SetWriter(writer);
+        }
 };
 
 #endif

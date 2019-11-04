@@ -58,7 +58,7 @@ class ConfigOptions {
         int _volume = 200;
 
         // Dump pcm and audio
-        bool _dumpPcm = false;
+        bool _dumpRf = false;
         bool _dumpAudio = false;
         DumpFileFormatType _dumpFileFormat = WAV;
 
@@ -93,6 +93,10 @@ class ConfigOptions {
             return _receiverModeType;
         }
 
+        void SetReceiverModeType(ReceiverModeType receiverModeType) {
+            _receiverModeType = receiverModeType;
+        }
+
         bool GetIsRemoteHead() {
             return _isRemoteHead;
         }
@@ -125,12 +129,12 @@ class ConfigOptions {
             _volume = volume;
         }
 
-        bool GetDumpPcm() {
-            return _dumpPcm;
+        bool GetDumpRf() {
+            return _dumpRf;
         }
 
-        void SetDumpPcm(bool enabled) {
-            _dumpPcm = enabled;
+        void SetDumpRf(bool enabled) {
+            _dumpRf = enabled;
         }
 
         bool GetDumpAudio() {

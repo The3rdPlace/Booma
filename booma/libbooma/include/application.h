@@ -18,6 +18,7 @@ class BoomaApplication {
         void Run() {
             IsTerminated = false;
             _current = new std::thread( [this]()  { this->processor->Run(); } );
+            _isRunning = true;
         }
 
         void Halt() {
@@ -26,9 +27,11 @@ class BoomaApplication {
                 _current->join();
                 _current = NULL;
             }
+            IsTerminated = false;
+            _isRunning = false;
         }
 
-        bool SetReceiver();
+        bool ChangeReceiver(ReceiverModeType receiverModeType);
 
         HProcessor<int16_t>* processor;
 
@@ -38,7 +41,7 @@ class BoomaApplication {
         bool SetVolume(int volume);
         bool ChangeVolume(int stepSize);
         int GetVolume();
-        bool ToggleDumpPcm();
+        bool ToggleDumpRf();
         bool ToggleDumpAudio();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
@@ -48,6 +51,7 @@ class BoomaApplication {
 
         ConfigOptions* _opts;
         bool IsTerminated;
+        bool _isRunning;
         std::thread* _current;
 
         HReader<int16_t>* _inputReader;
@@ -55,19 +59,19 @@ class BoomaApplication {
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
 
-        HWriter<int16_t>* _pcmWriter;
+        HWriter<int16_t>* _rfWriter;
         HWriter<int16_t>* _audioWriter;
-        HSplitter<int16_t>* _pcmSplitter;
+        HSplitter<int16_t>* _rfSplitter;
         HSplitter<int16_t>* _audioSplitter;
-        HMute<int16_t>* _pcmMute;
+        HMute<int16_t>* _rfMute;
         HMute<int16_t>* _audioMute;
 
         BoomaReceiver* _receiver;
 
         bool SetInput();
+        bool SetReceiver();
         bool SetOutput();
-        bool SetDumps();
-
+        bool ChangeReceiver();
 };
 
 #endif

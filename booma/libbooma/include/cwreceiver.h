@@ -11,7 +11,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(int sampleRate, int frequency, int gain, HWriterConsumer<int16_t>* previous, HWriter<int16_t>* next);
+        BoomaCwReceiver(int sampleRate, int frequency, int gain, HWriterConsumer<int16_t>* previous);
 
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);
@@ -28,6 +28,10 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         HCascadedBiQuadFilter<int16_t>* _bandpass;
         HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpass;
+
+        HWriterConsumer<int16_t>* GetLastWriterConsumer() {
+            return _lowpass->Consumer();
+        }
 };
 
 #endif

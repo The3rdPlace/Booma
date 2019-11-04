@@ -2,7 +2,19 @@
 #include "cwreceiver.h"
 
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose):
-    _current(NULL)
+    _current(NULL),
+    _inputReader(NULL),
+    _outputWriter(NULL),
+    _soundcardWriter(NULL),
+    _nullWriter(NULL),
+    _rfWriter(NULL),
+    _audioWriter(NULL),
+    _rfSplitter(NULL),
+    _audioSplitter(NULL),
+    _rfMute(NULL),
+    _audioMute(NULL),
+    _receiver(NULL),
+    _isRunning(false)
 {
 
     // Initialize the Hardt toolkit.
@@ -16,16 +28,85 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
     _opts = new ConfigOptions(appName, appVersion, argc, argv);
 
     // Set initial receiver
-    SetReceiver();
+    ChangeReceiver();
 }
 
-bool BoomaApplication::SetReceiver() {
+bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 
-    // Todo: Stop existing receiver and close all readers/writers before creating new
+    // Make sure that a running receiver has been shut down
+    HLog("Shutting down a running receiver (should we have one)");
+    Halt();
+
+    // Register new receiver type
+    HLog("Setting new receiver type");
+    _opts->SetReceiverModeType(receiverModeType);
+
+    // Configure new receiver
+    HLog("Creating new receiver");
+    if( !ChangeReceiver() ) {
+        HError("Failed to create new receiver");
+        return false;
+    }
+    return true;
+}
+
+bool BoomaApplication::ChangeReceiver() {
+
+    // Reset all previous receiver components
+    if( _inputReader != NULL ) {
+        delete _inputReader;
+        _inputReader = NULL;
+    }
+    if( _outputWriter  != NULL ) {
+        delete _outputWriter;
+        _outputWriter = NULL;
+    }
+    if( _soundcardWriter != NULL ) {
+        delete _soundcardWriter;
+        _soundcardWriter = NULL;
+    }
+    if( _nullWriter != NULL ) {
+        delete _nullWriter;
+        _nullWriter = NULL;
+    }
+    if( _rfWriter != NULL ) {
+        delete _rfWriter;
+        _rfWriter = NULL;
+    }
+    if( _audioWriter != NULL ) {
+        delete _audioWriter;
+        _audioWriter = NULL;
+    }
+    if( _rfSplitter != NULL ) {
+        delete _rfSplitter;
+        _rfSplitter = NULL;
+    }
+    if( _audioSplitter != NULL ) {
+        delete _audioSplitter;
+        _audioSplitter = NULL;
+    }
+    if( _rfMute != NULL ) {
+        delete _rfMute;
+        _rfMute = NULL;
+    }
+    if( _audioMute != NULL ) {
+        delete _audioMute;
+        _audioMute = NULL;
+    }
+    if( _receiver != NULL ) {
+        delete _receiver;
+        _receiver = NULL;
+    }
 
     // Setup input
     if( !SetInput() ) {
         HError("Failed to configure input");
+        exit(1);
+    }
+
+    // Create receiver
+    if( !SetReceiver() ) {
+        HError("Failed to configure receiver");
         exit(1);
     }
 
@@ -35,15 +116,22 @@ bool BoomaApplication::SetReceiver() {
         exit(1);
     }
 
-    if( !SetDumps() ) {
-        HError("Failed to configure dumps");
-        exit(1);
+    // Complete input-receiver-output chain configured
+    return true;
+}
+
+bool BoomaApplication::SetReceiver() {
+
+    // If we have a remote head, then do nothing
+    if( _opts->GetUseRemoteHead() ) {
+        HLog("Using remote head, no local receiver");
+        return true;
     }
 
     // Create receiver
     switch( _opts->GetReceiverModeType() ) {
         case CW:
-            _receiver = new BoomaCwReceiver(_opts->GetSampleRate(), _opts->GetFrequency(), _opts->GetRfGain(), _pcmSplitter->Consumer(), _audioSplitter);
+            _receiver = new BoomaCwReceiver(_opts->GetSampleRate(), _opts->GetFrequency(), _opts->GetRfGain(), _rfSplitter->Consumer());
             return true;
         default:
             std::cout << "Unknown receiver type defined" << std::endl;
@@ -53,13 +141,6 @@ bool BoomaApplication::SetReceiver() {
 
 bool BoomaApplication::SetInput() {
 
-    // If we are a remote head, then initialize a network processor
-    if( _opts->GetIsRemoteHead() ) {
-        HLog("Initializing network processor with remote input at %s:%d", _opts->GetRemoteServer(), _opts->GetRemotePort());
-        processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
-        return true;
-    }
-
     // If we are a server for a remote head, then initialize the input and a network processor
     if( _opts->GetUseRemoteHead()) {
         HLog("Initializing network processor with local audio input device %d", _opts->GetInputAudioDevice());
@@ -68,22 +149,37 @@ bool BoomaApplication::SetInput() {
         return true;
     }
 
-    // Otherwise configure a local input
-    switch( _opts->GetInputSourceType() ) {
-        case AUDIO_DEVICE:
-            HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
-            _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-            processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
-            return true;
-        case SIGNAL_GENERATOR:
-            HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
-            _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 10);
-            processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
-            return true;
-        default:
-            std::cout << "No input source type defined" << std::endl;
-            return false;
+    // If we are a remote head, then initialize a network processor, otherwise configure a local input
+    if( _opts->GetIsRemoteHead() ) {
+        HLog("Initializing network processor with remote input at %s:%d", _opts->GetRemoteServer(), _opts->GetRemotePort());
+        processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
     }
+    else {
+        switch( _opts->GetInputSourceType() ) {
+            case AUDIO_DEVICE:
+                HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
+                _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            case SIGNAL_GENERATOR:
+                HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
+                _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 10);
+            default:
+                std::cout << "No input source type defined" << std::endl;
+                return false;
+        }
+        processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
+    }
+
+    // Setup a splitter and a filewriter so that we can dump pcm data on request
+    _rfSplitter = new HSplitter<int16_t>(processor->Consumer());
+    _rfMute = new HMute<int16_t>(_rfSplitter->Consumer(), !_opts->GetDumpRf(), BLOCKSIZE);
+    if( _opts->GetDumpFileFormat() == WAV ) {
+        _rfWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _rfMute->Consumer());
+    } else {
+        _rfWriter = new HFileWriter<int16_t>("input.pcm", _rfMute->Consumer());
+    }
+
+    // Read
+    return true;
 }
 
 bool BoomaApplication::SetOutput() {
@@ -94,54 +190,32 @@ bool BoomaApplication::SetOutput() {
         return true;
     }
 
-    // Otherwise initialize the audio output and the output gain control (volume)
-    HLog("Initializing audio output device");
+    // Setup a splitter and a filewriter so that we can dump audio data on request
+    HLog("Setting up output audio splitter");
+    _audioSplitter = new HSplitter<int16_t>(_receiver->Consumer());
+    _audioMute = new HMute<int16_t>(_audioSplitter->Consumer(), !_opts->GetDumpAudio(), BLOCKSIZE);
+    if( _opts->GetDumpFileFormat() == WAV ) {
+        _audioWriter = new HWavWriter<int16_t>("audio.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _audioMute->Consumer());
+    } else {
+        _audioWriter = new HFileWriter<int16_t>("audio.pcm", _audioMute->Consumer());
+    }
+
+    // Initialize the audio output and the output gain control (volume)
+    HLog("Initializing audio output");
+    _outputWriter = new HGain<int16_t>(_audioSplitter->Consumer(), _opts->GetVolume(), BLOCKSIZE);
     if( _opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
-        _audioWriter = NULL;
-        _nullWriter = new HNullWriter<int16_t>();
-        _outputWriter = new HGain<int16_t>(_nullWriter->Writer(), _opts->GetVolume(), BLOCKSIZE);
+        _soundcardWriter = NULL;
+        _nullWriter = new HNullWriter<int16_t>(_outputWriter->Consumer());
     }
     else
     {
         HLog("Initializing audio output device %d", _opts->GetOutputAudioDevice());
-        _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+        _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _outputWriter->Consumer());
         _nullWriter = NULL;
-        _outputWriter = new HGain<int16_t>(_soundcardWriter, _opts->GetVolume(), BLOCKSIZE);
     }
-
 
     // Output configured
-    return true;
-}
-
-bool BoomaApplication::SetDumps() {
-
-    // If we have a remote head, then do nothing
-    if( _opts->GetUseRemoteHead() ) {
-    HLog("Using remote head, no local receiver chain");
-        return true;
-    }
-
-    // Setup a splitter and a filewriter so that we can dump pcm data on request
-    _pcmSplitter = new HSplitter<int16_t>(processor->Consumer());
-    _pcmMute = new HMute<int16_t>(_pcmSplitter->Consumer(), !_opts->GetDumpPcm(), BLOCKSIZE);
-    if( _opts->GetDumpFileFormat() == WAV ) {
-        _pcmWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _pcmMute->Consumer());
-    } else {
-        _pcmWriter = new HFileWriter<int16_t>("input.pcm", _pcmMute->Consumer());
-    }
-
-    // Setup a splitter and a filewriter so that we can dump audio data on request
-    if( _opts->GetDumpFileFormat() == WAV ) {
-        _audioWriter = new HWavWriter<int16_t>("output.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate());
-    } else {
-        _audioWriter = new HFileWriter<int16_t>("output.pcm");
-    }
-    _audioMute = new HMute<int16_t>(_audioWriter, !_opts->GetDumpAudio(), BLOCKSIZE);
-    _audioSplitter = new HSplitter<int16_t>(_audioMute, _outputWriter);
-
-    // Ready
     return true;
 }
 
@@ -187,9 +261,9 @@ int BoomaApplication::GetVolume() {
     return _opts->GetVolume();
 }
 
-bool BoomaApplication::ToggleDumpPcm() {
-    _opts->SetDumpPcm(!_opts->GetDumpPcm());
-    _pcmMute->SetMuted(!_opts->GetDumpPcm());
+bool BoomaApplication::ToggleDumpRf() {
+    _opts->SetDumpRf(!_opts->GetDumpRf());
+    _rfMute->SetMuted(!_opts->GetDumpRf());
     return true;
 }
 

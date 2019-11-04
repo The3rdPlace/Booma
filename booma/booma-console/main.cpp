@@ -4,13 +4,15 @@
 
 #include "main.h"
 #include "booma.h"
+#include <thread>
+#include <chrono>
 
 int main(int argc, char** argv) {
 
 	// Initialize Booma
 	std::stringstream ss;
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
-	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
+	BoomaApplication app("Booma-Console", ss.str(), argc, argv, true);
 
     // Run initial receiver (if any configured)
     app.Run();
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires an option ?
-            if( cmd == 'f' || cmd == 'g' || cmd == 'v' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' ) {
                 std::cin >> opt;
             }
             else
@@ -88,7 +90,7 @@ int main(int argc, char** argv) {
 
         // Dump pcm/audio
         else if( cmd == 'p' ) {
-            app.ToggleDumpPcm();
+            app.ToggleDumpRf();
         }
         else if( cmd == 'a' ) {
             app.ToggleDumpAudio();
@@ -111,7 +113,22 @@ int main(int argc, char** argv) {
                 gain = atoi(opt.c_str());
                 app.SetRfGain(gain);
             }
+        }
 
+        // Change receiver type
+        else if( cmd == 'r' ) {
+            if( opt == "CW" ) {
+                app.ChangeReceiver(ReceiverModeType::CW);
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                app.Run();
+            }
+            else
+            {
+                std::cout << "Unknown receiver type" << std::endl;
+            }
+        }
+        else if( cmd == '?' ) {
+            std::cout << "f ###  *  g [+|-]###  *  v [+|-]###  *  a  *  p  *  r CW  *  q" << std::endl;
         }
 
         // Unknown command

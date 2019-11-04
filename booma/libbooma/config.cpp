@@ -27,8 +27,8 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             std::cout << tr("Select audio input source                -i AUDIO devicenumber ") << std::endl;
             std::cout << tr("Select CW receive mode (default)         -m CW") << std::endl;
             std::cout << tr("Select output device                     -o devicenumber") << std::endl;
-            std::cout << tr("Dump raw input as pcm to file            -p PCM") << std::endl;
-            std::cout << tr("Dump raw input as wav to file (default)  -p WAV") << std::endl;
+            std::cout << tr("Dump rf input as pcm to file             -p PCM") << std::endl;
+            std::cout << tr("Dump rf input as wav to file (default)   -p WAV") << std::endl;
             std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
             std::cout << tr("Receiver for remote input                -r address port") << std::endl;
             std::cout << tr("Server for remote input                  -s port") << std::endl;
@@ -108,7 +108,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump output audio as ...
         if( strcmp(argv[i], "-p") == 0) {
-            _dumpPcm = true;
+            _dumpRf = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _dumpFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
