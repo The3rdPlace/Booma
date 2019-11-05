@@ -34,14 +34,14 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires an option ?
-            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'h' || cmd == 'q' ) {
                 std::cin >> opt;
             }
             else
             {
                 opt = "";
             }
-            std::cin.get();
+            while( std::cin.get() != '\n' ) {}
         }
 
         // Set/Increase/Decrease frequency
@@ -127,21 +127,27 @@ int main(int argc, char** argv) {
                 std::cout << "Unknown receiver type" << std::endl;
             }
         }
-        else if( cmd == '?' ) {
-            std::cout << "f ###  *  g [+|-]###  *  v [+|-]###  *  a  *  p  *  r CW  *  q" << std::endl;
+        else if( cmd == '?' || (cmd == 'h' && opt == "elp") ) {
+            std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
+            std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
+            std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
+            std::cout << "Change receiver type:           r CW" << std::endl;
+            std::cout << "Toggle audio recording on/off:  a" << std::endl;
+            std::cout << "Toggle rf recording on/off:     p" << std::endl;
+            std::cout << "Get help (this text):           ?  or  help" << std::endl;
+            std::cout << "Quit:                           q" << std::endl;
         }
 
         // Unknown command
-        else if( cmd != 'q') {
+        else if( cmd != 'q' || (cmd == 'q' && opt != "uit") ) {
             std::cout << "Unknown command !" << std::endl;
-            while( std::cin.get() != '\n' ) {}
         }
 
         // Save last command and options
         lastCmd = cmd;
         lastOpt = opt;
     }
-    while( cmd != 'q' );
+    while( cmd != 'q' || (cmd == 'q' && opt != "uit") );
 
     // Stop a running receiver (if any)
     app.Halt();
