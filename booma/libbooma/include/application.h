@@ -44,7 +44,9 @@ class BoomaApplication {
         bool ChangeVolume(int stepSize);
         int GetVolume();
         bool ToggleDumpRf();
+        bool GetDumpRf();
         bool ToggleDumpAudio();
+        bool GetDumpAudio();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
         int GetRfGain();

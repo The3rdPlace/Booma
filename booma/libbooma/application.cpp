@@ -274,10 +274,18 @@ bool BoomaApplication::ToggleDumpRf() {
     return true;
 }
 
+bool BoomaApplication::GetDumpRf() {
+    return _opts->GetDumpRf();
+}
+
 bool BoomaApplication::ToggleDumpAudio() {
     _opts->SetDumpAudio(!_opts->GetDumpAudio());
     _audioMute->SetMuted(!_opts->GetDumpAudio());
     return true;
+}
+
+bool BoomaApplication::GetDumpAudio() {
+    return _opts->GetDumpAudio  ();
 }
 
 bool BoomaApplication::SetRfGain(int gain) {

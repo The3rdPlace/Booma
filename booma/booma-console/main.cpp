@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	// Initialize Booma
 	std::stringstream ss;
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
-	BoomaApplication app("Booma-Console", ss.str(), argc, argv, true);
+	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
 
     // Run initial receiver (if any configured)
     app.Run();
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     std::string opt;
     std::string lastOpt;
     do {
-        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " ]# ";
+        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? "RF" : "__") << " " << (app.GetDumpAudio() ? "A" : "_") << "]# ";
         cmd = (char) std::cin.get();
 
         // Repeat last command ?
@@ -134,6 +134,9 @@ int main(int argc, char** argv) {
             std::cout << "Change receiver type:           r CW" << std::endl;
             std::cout << "Toggle audio recording on/off:  a" << std::endl;
             std::cout << "Toggle rf recording on/off:     p" << std::endl;
+            std::cout << std::endl;
+            std::cout << "Press enter on a blank line to repeat the last command" << std::endl;
+            std::cout << std::endl;
             std::cout << "Get help (this text):           ?  or  h" << std::endl;
             std::cout << "Quit:                           q" << std::endl;
         }
