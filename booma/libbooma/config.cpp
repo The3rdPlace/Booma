@@ -49,6 +49,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
     }
 
+    // Seed configuration with values from last execution
+    ReadStoredConfig();
+
     // Second pass: config options
     for( int i = 0; i < argc; i++ ) {
 
@@ -83,10 +86,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
                 _inputSourceType = AUDIO_DEVICE;
                 _inputAudioDevice = atoi(argv[i + 2]);
+                _remoteServer = std::string();
+                _remotePort = 0;
             }
             if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
+                _remoteServer = std::string();
+                _remotePort = 0;
             }
             i += 2;
             continue;
@@ -120,7 +127,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Server for remote input
+        // Samplerate
         if( strcmp(argv[i], "-q") == 0 && argc < argc + 1) {
             _sampleRate = atoi(argv[i + 1]);
             i++;
@@ -131,6 +138,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
             _remotePort = atoi(argv[i + 1]);
             _useRemoteHead = true;
+            _inputAudioDevice = -1;
             i++;
             continue;
         }
@@ -140,6 +148,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _remoteServer = argv[i + 1];
             _remotePort = atoi(argv[i + 2]);
             _isRemoteHead = true;
+            _inputAudioDevice = -1;
             i++;
             continue;
         }
@@ -153,7 +162,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Check configuration for remote server/head
-    if( _isRemoteHead && _remoteServer == NULL ) {
+    if( _isRemoteHead && _remoteServer.empty() ) {
         std::cout << tr("Please select address of remote input with '-r address port'") << std::endl;
         exit(1);
     }
@@ -190,12 +199,99 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 ConfigOptions::~ConfigOptions() {
-std::cout << "CONFIG STOP" << std::endl;
     SaveStoredConfig();
 }
 
 void ConfigOptions::ReadStoredConfig() {
 
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to read configuration");
+        return;
+    }
+
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
+    // Check of the directory exists
+    struct stat stats;
+    if( stat(configPath.c_str(), &stats) != -1 ) {
+        if( !S_ISDIR(stats.st_mode) ) {
+            HError("File ~/.booma exists, but should be a directory");
+            return;
+        }
+        HLog("Config directory %s exists", configPath.c_str());
+    }
+    else
+    {
+        HLog("Config directory does not exists, no config to read");
+        return;
+    }
+
+    // Compose path to config file
+    std::string configFile(configPath);
+    configFile += "/config.ini";
+    HLog("Config file is %s", configFile.c_str());
+
+    // Open the config file
+    std::ifstream configStream;
+    configStream.open(configFile, std::ifstream::in);
+    if( !configStream.is_open() ) {
+        HError("Failed to open config file for reading");
+        return;
+    }
+
+    // Read all stored config settings
+    std::string opt;
+    configStream >> opt;
+    while (configStream.good()) {
+
+        // Split into name and value
+        size_t splitAt = opt.find_first_of("=");
+        if( splitAt >= 0 ) {
+            std::string name = opt.substr(0, splitAt);
+            std::string value = opt.substr(splitAt + 1, std::string::npos);
+
+            HLog("config value (%s=%s)", name.c_str(), value.c_str());
+            if( name == "sampleRate" )              _sampleRate = atoi(value.c_str());
+            if( name == "outputAudioDevice" )       _outputAudioDevice = atoi(value.c_str());
+            if( name == "inputSourceType" )         _inputSourceType = (InputSourceType) atoi(value.c_str());
+            if( name == "inputAudioDevice" )        _inputAudioDevice = atoi(value.c_str());
+            if( name == "frequency" )               _frequency = atoi(value.c_str());
+            if( name == "receiverModeType" )        _receiverModeType = (ReceiverModeType) atoi(value.c_str());
+            if( name == "remoteServer" )            _remoteServer = value;
+            if( name == "remotePort" )              _remotePort = atoi(value.c_str());
+            if( name == "rfGain" )                  _rfGain = atoi(value.c_str());
+            if( name == "volume" )                  _volume = atoi(value.c_str());
+            if( name == "dumpRf" )                  _dumpRf = atoi(value.c_str());
+            if( name == "dumpAudio" )               _dumpAudio = atoi(value.c_str());
+            if( name == "dumpFileFormat" )          _dumpFileFormat = (DumpFileFormatType) atoi(value.c_str());
+            if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
+        }
+        configStream >> opt;
+    }
+
+    // Done writing the config file
+    configStream.close();
+
+    // Set flags
+    if( _inputAudioDevice > -1 ) {
+        _isRemoteHead = false;
+        _useRemoteHead = false;
+        HLog("Has input audio device from stored config, use local input");
+    }
+    if( _inputAudioDevice == -1 && _remoteServer.empty() && _remotePort > 0 ) {
+        _useRemoteHead = true;
+        _isRemoteHead = false;
+        HLog("Has remote port but no remote server, use remote head");
+    }
+    if( _inputAudioDevice == -1 && !_remoteServer.empty() && _remotePort > 0 ) {
+        _useRemoteHead = false;
+        _isRemoteHead = true;
+        HLog("Has remote port and remote server, is remote head");
+    }
 }
 
 
@@ -208,17 +304,22 @@ void ConfigOptions::SaveStoredConfig() {
         return;
     }
 
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
     // Check of the directory exists
     struct stat stats;
-    if( stat(home, &stats) != -1 ) {
+    if( stat(configPath.c_str(), &stats) != -1 ) {
         if( !S_ISDIR(stats.st_mode) ) {
             HError("File ~/.booma exists, but should be a directory");
             return;
         }
-    } else {
+        HLog("Config directory %s exists", configPath.c_str());
+    }
+    else
+    {
         HLog("Creating config directory ~/.booma");
-        std::string configPath(home);
-        configPath += "/.booma";
         if (mkdir(configPath.c_str(), 0755) == -1) {
             HError( (std::string("Error when creating ~/.booma: ") + strerror(errno)).c_str() );
             return;
@@ -226,9 +327,9 @@ void ConfigOptions::SaveStoredConfig() {
     }
 
     // Compose path to config file
-    std::string configFile(home);
-    configFile += "/.booma/config.ini";
-    std::cout << configFile << std::endl;
+    std::string configFile(configPath);
+    configFile += "/config.ini";
+    HLog("Config file is %s", configFile.c_str());
 
     // Open the config file
     std::ofstream configStream;

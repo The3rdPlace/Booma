@@ -33,7 +33,6 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 }
 
 BoomaApplication::~BoomaApplication() {
-std::cout << "APP STOP" << std::endl;
     if( _opts != NULL ) {
         delete _opts;
     }
@@ -159,8 +158,8 @@ bool BoomaApplication::SetInput() {
 
     // If we are a remote head, then initialize a network processor, otherwise configure a local input
     if( _opts->GetIsRemoteHead() ) {
-        HLog("Initializing network processor with remote input at %s:%d", _opts->GetRemoteServer(), _opts->GetRemotePort());
-        processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
+        HLog("Initializing network processor with remote input at %s:%d", _opts->GetRemoteServer().c_str(), _opts->GetRemotePort());
+        processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer().c_str(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
     }
     else {
         switch( _opts->GetInputSourceType() ) {

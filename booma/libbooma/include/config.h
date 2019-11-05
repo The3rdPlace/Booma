@@ -47,7 +47,7 @@ class ConfigOptions {
 
         // Remote head configuration
         bool _isRemoteHead = false;
-        char* _remoteServer = NULL;
+        std::string _remoteServer;
         int _remotePort = 0;
         bool _useRemoteHead = false;
 
@@ -107,7 +107,7 @@ class ConfigOptions {
             return _isRemoteHead;
         }
 
-        char* GetRemoteServer() {
+        std::string GetRemoteServer() {
             return _remoteServer;
         }
 
