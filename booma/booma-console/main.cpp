@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires an option ?
-            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'h' || cmd == 'q' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' ) {
                 std::cin >> opt;
             }
             else
@@ -127,19 +127,19 @@ int main(int argc, char** argv) {
                 std::cout << "Unknown receiver type" << std::endl;
             }
         }
-        else if( cmd == '?' || (cmd == 'h' && opt == "elp") ) {
+        else if( cmd == '?' || cmd == 'h' ) {
             std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change receiver type:           r CW" << std::endl;
             std::cout << "Toggle audio recording on/off:  a" << std::endl;
             std::cout << "Toggle rf recording on/off:     p" << std::endl;
-            std::cout << "Get help (this text):           ?  or  help" << std::endl;
+            std::cout << "Get help (this text):           ?  or  h" << std::endl;
             std::cout << "Quit:                           q" << std::endl;
         }
 
         // Unknown command
-        else if( cmd != 'q' || (cmd == 'q' && opt != "uit") ) {
+        else if( cmd != 'q' ) {
             std::cout << "Unknown command !" << std::endl;
         }
 
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
         lastCmd = cmd;
         lastOpt = opt;
     }
-    while( cmd != 'q' || (cmd == 'q' && opt != "uit") );
+    while( cmd != 'q' );
 
     // Stop a running receiver (if any)
     app.Halt();
