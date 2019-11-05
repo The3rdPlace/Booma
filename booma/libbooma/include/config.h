@@ -65,9 +65,15 @@ class ConfigOptions {
         // Debug options
         int _signalGeneratorFrequency = -1;
 
+        void ReadStoredConfig();
+
+        void SaveStoredConfig();
+
     public:
 
         ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
+
+        ~ConfigOptions();
 
         int GetOutputAudioDevice() {
             return _outputAudioDevice;

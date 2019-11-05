@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cstring>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "booma.h"
 #include "config.h"
@@ -185,4 +187,73 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             exit(1);
         }
     }
+}
+
+ConfigOptions::~ConfigOptions() {
+std::cout << "CONFIG STOP" << std::endl;
+    SaveStoredConfig();
+}
+
+void ConfigOptions::ReadStoredConfig() {
+
+}
+
+
+void ConfigOptions::SaveStoredConfig() {
+
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to save configuration");
+        return;
+    }
+
+    // Check of the directory exists
+    struct stat stats;
+    if( stat(home, &stats) != -1 ) {
+        if( !S_ISDIR(stats.st_mode) ) {
+            HError("File ~/.booma exists, but should be a directory");
+            return;
+        }
+    } else {
+        HLog("Creating config directory ~/.booma");
+        std::string configPath(home);
+        configPath += "/.booma";
+        if (mkdir(configPath.c_str(), 0755) == -1) {
+            HError( (std::string("Error when creating ~/.booma: ") + strerror(errno)).c_str() );
+            return;
+        }
+    }
+
+    // Compose path to config file
+    std::string configFile(home);
+    configFile += "/.booma/config.ini";
+    std::cout << configFile << std::endl;
+
+    // Open the config file
+    std::ofstream configStream;
+    configStream.open(configFile);
+    if( !configStream.is_open() ) {
+        HError("Failed to open config file for writing");
+        return;
+    }
+
+    // Write config settings
+    configStream << "sampleRate=" << _sampleRate << std::endl;
+    configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
+    configStream << "inputSourceType=" << _inputSourceType << std::endl;
+    configStream << "inputAudioDevice=" << _inputAudioDevice << std::endl;
+    configStream << "frequency=" << _frequency << std::endl;
+    configStream << "receiverModeType=" << _receiverModeType << std::endl;
+    configStream << "remoteServer=" << _remoteServer << std::endl;
+    configStream << "remotePort=" << _remotePort << std::endl;
+    configStream << "rfGain=" << _rfGain << std::endl;
+    configStream << "volume=" << _volume << std::endl;
+    configStream << "dumpRf=" << _dumpRf << std::endl;
+    configStream << "dumpAudio=" << _dumpAudio << std::endl;
+    configStream << "dumpFileFormat" << _dumpFileFormat << std::endl;
+    configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
+
+    // Done writing the config file
+    configStream.close();
 }

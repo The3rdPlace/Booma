@@ -2,6 +2,7 @@
 #include "cwreceiver.h"
 
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose):
+    _opts(NULL),
     _current(NULL),
     _inputReader(NULL),
     _outputWriter(NULL),
@@ -29,6 +30,13 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 
     // Set initial receiver
     ChangeReceiver();
+}
+
+BoomaApplication::~BoomaApplication() {
+std::cout << "APP STOP" << std::endl;
+    if( _opts != NULL ) {
+        delete _opts;
+    }
 }
 
 bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {

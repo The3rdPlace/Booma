@@ -15,6 +15,8 @@ class BoomaApplication {
 
         BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose);
 
+        ~BoomaApplication();
+
         void Run() {
             IsTerminated = false;
             _current = new std::thread( [this]()  { this->processor->Run(); } );
