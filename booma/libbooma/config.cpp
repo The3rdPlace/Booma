@@ -39,6 +39,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
             std::cout << tr("==[Debugging]==") << std::endl;;
             std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
+            std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
             std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
 
             exit(0);
@@ -92,8 +93,17 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
+                _inputAudioDevice = -1;
                 _remoteServer = std::string();
                 _remotePort = 0;
+            }
+            if( strcmp(argv[i + 1], "FILE") == 0 ) {
+                _inputSourceType = PCM_FILE;
+                _pcmFile = argv[i + 2];
+                _inputAudioDevice = -1;
+                _remoteServer = std::string();
+                _remotePort = 0;
+                HLog("input file %s", _pcmFile.c_str());
             }
             i += 2;
             continue;
@@ -187,13 +197,30 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             std::cout << tr("Please select the input type with '-i [AUDIO] devicenumber'") << std::endl;
             exit(1);
         }
-        if( _inputSourceType == AUDIO_DEVICE && _inputAudioDevice < 0 ) {
+        else if( _inputSourceType == AUDIO_DEVICE && _inputAudioDevice < 0 ) {
             std::cout << tr("Please select the input audio device with '-i [AUDIO] devicenumber'") << std::endl;
             exit(1);
         }
-        if( _inputSourceType == SIGNAL_GENERATOR && _signalGeneratorFrequency < 0 ) {
-            std::cout << tr("Please select the input signal generator frequency with '-is frequency'") << std::endl;
+        else if( _inputSourceType == SIGNAL_GENERATOR && _signalGeneratorFrequency < 0 ) {
+            std::cout << tr("Please select the input signal generator frequency with '-i GENERATOR frequency'") << std::endl;
             exit(1);
+        }
+        else if( _inputSourceType == PCM_FILE ) {
+
+            // We need a filename
+            if( _pcmFile.empty() ) {
+                std::cout << tr("Please select the input filename with '-i FILE filename'") << std::endl;
+                exit(1);
+            }
+
+            // Check if the input file exists
+            struct stat stats;
+            if( stat(_pcmFile.c_str(), &stats) != -1 ) {
+                if( !S_ISREG(stats.st_mode) ) {
+                    std::cout << "Input file does not exist" << std::endl;
+                    exit(1);
+                }
+            }
         }
     }
 }
@@ -250,7 +277,7 @@ void ConfigOptions::ReadStoredConfig() {
 
         // Split into name and value
         size_t splitAt = opt.find_first_of("=");
-        if( splitAt >= 0 ) {
+        if( splitAt != std::string::npos ) {
             std::string name = opt.substr(0, splitAt);
             std::string value = opt.substr(splitAt + 1, std::string::npos);
 
@@ -269,6 +296,7 @@ void ConfigOptions::ReadStoredConfig() {
             if( name == "dumpAudio" )               _dumpAudio = atoi(value.c_str());
             if( name == "dumpFileFormat" )          _dumpFileFormat = (DumpFileFormatType) atoi(value.c_str());
             if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
+            if( name == "pcmFile" )                 _pcmFile = value;
         }
         configStream >> opt;
     }
@@ -354,6 +382,7 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "dumpAudio=" << _dumpAudio << std::endl;
     configStream << "dumpFileFormat" << _dumpFileFormat << std::endl;
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
+    configStream << "pcmFile=" << _pcmFile << std::endl;
 
     // Done writing the config file
     configStream.close();

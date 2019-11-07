@@ -7,7 +7,8 @@
 enum InputSourceType {
     NO_INPUT_TYPE = 0,
     AUDIO_DEVICE = 1,
-    SIGNAL_GENERATOR = 2
+    SIGNAL_GENERATOR = 2,
+    PCM_FILE = 3
 };
 
 /** Type of receiver */
@@ -64,6 +65,7 @@ class ConfigOptions {
 
         // Debug options
         int _signalGeneratorFrequency = -1;
+        std::string _pcmFile = "";
 
         void ReadStoredConfig();
 
@@ -165,6 +167,10 @@ class ConfigOptions {
 
         void SetSampleRate(int sampleRate) {
             _sampleRate = sampleRate;
+        }
+
+        std::string GetPcmFile() {
+            return _pcmFile;
         }
 };
 

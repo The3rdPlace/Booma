@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	// Initialize Booma
 	std::stringstream ss;
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
-	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
+	BoomaApplication app("Booma-Console", ss.str(), argc, argv, true);
 
     // Run initial receiver (if any configured)
     app.Run();
@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     std::string opt;
     std::string lastOpt;
     do {
-        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? "RF" : "__") << " " << (app.GetDumpAudio() ? "A" : "_") << "]# ";
+        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? "RF" : "__") << " " << (app.GetDumpAudio() ? "A" : "_") << " ]# ";
         cmd = (char) std::cin.get();
 
         // Repeat last command ?

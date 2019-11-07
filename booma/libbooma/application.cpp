@@ -166,9 +166,15 @@ bool BoomaApplication::SetInput() {
             case AUDIO_DEVICE:
                 HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
                 _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+                break;
             case SIGNAL_GENERATOR:
                 HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
                 _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 10);
+                break;
+            case PCM_FILE:
+                HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
+                _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile().c_str());
+                break;
             default:
                 std::cout << "No input source type defined" << std::endl;
                 return false;
@@ -275,7 +281,7 @@ bool BoomaApplication::ToggleDumpRf() {
 }
 
 bool BoomaApplication::GetDumpRf() {
-    return _rfMute->GetMuted();
+    return !_rfMute->GetMuted();
 }
 
 bool BoomaApplication::ToggleDumpAudio() {
@@ -285,7 +291,7 @@ bool BoomaApplication::ToggleDumpAudio() {
 }
 
 bool BoomaApplication::GetDumpAudio() {
-    return _audioMute->GetMuted();
+    return !_audioMute->GetMuted();
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
