@@ -19,7 +19,10 @@ class BoomaApplication {
 
         void Run() {
             IsTerminated = false;
-            _current = new std::thread( [this]()  { std::cout << "RUN" << std::endl; this->processor->Run(); std::cout << "STOP" << std::endl;} );
+            _current = new std::thread( [this]()  {
+                this->processor->Run();
+                std::cout << std::endl << "** Receiver has stopped**" << std::endl;
+            } );
             _isRunning = true;
         }
 

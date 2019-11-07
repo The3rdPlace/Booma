@@ -173,7 +173,7 @@ bool BoomaApplication::SetInput() {
                 break;
             case PCM_FILE:
                 HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
-                _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile().c_str());
+                _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile());
                 break;
             default:
                 std::cout << "No input source type defined" << std::endl;
