@@ -275,7 +275,7 @@ bool BoomaApplication::ToggleDumpRf() {
 }
 
 bool BoomaApplication::GetDumpRf() {
-    return _opts->GetDumpRf();
+    return _rfMute->GetMuted();
 }
 
 bool BoomaApplication::ToggleDumpAudio() {
@@ -285,7 +285,7 @@ bool BoomaApplication::ToggleDumpAudio() {
 }
 
 bool BoomaApplication::GetDumpAudio() {
-    return _opts->GetDumpAudio  ();
+    return _audioMute->GetMuted();
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
