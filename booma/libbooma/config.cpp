@@ -87,24 +87,29 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
                 _inputSourceType = AUDIO_DEVICE;
                 _inputAudioDevice = atoi(argv[i + 2]);
-                _remoteServer = std::string();
-                _remotePort = 0;
+                HLog("Input audio device %d", _inputAudioDevice);
             }
-            if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
+            else if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
-                _inputAudioDevice = -1;
-                _remoteServer = std::string();
-                _remotePort = 0;
+                HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
             }
-            if( strcmp(argv[i + 1], "FILE") == 0 ) {
+            else if( strcmp(argv[i + 1], "FILE") == 0 ) {
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
-                _inputAudioDevice = -1;
-                _remoteServer = std::string();
-                _remotePort = 0;
-                HLog("input file %s", _pcmFile.c_str());
+                HLog("Input file %s", _pcmFile.c_str());
             }
+            else
+            {
+                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|FILE");
+                exit(1);
+            }
+
+            _remoteServer = std::string();
+            _remotePort = 0;
+            _isRemoteHead = false;
+            _useRemoteHead = false;
+
             i += 2;
             continue;
         }
