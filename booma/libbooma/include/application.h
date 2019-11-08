@@ -21,7 +21,9 @@ class BoomaApplication {
             IsTerminated = false;
             _current = new std::thread( [this]()  {
                 this->processor->Run();
-                std::cout << std::endl << "** Receiver has stopped**" << std::endl;
+                IsTerminated = true;
+                _isRunning = false;
+                _current = NULL;
             } );
             _isRunning = true;
         }
@@ -36,6 +38,7 @@ class BoomaApplication {
             _isRunning = false;
         }
 
+        bool ChangeReceiver();
         bool ChangeReceiver(ReceiverModeType receiverModeType);
 
         HProcessor<int16_t>* processor;
@@ -78,7 +81,8 @@ class BoomaApplication {
         bool SetInput();
         bool SetReceiver();
         bool SetOutput();
-        bool ChangeReceiver();
+
+        bool InitializeReceiver();
 };
 
 #endif

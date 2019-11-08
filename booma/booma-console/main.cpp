@@ -127,11 +127,21 @@ int main(int argc, char** argv) {
                 std::cout << "Unknown receiver type" << std::endl;
             }
         }
+
+        // Restart with current receiver
+        else if( cmd == 's' ) {
+            app.ChangeReceiver();
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            app.Run();
+        }
+
+        // Get help
         else if( cmd == '?' || cmd == 'h' ) {
+            std::cout << "-------------------------------------------------------------------------------------" << std::endl;
             std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
-            std::cout << "Change receiver type:           r CW" << std::endl;
+            std::cout << "Change receiver type:           r CW           or  s (use current receiver and input)" << std::endl;
             std::cout << "Toggle audio recording on/off:  a" << std::endl;
             std::cout << "Toggle rf recording on/off:     p" << std::endl;
             std::cout << std::endl;
@@ -139,6 +149,7 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
             std::cout << "Get help (this text):           ?  or  h" << std::endl;
             std::cout << "Quit:                           q" << std::endl;
+            std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         }
 
         // Unknown command

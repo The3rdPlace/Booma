@@ -28,14 +28,18 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
     // Parse input arguments
     _opts = new ConfigOptions(appName, appVersion, argc, argv);
 
-    // Set initial receiver
-    ChangeReceiver();
+    // Initialize receiver
+    InitializeReceiver();
 }
 
 BoomaApplication::~BoomaApplication() {
     if( _opts != NULL ) {
         delete _opts;
     }
+}
+
+bool BoomaApplication::ChangeReceiver() {
+    return ChangeReceiver(_opts->GetReceiverModeType());
 }
 
 bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
@@ -47,17 +51,6 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
     // Register new receiver type
     HLog("Setting new receiver type");
     _opts->SetReceiverModeType(receiverModeType);
-
-    // Configure new receiver
-    HLog("Creating new receiver");
-    if( !ChangeReceiver() ) {
-        HError("Failed to create new receiver");
-        return false;
-    }
-    return true;
-}
-
-bool BoomaApplication::ChangeReceiver() {
 
     // Reset all previous receiver components
     if( _inputReader != NULL ) {
@@ -104,6 +97,17 @@ bool BoomaApplication::ChangeReceiver() {
         delete _receiver;
         _receiver = NULL;
     }
+
+    // Configure new receiver
+    HLog("Creating new receiver");
+    if( !InitializeReceiver() ) {
+        HError("Failed to create new receiver");
+        return false;
+    }
+    return true;
+}
+
+bool BoomaApplication::InitializeReceiver() {
 
     // Setup input
     if( !SetInput() ) {
