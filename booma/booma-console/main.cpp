@@ -4,6 +4,7 @@
 
 #include "main.h"
 #include "booma.h"
+#include "info.h"
 #include <thread>
 #include <chrono>
 
@@ -14,6 +15,11 @@ int main(int argc, char** argv) {
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
 	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
 
+	// Create an Info object to receive various informations from the receiver
+	Info info;
+
+	// Todo: Register handlers for signallevel and spectrum hooks
+	
     // Run initial receiver (if any configured)
     app.Run();
 
@@ -149,6 +155,13 @@ int main(int argc, char** argv) {
             std::cout << std::endl;
             std::cout << "Get help (this text):           ?  or  h" << std::endl;
             std::cout << "Quit:                           q" << std::endl;
+            std::cout << "-------------------------------------------------------------------------------------" << std::endl;
+        }
+
+        // Get info
+        else if( cmd == 'i' ) {
+            std::cout << "-------------------------------------------------------------------------------------" << std::endl;
+            info.GetInfo(app);
             std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         }
 

@@ -19,7 +19,7 @@ configure_file (
 )
 
 # add the executable
-add_executable (booma-console main.cpp)
+add_executable (booma-console main.cpp info.cpp)
 target_link_libraries (booma-console booma pthread ${Hardt_LIBRARIES})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
