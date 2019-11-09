@@ -97,6 +97,14 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         delete _receiver;
         _receiver = NULL;
     }
+    if( _signalLevel != NULL ) {
+        delete _signalLevel;
+        _signalLevel = NULL;
+    }
+    if( _signalLevelWriter != NULL ) {
+        delete _signalLevelWriter;
+        _signalLevelWriter = NULL;
+    }
 
     // Configure new receiver
     HLog("Creating new receiver");
@@ -207,15 +215,22 @@ bool BoomaApplication::SetOutput() {
         return true;
     }
 
-    // Setup a splitter and a filewriter so that we can dump audio data on request
+    // Setup a splitter to split off audio dump and signal level metering
     HLog("Setting up output audio splitter");
     _audioSplitter = new HSplitter<int16_t>(_receiver->Consumer());
+
+    // Add a filewriter so that we can dump audio data on request
     _audioMute = new HMute<int16_t>(_audioSplitter->Consumer(), !_opts->GetDumpAudio(), BLOCKSIZE);
     if( _opts->GetDumpFileFormat() == WAV ) {
         _audioWriter = new HWavWriter<int16_t>("audio.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _audioMute->Consumer());
     } else {
         _audioWriter = new HFileWriter<int16_t>("audio.pcm", _audioMute->Consumer());
     }
+
+    // Add audio signal level metering (before final volume adjust)
+    _signalLevel = new HSignalLevel<int16_t>(_audioSplitter->Consumer(), 10);
+    _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaApplication>(this, &BoomaApplication::SignalLevelCallback, _signalLevel->Consumer());
+    _firstLevel = true;
 
     // Initialize the audio output and the output gain control (volume)
     HLog("Initializing audio output");
@@ -234,6 +249,34 @@ bool BoomaApplication::SetOutput() {
 
     // Output configured
     return true;
+}
+
+int BoomaApplication::SignalLevelCallback(HSignalLevelResult* result, size_t length) {
+    static int index = 0;
+
+    // First incomming level is used to initialize the level averaging buffer
+    if( _firstLevel ) {
+        for( int i = 0; i < 16; i++ ) {
+            _signalLevels[i] = result->AvgDb;
+        }
+        _firstLevel = false;
+        return length;
+    }
+
+    // Store the current level in the averaging buffer
+    _signalLevels[index++] = result->AvgDb;
+    index = index & 0x0F;
+
+    return length;
+}
+
+int BoomaApplication::GetSignalLevel() {
+    int level = 0;
+    for( int i = 0; i < 16; i++ ) {
+        level += _signalLevels[i];
+    }
+    level /= 16;
+    return level;
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {

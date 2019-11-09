@@ -56,6 +56,7 @@ class BoomaApplication {
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
         int GetRfGain();
+        int GetSignalLevel();
 
     private:
 
@@ -75,6 +76,12 @@ class BoomaApplication {
         HSplitter<int16_t>* _audioSplitter;
         HMute<int16_t>* _rfMute;
         HMute<int16_t>* _audioMute;
+
+        HSignalLevel<int16_t>* _signalLevel;
+        HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
+        int SignalLevelCallback(HSignalLevelResult* result, size_t length);
+        int _signalLevels[16];
+        bool _firstLevel;
 
         BoomaReceiver* _receiver;
 

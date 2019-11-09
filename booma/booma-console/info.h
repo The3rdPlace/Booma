@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "booma.h"
+
 #ifndef BOOMA_INFO_H
 #define BOOMA_INFO_H
 
@@ -9,12 +11,16 @@ class Info {
 
     private:
 
-        int SignalLevel();
+        BoomaApplication* _app;
         void Spectrum(std::string name, int fSample);
 
     public:
 
-        void GetInfo(BoomaApplication app);
+        Info(BoomaApplication* app) {
+            _app = app;
+        }
+
+        void GetInfo();
 };
 
 #endif

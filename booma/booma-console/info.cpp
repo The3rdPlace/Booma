@@ -4,11 +4,12 @@
 #include <booma.h>
 
 #include "info.h"
+#include <hardtapi.h>
 
-void Info::GetInfo(BoomaApplication app) {
+void Info::GetInfo() {
 
     // Signallevel
-    std::cout << "Average signallevel: S 0" << std::endl;
+    std::cout << "Average signallevel: " << _app->GetSignalLevel() << " dB" << std::endl;
     std::cout << std::endl;
     std::cout << std::endl;
 
@@ -19,14 +20,6 @@ void Info::GetInfo(BoomaApplication app) {
     // Audio spectrum
     Spectrum("Audio spectrum", 48000);
     std::cout << std::endl;
-
-    // Metrics
-    std::cout << "Incomming blocks: 0 = 0 bytes" << std::endl;
-    std::cout << "Outgoing blocks: 0 = 0 bytes" << std::endl;
-}
-
-int Info::SignalLevel() {
-    return 0;
 }
 
 void Info::Spectrum(std::string name, int fSample) {

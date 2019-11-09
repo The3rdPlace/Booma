@@ -15,13 +15,11 @@ int main(int argc, char** argv) {
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
 	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
 
-	// Create an Info object to receive various informations from the receiver
-	Info info;
-
-	// Todo: Register handlers for signallevel and spectrum hooks
-	
     // Run initial receiver (if any configured)
     app.Run();
+
+	// Create an Info object to report various informations from the receiver
+	Info info(&app);
 
     // Read commands
     char cmd;
@@ -161,7 +159,7 @@ int main(int argc, char** argv) {
         // Get info
         else if( cmd == 'i' ) {
             std::cout << "-------------------------------------------------------------------------------------" << std::endl;
-            info.GetInfo(app);
+            info.GetInfo();
             std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         }
 
