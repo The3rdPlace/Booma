@@ -60,6 +60,9 @@ class BoomaApplication {
         int GetSignalLevel();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
+        int GetSampleRate() {
+            return SAMPLERATE;
+        }
 
     private:
 
