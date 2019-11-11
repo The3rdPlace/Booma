@@ -13,10 +13,11 @@ class BoomaApplication {
     public:
 
 
+        // constructor and destructor
         BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose);
-
         ~BoomaApplication();
 
+        // Run receiver chain
         void Run() {
             IsTerminated = false;
             _current = new std::thread( [this]()  {
@@ -28,6 +29,7 @@ class BoomaApplication {
             _isRunning = true;
         }
 
+        // Halt receiver chain
         void Halt() {
             IsTerminated = true;
             if( _current != NULL ) {
@@ -38,11 +40,9 @@ class BoomaApplication {
             _isRunning = false;
         }
 
+        // Public control functions
         bool ChangeReceiver();
         bool ChangeReceiver(ReceiverModeType receiverModeType);
-
-        HProcessor<int16_t>* processor;
-
         bool SetFrequency(long int frequency);
         long int GetFrequency();
         bool ChangeFrequency(int stepSize);
@@ -60,16 +60,21 @@ class BoomaApplication {
 
     private:
 
+        // Configuration and state
         ConfigOptions* _opts;
         bool IsTerminated;
         bool _isRunning;
         std::thread* _current;
 
+        HProcessor<int16_t>* processor;
+
+        // In- and output
         HReader<int16_t>* _inputReader;
         HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
 
+        // Splitting audio and RF
         HWriter<int16_t>* _rfWriter;
         HWriter<int16_t>* _audioWriter;
         HSplitter<int16_t>* _rfSplitter;
@@ -77,18 +82,20 @@ class BoomaApplication {
         HMute<int16_t>* _rfMute;
         HMute<int16_t>* _audioMute;
 
+        // Signal level reporting
         HSignalLevel<int16_t>* _signalLevel;
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
         int _signalLevels[16];
         bool _firstLevel;
 
+        // The active receiver
         BoomaReceiver* _receiver;
 
+        // Convenience functions for creating a receiver chain
         bool SetInput();
         bool SetReceiver();
         bool SetOutput();
-
         bool InitializeReceiver();
 };
 
