@@ -97,6 +97,7 @@ void Info::Spectrum(std::string name, int fSample, double* spectrum, int n, int 
         int pos = (n / 2) * q;
         footer[pos] = '>';
         footer[pos + 1] = '<';
-        std::cout << footer << std::endl;
     }
+    std::cout << footer << std::endl;
+
 }
