@@ -10,24 +10,23 @@
 void Info::GetInfo() {
 
     // Signallevel
-    std::cout << "Average signallevel: " << _app->GetSignalLevel() << " dB" << std::endl;
-    std::cout << std::endl;
+    std::cout << "Average signallevel: S" << _app->GetSignalLevel() << std::endl;
     std::cout << std::endl;
 
     // RF spectrum
-    Spectrum("RF spectrum", 48000);
+    double rfSpectrum[_app->GetRfFftSize()];
+    int rfN = _app->GetRfSpectrum(rfSpectrum);
+    Spectrum("RF spectrum", 48000, rfSpectrum, rfN, _app->GetFrequency());
     std::cout << std::endl;
 
     // Audio spectrum
-    //Spectrum("Audio spectrum", 48000);
-    //std::cout << std::endl;
+    double audioSpectrum[_app->GetAudioFftSize()];
+    int audioN = _app->GetAudioSpectrum(audioSpectrum);
+    Spectrum("Audio spectrum", 48000, audioSpectrum, audioN);
+    std::cout << std::endl;
 }
 
-void Info::Spectrum(std::string name, int fSample) {
-
-    // Get latest averaged spectrum
-    double spectrum[_app->GetRfFftSize()];
-    int n = _app->GetRfSpectrum(spectrum);
+void Info::Spectrum(std::string name, int fSample, double* spectrum, int n, int frequencyMarker) {
 
     // Find maximum magnitude for 2 bins
     double max = 0;
@@ -90,11 +89,14 @@ void Info::Spectrum(std::string name, int fSample) {
     footer.insert(0, (n / 2), '.');
 
     // Display current frequency (approximate)
-    int fs = _app->GetSampleRate() / 2;
-    int f = _app->GetFrequency();
-    float q = (float) f / (float) fs;
-    int pos = (n / 2) * q;
-    footer[pos] = '>';
-    footer[pos + 1] = '<';
-    std::cout << footer << std::endl;
+    if( frequencyMarker != 0 )
+    {
+        int fs = _app->GetSampleRate() / 2;
+        int f = _app->GetFrequency();
+        float q = (float) f / (float) fs;
+        int pos = (n / 2) * q;
+        footer[pos] = '>';
+        footer[pos + 1] = '<';
+        std::cout << footer << std::endl;
+    }
 }

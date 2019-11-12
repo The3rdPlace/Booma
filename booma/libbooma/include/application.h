@@ -59,6 +59,8 @@ class BoomaApplication {
         int GetSignalLevel();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
+        int GetAudioFftSize();
+        int GetAudioSpectrum(double* spectrum);
         int GetSampleRate() {
             return SAMPLERATE;
         }
@@ -91,8 +93,7 @@ class BoomaApplication {
         HSignalLevel<int16_t>* _signalLevel;
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
-        int _signalLevels[SIGNALLEVEL_AVERAGING_COUNT];
-        bool _firstSignalLevel;
+        int _signalStrength;
 
         // RF spectrum reporting
         HFft<int16_t>* _rfFft;
@@ -101,6 +102,14 @@ class BoomaApplication {
         HRectangularWindow<int16_t>* _rfFftWindow;
         double* _rfSpectrum;
         int _rfFftSize;
+
+        // Audio spectrum reporting
+        HFft<int16_t>* _audioFft;
+        HCustomWriter<HFftResults>* _audioFftWriter;
+        int AudioFftCallback(HFftResults* result, size_t length);
+        HRectangularWindow<int16_t>* _audioFftWindow;
+        double* _audioSpectrum;
+        int _audioFftSize;
 
         // The active receiver
         BoomaReceiver* _receiver;

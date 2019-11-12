@@ -12,7 +12,7 @@ class Info {
     private:
 
         BoomaApplication* _app;
-        void Spectrum(std::string name, int fSample);
+        void Spectrum(std::string name, int fSample, double* spectrum, int n, int frequencyMarker = 0);
 
     public:
 

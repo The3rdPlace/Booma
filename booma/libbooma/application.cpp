@@ -23,7 +23,12 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
     _rfFftWindow(NULL),
     _rfFftWriter(NULL),
     _rfSpectrum(NULL),
-    _rfFftSize(256)
+    _rfFftSize(256),
+    _audioFft(NULL),
+    _audioFftWindow(NULL),
+    _audioFftWriter(NULL),
+    _audioSpectrum(NULL),
+    _audioFftSize(256)
 {
 
     // Initialize the Hardt toolkit.
@@ -129,6 +134,22 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         delete _rfSpectrum;
         _rfSpectrum = NULL;
     }
+    if( _audioFft != NULL ) {
+        delete _audioFft;
+        _audioFft = NULL;
+    }
+    if( _audioFftWriter != NULL ) {
+        delete _audioFftWriter;
+        _audioFftWriter = NULL;
+    }
+    if( _audioFftWindow != NULL ) {
+        delete _audioFftWindow;
+        _audioFftWindow = NULL;
+    }
+    if( _audioSpectrum != NULL ) {
+        delete _audioSpectrum;
+        _audioSpectrum = NULL;
+    }
 
     // Configure new receiver
     HLog("Creating new receiver");
@@ -205,7 +226,9 @@ bool BoomaApplication::SetInput() {
                 break;
             case SIGNAL_GENERATOR:
                 HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
-                _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 10);
+                // The generator amplitude is adjustes so that, with the scalefactor '10' for the signallevel meter,
+                // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
+                _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 200);
                 break;
             case PCM_FILE:
                 HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
@@ -232,7 +255,7 @@ bool BoomaApplication::SetInput() {
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_INTERNAL_AVERAGING, _rfSplitter->Consumer(), _rfFftWindow);
+    _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, _rfSplitter->Consumer(), _rfFftWindow);
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaApplication>(this, &BoomaApplication::RfFftCallback, _rfFft->Consumer());
     _rfSpectrum = new double[_rfFftSize / 2];
     memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
@@ -262,9 +285,15 @@ bool BoomaApplication::SetOutput() {
     }
 
     // Add audio signal level metering (before final volume adjust)
-    _signalLevel = new HSignalLevel<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_INTERNAL_AVERAGING);
+    _signalLevel = new HSignalLevel<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 10);
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaApplication>(this, &BoomaApplication::SignalLevelCallback, _signalLevel->Consumer());
-    _firstSignalLevel = true;
+
+    // Add RF spectrum calculation
+    _audioFftWindow = new HRectangularWindow<int16_t>();
+    _audioFft = new HFft<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, _audioSplitter->Consumer(), _audioFftWindow);
+    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaApplication>(this, &BoomaApplication::AudioFftCallback, _audioFft->Consumer());
+    _audioSpectrum = new double[_audioFftSize / 2];
+    memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
 
     // Initialize the audio output and the output gain control (volume)
     HLog("Initializing audio output");
@@ -286,31 +315,14 @@ bool BoomaApplication::SetOutput() {
 }
 
 int BoomaApplication::SignalLevelCallback(HSignalLevelResult* result, size_t length) {
-    static int index = 0;
 
-    // First incomming level is used to initialize the level averaging buffer
-    if( _firstSignalLevel ) {
-        for( int i = 0; i < SIGNALLEVEL_AVERAGING_COUNT; i++ ) {
-            _signalLevels[i] = result->AvgDb;
-        }
-        _firstSignalLevel = false;
-        return length;
-    }
-
-    // Store the current level in the averaging buffer
-    _signalLevels[index++] = result->AvgDb;
-    index = index & SIGNALLEVEL_AVERAGING_COUNT;
-
+    // Store the current level
+    _signalStrength = result->S;
     return length;
 }
 
 int BoomaApplication::GetSignalLevel() {
-    int level = 0;
-    for( int i = 0; i < 16; i++ ) {
-        level += _signalLevels[i];
-    }
-    level /= 16;
-    return level;
+    return _signalStrength;
 }
 
 int BoomaApplication::RfFftCallback(HFftResults* result, size_t length) {
@@ -327,6 +339,22 @@ int BoomaApplication::GetRfFftSize() {
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
     memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
     return _rfFftSize / 2;
+}
+
+int BoomaApplication::AudioFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
+    return length;
+}
+
+int BoomaApplication::GetAudioFftSize() {
+    return _audioFftSize / 2;
+}
+
+int BoomaApplication::GetAudioSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioFftSize / 2);
+    return _audioFftSize / 2;
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
