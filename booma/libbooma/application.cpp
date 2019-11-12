@@ -234,8 +234,8 @@ bool BoomaApplication::SetInput() {
     _rfFftWindow = new HRectangularWindow<int16_t>();
     _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_INTERNAL_AVERAGING, _rfSplitter->Consumer(), _rfFftWindow);
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaApplication>(this, &BoomaApplication::RfFftCallback, _rfFft->Consumer());
-    _rfSpectrum = new double[RFFFT_AVERAGING_COUNT * _rfFftSize];
-    memset((void*) _rfSpectrum, 0, sizeof(double) * RFFFT_AVERAGING_COUNT * _rfFftSize);
+    _rfSpectrum = new double[_rfFftSize / 2];
+    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
 
     // Ready
     return true;
@@ -314,21 +314,9 @@ int BoomaApplication::GetSignalLevel() {
 }
 
 int BoomaApplication::RfFftCallback(HFftResults* result, size_t length) {
-    static int index = 0;
 
-    // First incomming spectrum is used to initiaize the spectrum averaging buffer
-    if( _firstRfSpectrum ) {
-        for( int i = 0; i < RFFFT_AVERAGING_COUNT; i++ ) {
-            memcpy((void*) &_rfSpectrum[i * _rfFftSize], (void*) result->Spectrum, sizeof(double) * _rfFftSize);
-        }
-        _firstRfSpectrum = false;
-        return length;
-    }
-
-    // Store the current spectrum in the averaging buffer
-    memcpy((void*) &_rfSpectrum[(index++) * _rfFftSize], (void*) result->Spectrum, sizeof(double) * _rfFftSize);
-    index = index & RFFFT_AVERAGING_COUNT;
-
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
     return length;
 }
 
@@ -337,16 +325,7 @@ int BoomaApplication::GetRfFftSize() {
 }
 
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
-
-    memset((void*) spectrum, 0, sizeof(double) * (_rfFftSize / 2));
-    for( int i = 0; i < RFFFT_AVERAGING_COUNT; i++ ) {
-        for( int j = 0; j < _rfFftSize / 2; j++ ) {
-            spectrum[j] += _rfSpectrum[(i * _rfFftSize) + j];
-        }
-    }
-    for( int j = 0; j < _rfFftSize / 2; j++ ) {
-        spectrum[j] /= RFFFT_AVERAGING_COUNT;
-    }
+    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
     return _rfFftSize / 2;
 }
 

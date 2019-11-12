@@ -13,7 +13,6 @@ class BoomaApplication {
 
     public:
 
-
         // constructor and destructor
         BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose);
         ~BoomaApplication();
@@ -102,7 +101,6 @@ class BoomaApplication {
         HRectangularWindow<int16_t>* _rfFftWindow;
         double* _rfSpectrum;
         int _rfFftSize;
-        bool _firstRfSpectrum;
 
         // The active receiver
         BoomaReceiver* _receiver;
