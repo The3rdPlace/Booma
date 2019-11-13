@@ -36,6 +36,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Debugging]==") << std::endl;;
     std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
     std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
+    std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
 }
 
@@ -105,6 +106,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
                 HLog("Input file %s", _pcmFile.c_str());
+            }
+            else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
+                _inputSourceType = SILENCE;
+                HLog("input silence");
             }
             else
             {

@@ -8,7 +8,8 @@ enum InputSourceType {
     NO_INPUT_TYPE = 0,
     AUDIO_DEVICE = 1,
     SIGNAL_GENERATOR = 2,
-    PCM_FILE = 3
+    PCM_FILE = 3,
+    SILENCE = 4
 };
 
 /** Type of receiver */
