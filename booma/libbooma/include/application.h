@@ -19,6 +19,7 @@ class BoomaApplication {
 
         // Run receiver chain
         void Run() {
+	    HLog("Run receiver chain");
             IsTerminated = false;
             _current = new std::thread( [this]()  {
                 this->processor->Run();
@@ -27,26 +28,41 @@ class BoomaApplication {
                 _current = NULL;
             } );
             _isRunning = true;
+            HLog("Receiver chain is running");
         }
 
         // Halt receiver chain
-        void Halt() {
+        void Halt(bool wait = true) {
+	    HLog("Halt receiver chain");
             IsTerminated = true;
-            if( _current != NULL ) {
-                _current->join();
-                _current = NULL;
+            if( wait )
+            {
+	        HLog("Wait for receiver chain to halt");
+                if( _current != NULL ) {
+ 		    HLog("Joining active thread");
+                    _current->join();
+                    _current = NULL;
+                    HLog("Thread joined");
+                }
+
+		HLog("Resetting running state");
+                IsTerminated = false;
+                _isRunning = false;
             }
-            IsTerminated = false;
-            _isRunning = false;
+            HLog("Receiver chain is halted");
         }
 
         // Wait for the receiver chain to exit
         void Wait() {
+            HLog("Waiting for active receiver chain to halt");
             if( _current != NULL ) {
+	        HLog("Has active thread, joining");
                 _current->join();
                 _current = NULL;
+                HLog("Active thread halted");
             }
             _isRunning = false;
+            HLog("Active receiver chain has halted");
         }
 
         // Public control functions
