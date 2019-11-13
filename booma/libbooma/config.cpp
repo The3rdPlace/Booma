@@ -8,40 +8,43 @@
 #include "config.h"
 #include "language.h"
 
+void ConfigOptions::PrintUsage() {
+    std::cout << tr("Usage: booma-console [-option [parameter, ...]]") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Information]==") << std::endl;
+    std::cout << tr("Show this help and exit                  -h --help") << std::endl;
+    std::cout << tr("Show version and exit                    --version") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Options]==") << std::endl;
+    std::cout << tr("Dump output audio as pcm to file         -a PCM") << std::endl;
+    std::cout << tr("Dump output audio as wav to file         -a WAV") << std::endl;
+    std::cout << tr("Select frequency (default 17.2KHz)       -f frequecy") << std::endl;
+    std::cout << tr("Rf gain (default 30)                     -g gain") << std::endl;
+    std::cout << tr("Select audio input source                -i AUDIO devicenumber ") << std::endl;
+    std::cout << tr("Select CW receive mode (default)         -m CW") << std::endl;
+    std::cout << tr("Select output device                     -o devicenumber") << std::endl;
+    std::cout << tr("Dump rf input as pcm to file             -p PCM") << std::endl;
+    std::cout << tr("Dump rf input as wav to file (default)   -p WAV") << std::endl;
+    std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
+    std::cout << tr("Receiver for remote input                -r address port") << std::endl;
+    std::cout << tr("Server for remote input                  -s port") << std::endl;
+    std::cout << tr("Output volume (default 200)              -v volume") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Debugging]==") << std::endl;;
+    std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
+    std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
+    std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
+}
+
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
         if( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) {
-            std::cout << tr("Usage: booma-console [-option [parameter, ...]]") << std::endl;
-            std::cout << std::endl;
-
-            std::cout << tr("==[Information]==") << std::endl;
-            std::cout << tr("Show this help and exit                  -h --help") << std::endl;
-            std::cout << tr("Show version and exit                    --version") << std::endl;
-            std::cout << std::endl;
-
-            std::cout << tr("==[Options]==") << std::endl;
-            std::cout << tr("Dump output audio as pcm to file         -a PCM") << std::endl;
-            std::cout << tr("Dump output audio as wav to file         -a WAV") << std::endl;
-            std::cout << tr("Select frequency (default 17.2KHz)       -f frequecy") << std::endl;
-            std::cout << tr("Rf gain (default 30)                     -g gain") << std::endl;
-            std::cout << tr("Select audio input source                -i AUDIO devicenumber ") << std::endl;
-            std::cout << tr("Select CW receive mode (default)         -m CW") << std::endl;
-            std::cout << tr("Select output device                     -o devicenumber") << std::endl;
-            std::cout << tr("Dump rf input as pcm to file             -p PCM") << std::endl;
-            std::cout << tr("Dump rf input as wav to file (default)   -p WAV") << std::endl;
-            std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
-            std::cout << tr("Receiver for remote input                -r address port") << std::endl;
-            std::cout << tr("Server for remote input                  -s port") << std::endl;
-            std::cout << tr("Output volume (default 200)              -v volume") << std::endl;
-            std::cout << std::endl;
-
-            std::cout << tr("==[Debugging]==") << std::endl;;
-            std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
-            std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
-            std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
-
+            PrintUsage();
             exit(0);
         }
         if( strcmp(argv[i], "--version" ) == 0 ) {
@@ -51,7 +54,11 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Seed configuration with values from last execution
-    ReadStoredConfig();
+    if( !ReadStoredConfig() && argc == 1 ) {
+        std::cout << "No stored config in ~/.booma/config.ini and no arguments. Kindly presenting options" << std::endl << std::endl;
+        PrintUsage();
+        exit(1);
+    }
 
     // Second pass: config options
     for( int i = 0; i < argc; i++ ) {
@@ -234,13 +241,13 @@ ConfigOptions::~ConfigOptions() {
     SaveStoredConfig();
 }
 
-void ConfigOptions::ReadStoredConfig() {
+bool ConfigOptions::ReadStoredConfig() {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
     if( home == NULL ) {
         HError("No HOME env. variable. Unable to read configuration");
-        return;
+        return false;
     }
 
     // Compose the config path
@@ -252,14 +259,14 @@ void ConfigOptions::ReadStoredConfig() {
     if( stat(configPath.c_str(), &stats) != -1 ) {
         if( !S_ISDIR(stats.st_mode) ) {
             HError("File ~/.booma exists, but should be a directory");
-            return;
+            return false;
         }
         HLog("Config directory %s exists", configPath.c_str());
     }
     else
     {
         HLog("Config directory does not exists, no config to read");
-        return;
+        return false;
     }
 
     // Compose path to config file
@@ -272,7 +279,7 @@ void ConfigOptions::ReadStoredConfig() {
     configStream.open(configFile, std::ifstream::in);
     if( !configStream.is_open() ) {
         HError("Failed to open config file for reading");
-        return;
+        return false;
     }
 
     // Read all stored config settings
@@ -306,7 +313,7 @@ void ConfigOptions::ReadStoredConfig() {
         configStream >> opt;
     }
 
-    // Done writing the config file
+    // Done reading the config file
     configStream.close();
 
     // Set flags
@@ -325,6 +332,9 @@ void ConfigOptions::ReadStoredConfig() {
         _isRemoteHead = true;
         HLog("Has remote port and remote server, is remote head");
     }
+
+    // Read a stored config
+    return true;
 }
 
 

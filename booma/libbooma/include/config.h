@@ -67,8 +67,9 @@ class ConfigOptions {
         int _signalGeneratorFrequency = -1;
         std::string _pcmFile = "";
 
-        void ReadStoredConfig();
+        void PrintUsage();
 
+        bool ReadStoredConfig();
         void SaveStoredConfig();
 
     public:
