@@ -141,6 +141,7 @@ class BoomaApplication {
 
         // Convenience functions for creating a receiver chain
         bool SetInput();
+        bool SetInputReader();
         bool SetReceiver();
         bool SetOutput();
         bool InitializeReceiver();

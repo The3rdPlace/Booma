@@ -203,12 +203,45 @@ bool BoomaApplication::SetReceiver() {
     }
 }
 
+bool BoomaApplication::SetInputReader() {
+    switch( _opts->GetInputSourceType() ) {
+        case AUDIO_DEVICE:
+            HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
+            _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            break;
+        case SIGNAL_GENERATOR:
+            HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
+            // The generator amplitude is adjustes so that, with the scalefactor '10' for the signallevel meter,
+            // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
+            _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 200);
+            break;
+        case PCM_FILE:
+            HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
+            _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile());
+            break;
+        case SILENCE:
+            HLog("Initializing nullreader");
+            _inputReader = new HNullReader<int16_t>();
+            break;
+        default:
+            std::cout << "No input source type defined" << std::endl;
+            return false;
+    }
+    return true;
+}
+
 bool BoomaApplication::SetInput() {
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( _opts->GetUseRemoteHead()) {
-        HLog("Initializing network processor with local audio input device %d", _opts->GetInputAudioDevice());
-        _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+
+        HLog("Creating input reader");
+        if( !SetInputReader() ) {
+            std::cout << "Unable to create input reader" << std::endl;
+            return false;
+        }
+
+        HLog("Initializing network processor with selected input device");
         processor = new HNetworkProcessor<int16_t>(_opts->GetRemotePort(), _inputReader, BLOCKSIZE, &IsTerminated);
         return true;
     }
@@ -219,29 +252,13 @@ bool BoomaApplication::SetInput() {
         processor = new HNetworkProcessor<int16_t>(_opts->GetRemoteServer().c_str(), _opts->GetRemotePort(), BLOCKSIZE, &IsTerminated);
     }
     else {
-        switch( _opts->GetInputSourceType() ) {
-            case AUDIO_DEVICE:
-                HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
-                _inputReader = new HSoundcardReader<int16_t>(_opts->GetInputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-                break;
-            case SIGNAL_GENERATOR:
-                HLog("Initializing signal generator at frequency %d", _opts->GetSignalGeneratorFrequency());
-                // The generator amplitude is adjustes so that, with the scalefactor '10' for the signallevel meter,
-                // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
-                _inputReader = new HSineGenerator<int16_t>(_opts->GetSampleRate(), _opts->GetSignalGeneratorFrequency(), 200);
-                break;
-            case PCM_FILE:
-                HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
-                _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile());
-                break;
-            case SILENCE:
-                HLog("Initializing nullreader");
-                _inputReader = new HNullReader<int16_t>();
-                break;
-            default:
-                std::cout << "No input source type defined" << std::endl;
-                return false;
+        HLog("Creating input reader");
+        if( !SetInputReader() ) {
+            std::cout << "Unable to create input reader" << std::endl;
+            return false;
         }
+
+        HLog("Initializing stream processor with selected input device");
         processor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, &IsTerminated);
     }
 

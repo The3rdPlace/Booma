@@ -165,7 +165,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
             _remotePort = atoi(argv[i + 1]);
             _useRemoteHead = true;
-            _inputAudioDevice = -1;
             i++;
             continue;
         }
