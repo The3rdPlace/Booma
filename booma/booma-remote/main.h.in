@@ -1,0 +1,8 @@
+#ifndef __MAIN_H
+#define __MAIN_H
+
+#define BOOMAREMOTE_MAJORVERSION @BoomaRemote_VERSION_MAJOR@
+#define BOOMAREMOTE_MINORVERSION @BoomaRemote_VERSION_MINOR@
+#define BOOMAREMOTE_BUILDNO @BoomaRemote_VERSION_BUILD@
+
+#endif

@@ -40,6 +40,15 @@ class BoomaApplication {
             _isRunning = false;
         }
 
+        // Wait for the receiver chain to exit
+        void Wait() {
+            if( _current != NULL ) {
+                _current->join();
+                _current = NULL;
+            }
+            _isRunning = false;
+        }
+
         // Public control functions
         bool ChangeReceiver();
         bool ChangeReceiver(ReceiverModeType receiverModeType);
