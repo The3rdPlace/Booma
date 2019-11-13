@@ -50,7 +50,7 @@ class ConfigOptions {
         // Remote head configuration
         bool _isRemoteHead = false;
         std::string _remoteServer;
-        int _remotePort = 0;
+        int _remotePort = 1720;
         bool _useRemoteHead = false;
 
         // First stage gain
