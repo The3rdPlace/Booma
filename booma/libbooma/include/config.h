@@ -69,6 +69,7 @@ class ConfigOptions {
         std::string _pcmFile = "";
 
         void PrintUsage();
+        void PrintCards();
 
         bool ReadStoredConfig();
         void SaveStoredConfig();

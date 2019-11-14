@@ -13,8 +13,9 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
+    std::cout << tr("Show a list of audio devices             -c --cards") << std::endl;
     std::cout << tr("Show this help and exit                  -h --help") << std::endl;
-    std::cout << tr("Show version and exit                    --version") << std::endl;
+    std::cout << tr("Show version and exit                    -v --version") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Options]==") << std::endl;
@@ -23,6 +24,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Select frequency (default 17.2KHz)       -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 30)                     -g gain") << std::endl;
     std::cout << tr("Select audio input source                -i AUDIO devicenumber ") << std::endl;
+    std::cout << tr("Output volume (default 200)              -l volume") << std::endl;
     std::cout << tr("Select CW receive mode (default)         -m CW") << std::endl;
     std::cout << tr("Select output device                     -o devicenumber") << std::endl;
     std::cout << tr("Dump rf input as pcm to file             -p PCM") << std::endl;
@@ -30,7 +32,6 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
     std::cout << tr("Receiver for remote input                -r address port") << std::endl;
     std::cout << tr("Server for remote input                  -s port") << std::endl;
-    std::cout << tr("Output volume (default 200)              -v volume") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;;
@@ -40,15 +41,45 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
 }
 
+void ConfigOptions::PrintCards() {
+
+    if( HSoundcard::AvailableDevices() == 0 )
+    {
+        std::cout << "There is no soundcards available on this system" << std::endl; 
+        return;
+    }
+    std::cout << "Default device is: " << HSoundcard::GetDefaultDevice() << std::endl;
+    std::cout << std::endl; 
+    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation(); 
+    for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        std::cout << "Device:            " << (*it).Device << " = " << (*it).Name << std::endl;
+        std::cout << "Inputs:              " << (*it).Inputs << std::endl;
+        std::cout << "Outputs:             " << (*it).Outputs << std::endl;
+        std::cout << "Is default device:   " << ((*it).IsDefaultDevice ? "yes" : "no") << std::endl;
+        std::cout << std::endl;
+    }
+}
+
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
+
+        // Show available audio cards
+        if( strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cards") == 0 ) {
+            PrintCards();
+            exit(0);
+        }
+
+        // Get helpt
         if( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) {
             PrintUsage();
             exit(0);
         }
-        if( strcmp(argv[i], "--version" ) == 0 ) {
+
+        // Get version information
+        if( strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version" ) == 0 ) {
             std::cout << appName << " " << appVersion << " " << tr("using") << " Booma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << " " << tr("and") << " Hardt " << getversion() << std::endl;
             exit(0);
         }
@@ -126,6 +157,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Volume
+        if( strcmp(argv[i], "-l") == 0 && i < argc + 1) {
+            _volume = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
         // Select receiver mode ...
         if( strcmp(argv[i], "-m") == 0 && i < argc + 1) {
             if( strcmp(argv[i + 1], "CW") == 0 ) {
@@ -175,13 +213,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _remotePort = atoi(argv[i + 2]);
             _isRemoteHead = true;
             _inputAudioDevice = -1;
-            i++;
-            continue;
-        }
-
-        // Volume
-        if( strcmp(argv[i], "-v") == 0 && i < argc + 1) {
-            _volume = atoi(argv[i + 1]);
             i++;
             continue;
         }
