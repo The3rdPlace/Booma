@@ -158,10 +158,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 exit(1);
             }
 
-            _remoteServer = std::string();
-            _remotePort = 0;
-            _isRemoteHead = false;
-
             i += 2;
             continue;
         }
@@ -239,7 +235,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         exit(1);
     }
     if( _useRemoteHead && _remotePort == 0 ) {
-        std::cout << tr("Please select port for the remote input server with '-s port'") << std::endl;
+        std::cout << tr("Please select port for the input server with '-s port'") << std::endl;
         exit(1);
     }
 
