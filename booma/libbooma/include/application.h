@@ -14,7 +14,7 @@ class BoomaApplication {
     public:
 
         // constructor and destructor
-        BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose);
+        BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv);
         ~BoomaApplication();
 
         // Run receiver chain

@@ -2,7 +2,7 @@
 #include "cwreceiver.h"
 #include "booma.h"
 
-BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv, bool verbose):
+BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv):
     _opts(NULL),
     _current(NULL),
     _inputReader(NULL),
@@ -33,7 +33,7 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 
     // Initialize the Hardt toolkit.
     // Set the last argument to 'true' to enable verbose output instead of logging to a local file
-    HInit(std::string("Booma"), verbose);
+    HInit(std::string("Booma"), ConfigOptions::IsVerbose(argc, argv));
 
     // Show library name and and Hardt version.
     HLog("booma: using Hardt %s", getversion().c_str());

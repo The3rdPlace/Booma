@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 	// Initialize Booma
 	std::stringstream ss;
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
-	BoomaApplication app("Booma-Console", ss.str(), argc, argv, false);
+	BoomaApplication app("Booma-Console", ss.str(), argc, argv);
 
     // Run initial receiver (if any configured)
     app.Run();

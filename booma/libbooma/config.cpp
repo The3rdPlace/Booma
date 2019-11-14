@@ -34,7 +34,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Server for remote input                  -s port") << std::endl;
     std::cout << std::endl;
 
-    std::cout << tr("==[Debugging]==") << std::endl;;
+    std::cout << tr("==[Debugging]==") << std::endl;
+    std::cout << tr("Verbose debug output                     -d --debug") << std::endl;
     std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
     std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
     std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
@@ -58,6 +59,16 @@ void ConfigOptions::PrintCards() {
         std::cout << "        Outputs:  " << (*it).Outputs << std::endl;
         std::cout << std::endl;
     }
+}
+
+bool ConfigOptions::IsVerbose(int argc, char** argv) {
+
+    for( int i = 1; i < argc; i++ ) {
+        if( strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--debug") == 0 ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
@@ -143,14 +154,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             }
             else
             {
-                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|FILE");
+                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|FILE") << std::endl;
                 exit(1);
             }
 
             _remoteServer = std::string();
             _remotePort = 0;
             _isRemoteHead = false;
-            _useRemoteHead = false;
 
             i += 2;
             continue;
@@ -198,20 +208,22 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Server for remote input
-        if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
-            _remotePort = atoi(argv[i + 1]);
-            _useRemoteHead = true;
-            i++;
-            continue;
-        }
-
         // Receiver for remote input
         if( strcmp(argv[i], "-r") == 0 && argc < argc + 2) {
             _remoteServer = argv[i + 1];
             _remotePort = atoi(argv[i + 2]);
             _isRemoteHead = true;
+            _useRemoteHead = false;
             _inputAudioDevice = -1;
+            i++;
+            continue;
+        }
+
+        // Server for remote input
+        if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
+            _remotePort = atoi(argv[i + 1]);
+            _isRemoteHead = false;
+            _useRemoteHead = true;
             i++;
             continue;
         }

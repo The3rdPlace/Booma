@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	// Initialize Booma
 	std::stringstream ss;
 	ss << "version " << BOOMAREMOTE_MAJORVERSION << "." << BOOMAREMOTE_MINORVERSION << "." << BOOMAREMOTE_BUILDNO;
-	app = new BoomaApplication("Booma-Remote", ss.str(), argc, argv, false);
+	app = new BoomaApplication("Booma-Remote", ss.str(), argc, argv);
 
 	// Setup a signal handler so that we can exit cleanly
 	SetupSignalHandling();

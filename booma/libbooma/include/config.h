@@ -80,6 +80,8 @@ class ConfigOptions {
 
         ~ConfigOptions();
 
+        static bool IsVerbose(int argc, char** argv);
+
         int GetOutputAudioDevice() {
             return _outputAudioDevice;
         }
