@@ -289,7 +289,7 @@ bool ConfigOptions::ReadStoredConfig() {
     const char* home = std::getenv("HOME");
     if( home == NULL ) {
         HError("No HOME env. variable. Unable to read configuration");
-        return false;
+        return true;
     }
 
     // Compose the config path
