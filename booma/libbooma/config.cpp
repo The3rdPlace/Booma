@@ -48,15 +48,14 @@ void ConfigOptions::PrintCards() {
         std::cout << "There is no soundcards available on this system" << std::endl; 
         return;
     }
-    std::cout << "Default device is: " << HSoundcard::GetDefaultDevice() << std::endl;
-    std::cout << std::endl; 
-    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation(); 
+    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
+    std::cout << std::endl;
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
-        std::cout << "Device:            " << (*it).Device << " = " << (*it).Name << std::endl;
-        std::cout << "Inputs:              " << (*it).Inputs << std::endl;
-        std::cout << "Outputs:             " << (*it).Outputs << std::endl;
-        std::cout << "Is default device:   " << ((*it).IsDefaultDevice ? "yes" : "no") << std::endl;
+        std::cout << "Device: " << (*it).Device << std::endl;
+        std::cout << "        \"" << (*it).Name << "\"" << std::endl;
+        std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
+        std::cout << "        Outputs:  " << (*it).Outputs << std::endl;
         std::cout << std::endl;
     }
 }
