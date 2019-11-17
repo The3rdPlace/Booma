@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_install:
+	cmake ../../.
+	$(MAKE) DESTDIR=$$(pwd)/debian/booma prefix=/usr/local install
+
+override_dh_usrlocal:
+

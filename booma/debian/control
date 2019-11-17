@@ -1,0 +1,12 @@
+Source: booma
+Maintainer: Henrik Witt-Hansen <henrik@hardttoolkit.org>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: booma
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Booma - a SDR VLF Receiver
+ Based on the Hardt toolkit (The Hamradio DSP Toolkit)
