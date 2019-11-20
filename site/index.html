@@ -11,9 +11,11 @@
 
         a {
             color: #cc0000;
+            text-decoration: none;
         }
         a:visited {
-            color: #cc00;
+            color: #cc0000;
+            text-decoration: none;
         }
 
         .command {
@@ -32,10 +34,32 @@
         }
 
         #logo {
-            padding-left: 10px;
-            padding-right: 30px;
-            padding-bottom: 30px;
+            padding-right: 10px;
+            padding-bottom: 10px;
             float: left
+        }
+
+        .menuitem {
+            background: #ffffff;
+            color: #cccccc;
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-left: 1px;
+            margin-right: 1px;
+            border: solid 1px #000000;
+        }
+
+        .menuitem:hover {
+            background-color: #eeeeee;
+        }
+
+        a.menulink {
+            color: #cc0000;
+            text-decoration: none;
+        }
+        a.menulink:visited {
+            color: #cc0000;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -45,6 +69,10 @@
 
     <div id="header">
         <img src="booma.png" width="200px" id="logo"/>
+        <div id="menu">
+            <span class="menuitem"><a href="index.html" class="menulink">Welcome</a></span><span class="menuitem">Download</span><span class="menuitem">Documentation</span>
+        </div>
+        <br><br>
         This is <b>Booma</b> - a SDR VLF receiver born out of curiosity while listening to the <a href="https://alexander.n.se">SAQ / Grimeton transmitter</a>.
         <br><br>
         As a ham radio operator, I have always been fascinated with the lower part of the frequency spectrum, ever since I entered
@@ -61,7 +89,7 @@
         to use my, somewhat prehistoric knownledge of digital signalprocessing from college, for a real project. So this spawned the Booma project.
         <br><br>
         The digital signal processing is done by a lowlevel framework, written as part of this project, but separated out since I want to be able to use
-        it for other smaller projects as well.
+        it for other smaller projects as well (<a href="http://hardttoolkit.org/">here</a>).
         <br><br>
         Currently, all Booma can do, is to receiving at frequencies in the audio range (using a soundcard as the receiver frontend),
         and detecting CW and RTTY signals. However, I have big plans for extending the basic receiver for use with RTL based
@@ -87,7 +115,7 @@
         Booma requires the Hardt toolkit (The Hamradio DSP Toolkit) found here <a href="http://hardttoolkit.org/">http://hardttoolkit.org/</a>
         and PortAudio <a href="http://www.portaudio.com/">http://www.portaudio.com/</a>
     </div>
-    <br><br>
+    <br>
 
     <div id="install">
         You can download a deb package for linux (debian 9 or there about) here:
