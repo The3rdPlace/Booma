@@ -61,6 +61,10 @@
             color: #cc0000;
             text-decoration: none;
         }
+
+        .DEBHIDDEN {
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
@@ -147,16 +151,15 @@
     <br>
 
     <div id="install">
+        <span class="DEBVISIBLE">
         You can download a deb package for linux (debian 9 or there about) here:
-        booma <a href="booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb">booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</a> or you can build from the sources from the public Github repo at
+            <a href="booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb">booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</a> and install with
+            <ul>
+                <li class="command">sudo dpkg -i booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</li>
+            </ul>
+        </span>
+        Build from the sources from the public Github repo at
         <a href="https://github.com/The3rdPlace/Booma.git">https://github.com/The3rdPlace/Booma.git</a>
-        <br><br>
-
-        The debian package is installed with this command:
-        <ul>
-            <li class="command">sudo dpkg -i booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</li>
-        </ul>
-        If you download the sources, building and installing Booma should be simple:
         <ul>
             <li class="command">cmake .</li>
             <li class="command">make</li>

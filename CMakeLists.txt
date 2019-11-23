@@ -43,6 +43,24 @@ if(UNIX AND NOT APPLE)
 
     add_dependencies( publish dist )
 
+else()
+
+    ADD_CUSTOM_TARGET( dist
+    COMMAND sudo rm -r -f dist
+    COMMAND mkdir -p dist/booma
+    COMMAND tar -c -v -f 'dist/booma_${Booma_VERSION_MAJOR}.${Booma_VERSION_MINOR}.orig.tar.gz' -z 'CMakeLists.txt' 'booma'
+    COMMAND sudo chown -R $ENV{USER} dist
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+
+    add_dependencies( dist booma )
+
+    ADD_CUSTOM_TARGET( publish
+        COMMAND mkdir ../dist/site
+        COMMAND cp ../site/index.html ../dist/site/index.html
+        COMMAND ../publish.sh)
+
+    add_dependencies( publish dist )
+
 endif()
 
 ADD_CUSTOM_TARGET( distclean
