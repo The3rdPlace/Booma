@@ -72,40 +72,63 @@
         <div id="menu">
             <span class="menuitem"><a href="index.html" class="menulink">Welcome</a></span><span class="menuitem">Download</span><span class="menuitem">Documentation</span>
         </div>
-        <br><br>
-        This is <b>Booma</b> - a SDR VLF receiver born out of curiosity while listening to the <a href="https://alexander.n.se">SAQ / Grimeton transmitter</a>.
-        <br><br>
-        As a ham radio operator, I have always been fascinated with the lower part of the frequency spectrum, ever since I entered
-        a room full of the sounds of the 80m band at night at the JOTA event. I do find it amazing that I can close a contact with a fellow
-        (he, she or binary) 8.000km's away just by pumping about as much electricity as an old fashioned lightbulb into a piece of wire strong across my garding.
-        But there's a certain magic when the waves becomes extra long. The first contacts on 160m was fantastic, and when I found it about the Grimeton transmitter
-        in sweeden (by coincidence, passing the antennas on the highway en route to Oslo) - I was captured.
-        <br><br>
-        Being able to generate 17.2KHz is one thing, that can be done with a violin bow or an organ pipe, but putting that frequency out into the skies - and
-        being able to receive it somewhere else.! Thats stills stands as a bit of a mystery for me.
-        <br><br>
-        Not many receivers exists for such low frequencies, but the energies is (at least in europe) large enough so that we can capture these transmissions
-        just by using the microphone input of a soundcard and a (not too short) piece of wire. So this was a challenge too good to let go. I have long wanted
-        to use my, somewhat prehistoric knownledge of digital signalprocessing from college, for a real project. So this spawned the Booma project.
-        <br><br>
-        The digital signal processing is done by a lowlevel framework, written as part of this project, but separated out since I want to be able to use
-        it for other smaller projects as well (<a href="http://hardttoolkit.org/">here</a>).
-        <br><br>
-        Currently, all Booma can do, is to receiving at frequencies in the audio range (using a soundcard as the receiver frontend),
-        and detecting CW and RTTY signals. However, I have big plans for extending the basic receiver for use with RTL based
-        sdr dongles and, at least, listning on the LW, MW and Shortwave bands..  But for now, its a (not very fancy) receiver
-        for the SAQ transmitter. Also, only a console app. exists for controlling the receiver, but once the inner parts of the receiver has stabilized, I
-        start getting a more userfriendly graphical userinterface ready.
-        <br><br>
-        You can run Booma entirely from a single pc, using the soundcard and some wire as an antenne - or you can scale it up a bit.
-        <br><br>
-        I have a Raspberry Pi (zero) in the basement with a USB soundcard and aprox. 50m of wire strong into a hedge, connected to the microphone input.
         <br>
-        The Raspberry Pi is wired directly to a switch - and thats important, since a wifi ethernet card do generate quite a big burst of noise when
-        transmitting. In my shack elsewhere in the house, I run Booma on my mac, receiving the antenna input from the Raspberry Pi. This way, I have moved
-        the actual receiver as long away from in-house noise sources as possible, I also use a good linear, stabilized power supply for the Raspberry Pi.
-        <br><br>
-        This setup was part of the project from the get go, so remote operating was a design criteria from the very beginning - and it works nicely!
+        <h3>This is <u>Booma</u> - a SDR VLF receiver </h3>
+        Booma was born out of curiosity while listening to the <a href="https://alexander.n.se">SAQ / Grimeton transmitter</a>
+        and wondering why so few SDR receivers and dongles could receive these low frequencies.
+        <br>
+        <br>
+        Other options for listening to SAQ Grimeton is the <a href="<https://sites.google.com/site/sm6lkm/saqrx/">SAQrx</a> program by Johan, SM6LKM., a (newer) fork
+        of SAQrx <a href="https://sites.google.com/site/swljo30tb/">SAQrx_V094</a>, or a websdr receiver <a href="http://websdr.ewi.utwente.nl:8901/">like this on in Twente</a>
+        SAQ
+        <br>
+        <br>
+        <br>
+        <hr>
+        I have been fascinated with the lower part of the frequency spectrum, ever since I entered
+        a room full of the sounds of the 80m band at night at the JOTA event.
+        <br>
+        As a ham radio operator, I do find it amazing that I can close a contact with a fellow (he, she or binary) 8.000km's away just by pumping about as much electricity
+        as an old fashioned lightbulb into a piece of wire strong across my garding, but there's a certain magic when the waves becomes extra long.
+        <br>
+        The first contacts I made on 160m was fantastic, and when I found about the Grimeton transmitter in sweeden (by coincidence, passing the antennas on the highway en
+        route to Oslo), transmitting on a whooping 17.2KHz - I was captured.
+        <br>
+        <br>
+        Being able to generate 17.2KHz is one thing, that can be done with a violin bow, an organ pipe or the simplest electronic oscillator (whom amongst the ham fellowship
+        has not put together an <i>astable multivibrator</i>?), but putting that frequency out into the skies - and  being able to receive it somewhere else.!
+        Thats stills stands as a bit of a mystery for me.
+        <br>
+        <br>
+        Not many receivers exists for such low frequencies, but the energies is (at least in europe) large enough so that we can capture these transmissions
+        just by using the microphone input of a soundcard and a (not too short) piece of wire. So this was a challenge too good to let go. Also, I have long wanted
+        to use my, somewhat prehistoric knownledge of digital signalprocessing from college, for a real project. So this spawned the Booma project.
+        <br>
+        <br>
+        The digital signal processing is done by a lowlevel framework <u>Hardt</u> (The Hamradio DSP Toolkit), written as part of this project, but separated out
+        since I want to be able to use it for other smaller projects as well (<a href="http://hardttoolkit.org/">here</a>).
+        <br>
+        <br>
+        Currently, all Booma can do, is to receive on frequencies in the audio range (using a soundcard as the receiver frontend),
+        and detecting CW and RTTY signals. However, I have big plans for extending the basic receiver for use with RTL based
+        sdr dongles, at least for receiving LW, MW and shortwave bands..  But for now, its a (not very fancy) receiver
+        for the SAQ transmitter.
+        <br>
+        <br>
+        Also, only a console application exists for controlling the receiver, but once the inner parts of the receiver has stabilized, I will
+        begin to put together a more userfriendly (modern) graphical user interface.
+        <br>
+        <br>
+        You can run Booma entirely from a single pc, using the soundcard and some wire as an antenne - or you can scale it up a bit.
+        <br>
+        <br>
+        I have a Raspberry Pi (zero) in the basement with a USB soundcard and connected to the microphone input, aprox. 50m of wire strong into a hedge.
+        <br>
+        The Raspberry Pi is run from a good linear stabilized power supply, and wired directly to an ethernet switch - and thats important since a wifi ethernet card do
+        generate quite a big burst of noise when transmitting, which ruins VLF reception.
+        <br>
+        In my shack elsewhere in the house, I run Booma on my mac, receiving the antenna input from the Raspberry Pi. This way, I have moved
+        the actual receiver as long away from in-house noise sources as possible (50Hz mains, the freezer, switched power adapters etc. etc.)
     </div>
     <br>
     <hr/>
@@ -113,7 +136,13 @@
 
     <div id="requirements">
         Booma requires the Hardt toolkit (The Hamradio DSP Toolkit) found here <a href="http://hardttoolkit.org/">http://hardttoolkit.org/</a>
-        and PortAudio <a href="http://www.portaudio.com/">http://www.portaudio.com/</a>
+        and PortAudio <a href="http://www.portaudio.com/">http://www.portaudio.com/</a>. If you want to build Booma (and Hardt), you also need
+        the CLang compiler and CMake, on the Mac CLang somehow is part of XCode so you may need to upgrade or install XCode if you dont already have it.
+        <br>
+        <br>
+        Hardt and Booma builds on Linux (tested on Debian, but any distro should be fine), Mac and Raspberry Pi (with the Raspian OS, others  may work too).
+        Small adjustments is needed to make them build on win32, but I am working on that, so either a Cygwin GCC or the (free) Visual Studio suite should
+        work as well in the near future.
     </div>
     <br>
 
@@ -145,7 +174,7 @@
         on my macbook in the shack (further down the road, booma-guui will be the preferred application in the shack).
         <br><br>
         To get started, check which sounddevices is available on your system and note which one is the input where the antenna is connected, and which one is the output:
-        <ul><li class="command">booma-console -c</li></ul>
+        <ul><li class="command">booma-console -c (or booma-remote -c)</li></ul>
         You can then start booma-console:
         <ul><li class="command">booma-console -i AUDIO (input device number) -o (output device number)</li></ul>
         If you wish to run a remote setup, then it looks like this:
@@ -158,7 +187,7 @@
         <b>Important note:</b> On some systems, PortAudio may not be accessible to regular users, so <span class="command">booma-console -c</span> will
         return 'no devices found', and trying to start the receiver will result in an error.
         <br>
-        You either need to set booma-console/booma-remote <span class="command">suid</span> or run them with <span class="command">sudo</span>. The Rasperrian
+        In that case, you either need to set booma-console/booma-remote <span class="command">suid</span> or run with <span class="command">sudo</span>. The Raspian
         OS behaves like this, and other linux distros may have been configured this way too.
     </div>
 </div>
