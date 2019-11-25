@@ -9,7 +9,8 @@ enum InputSourceType {
     AUDIO_DEVICE = 1,
     SIGNAL_GENERATOR = 2,
     PCM_FILE = 3,
-    SILENCE = 4
+    WAV_FILE = 4,
+    SILENCE = 5
 };
 
 /** Type of receiver */
@@ -67,6 +68,7 @@ class ConfigOptions {
         // Debug options
         int _signalGeneratorFrequency = -1;
         std::string _pcmFile = "";
+        std::string _wavFile = "";
 
         void PrintUsage();
         void PrintCards();
@@ -176,6 +178,10 @@ class ConfigOptions {
 
         std::string GetPcmFile() {
             return _pcmFile;
+        }
+
+        std::string GetWavFile() {
+            return _wavFile;
         }
 };
 

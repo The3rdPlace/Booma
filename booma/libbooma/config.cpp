@@ -37,7 +37,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Debugging]==") << std::endl;
     std::cout << tr("Verbose debug output                     -d --debug") << std::endl;
     std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
-    std::cout << tr("Use pcm file as input                    -i FILE filename") << std::endl;
+    std::cout << tr("Use pcm file as input                    -i PCM filename") << std::endl;
+    std::cout << tr("Use wav file as input                    -i WAV filename") << std::endl;
     std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
 }
@@ -143,10 +144,15 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
                 HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
             }
-            else if( strcmp(argv[i + 1], "FILE") == 0 ) {
+            else if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
                 HLog("Input file %s", _pcmFile.c_str());
+            }
+            else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+                _inputSourceType = WAV_FILE;
+                _wavFile = argv[i + 2];
+                HLog("Input file %s", _wavFile.c_str());
             }
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
                 _inputSourceType = SILENCE;
@@ -154,9 +160,12 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             }
             else
             {
-                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|FILE") << std::endl;
+                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|PCM|WAV|SILENCE") << std::endl;
                 exit(1);
             }
+
+            // If we have a local input, we can not be a remote receiver
+            _isRemoteHead = false;
 
             i += 2;
             continue;
@@ -263,13 +272,30 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
             // We need a filename
             if( _pcmFile.empty() ) {
-                std::cout << tr("Please select the input filename with '-i FILE filename'") << std::endl;
+                std::cout << tr("Please select the input filename with '-i PCM filename'") << std::endl;
                 exit(1);
             }
 
             // Check if the input file exists
             struct stat stats;
             if( stat(_pcmFile.c_str(), &stats) != -1 ) {
+                if( !S_ISREG(stats.st_mode) ) {
+                    std::cout << "Input file does not exist" << std::endl;
+                    exit(1);
+                }
+            }
+        }
+        else if( _inputSourceType == WAV_FILE ) {
+
+            // We need a filename
+            if( _wavFile.empty() ) {
+                std::cout << tr("Please select the input filename with '-i WAV filename'") << std::endl;
+                exit(1);
+            }
+
+            // Check if the input file exists
+            struct stat stats;
+            if( stat(_wavFile.c_str(), &stats) != -1 ) {
                 if( !S_ISREG(stats.st_mode) ) {
                     std::cout << "Input file does not exist" << std::endl;
                     exit(1);
@@ -351,6 +377,7 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "dumpFileFormat" )          _dumpFileFormat = (DumpFileFormatType) atoi(value.c_str());
             if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
             if( name == "pcmFile" )                 _pcmFile = value;
+            if( name == "wavFile" )                 _wavFile = value;
         }
         configStream >> opt;
     }
@@ -440,6 +467,7 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "dumpFileFormat" << _dumpFileFormat << std::endl;
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
     configStream << "pcmFile=" << _pcmFile << std::endl;
+    configStream << "wavFile=" << _wavFile << std::endl;
 
     // Done writing the config file
     configStream.close();

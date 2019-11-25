@@ -219,6 +219,10 @@ bool BoomaApplication::SetInputReader() {
             HLog("Initializing pcm file reader for input file %s", _opts->GetPcmFile().c_str());
             _inputReader = new HFileReader<int16_t>(_opts->GetPcmFile());
             break;
+        case WAV_FILE:
+            HLog("Initializing wav file reader for input file %s", _opts->GetWavFile().c_str());
+            _inputReader = new HWavReader<int16_t>(_opts->GetWavFile().c_str());
+            break;
         case SILENCE:
             HLog("Initializing nullreader");
             _inputReader = new HNullReader<int16_t>();
