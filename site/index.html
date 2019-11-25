@@ -64,6 +64,8 @@
 
         .DEBHIDDEN {
             visibility: hidden;
+            height: 0px;
+            width:0 px;
         }
     </style>
 </head>
@@ -151,13 +153,13 @@
     <br>
 
     <div id="install">
-        <span class="DEBVISIBLE">
+        <div class="DEBVISIBLE">
         You can download a deb package for linux (debian 9 or there about) here:
             <a href="booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb">booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</a> and install with
             <ul>
                 <li class="command">sudo dpkg -i booma_{MAJORVERSION}.{MINORVERSION}-{BUILD}_amd64.deb</li>
             </ul>
-        </span>
+        </div>
         Build from the sources from the public Github repo at
         <a href="https://github.com/The3rdPlace/Booma.git">https://github.com/The3rdPlace/Booma.git</a>
         <ul>
