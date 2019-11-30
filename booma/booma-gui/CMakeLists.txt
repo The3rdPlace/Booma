@@ -24,4 +24,8 @@ target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 include(GNUInstallDirs)
-install(FILES ${CMAKE_BINARY_DIR}/booma/booma-gui/booma-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(
+	FILES ${CMAKE_BINARY_DIR}/booma/booma-gui/booma-gui 
+	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
+	DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
