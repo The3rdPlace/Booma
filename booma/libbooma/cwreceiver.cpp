@@ -11,21 +11,15 @@
 // Removes (almost) anything but the mixed down signal at the center frequency
 //
 // Designed using http://www.micromodeler.com/dsp/
- float BoomaCwReceiver::_bandpassCoeffs[] =
+float BoomaCwReceiver::_bandpassCoeffs[] =
 {
     0.06318758096656742, -0.12637516193313483, 0.06318758096656742, 1.9822798942156608, -0.9928732078139422,// b0, b1, b2, a1, a2
     0.0625, -0.125, 0.0625, 1.986908612864604, -0.9971024098670853,// b0, b1, b2, a1, a2
     0.000244140625, 0.00048828125, 0.000244140625, 1.9814486970269125, -0.9926669567470747,// b0, b1, b2, a1, a2
     0.000244140625, 0.00048828125, 0.000244140625, 1.9851881609275535, -0.996895491657892// b0, b1, b2, a1, a2
 };
-/*{  1000-1100 Hz
-    0.06053979315740952, -0.12107958631481903, 0.06053979315740952, 1.9701579350811518, -0.9881958184253727,// b0, b1, b2, -a1, -a2
-    0.125, -0.25, 0.125, 1.9780280925054692, -0.9952212910209018,// b0, b1, b2, -a1, -a2
-    0.00048828125, 0.0009765625, 0.00048828125, 1.9683639531082289, -0.9877622267827567,// b0, b1, b2, -a1, -a2
-    0.00048828125, 0.0009765625, 0.00048828125, 1.9742906058109615, -0.9947853486870636// b0, b1, b2, -a1, -a2
-};*/
 
-#define CW_TONE_FREQUENCY 820
+#define CW_TONE_FREQUENCY 850
 
 BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWriterConsumer<int16_t>* previous):
     BoomaReceiver(samplerate) {
@@ -45,7 +39,7 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     // get mirrored back into the final frequency range and cause (more) distortion.
     // (In this receiver, the results are good when the cutoff frequency is located at the local oscillator frequency)
     HLog("- Preselect");
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency - CW_TONE_FREQUENCY, GetSampleRate(), 0.8071f, 1, BLOCKSIZE);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency, GetSampleRate(), 0.8071f, 1, BLOCKSIZE);
 
     // Mix down to the output frequency.
     // 17200Hz - 16160Hz = 1040Hz  (place it somewhere inside the bandpass filter pass region)
