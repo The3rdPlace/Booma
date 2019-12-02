@@ -65,7 +65,7 @@ bool BoomaCwReceiver::SetFrequency(long int frequency) {
 
     // Set new multiplier frequency and adjust the preselect bandpass filter
     _multiplier->SetFrequency(frequency - CW_TONE_FREQUENCY);
-    ((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency - CW_TONE_FREQUENCY, GetSampleRate(), 0.8071f, 1, BLOCKSIZE);
+    ((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency, GetSampleRate(), 0.8071f, 1, BLOCKSIZE);
 
     // Ready
     return true;
@@ -74,8 +74,8 @@ bool BoomaCwReceiver::SetFrequency(long int frequency) {
 bool BoomaCwReceiver::SetRfGain(int gain) {
 
     // Sane gain values are between 1 and 100
-    if( gain < 1 || gain > 200 ) {
-        HError("Unsupported rf gain value %d, must be between 1 and 200", gain);
+    if( gain < 1 || gain > 100 ) {
+        HError("Unsupported rf gain value %d, must be between 1 and 100", gain);
         return false;
     }
 
