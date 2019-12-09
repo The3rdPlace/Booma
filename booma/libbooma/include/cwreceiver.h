@@ -11,13 +11,14 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(int sampleRate, int frequency, int gain, HWriterConsumer<int16_t>* previous);
+        BoomaCwReceiver(int sampleRate, int frequency, int gain, HWriterConsumer<int16_t>* previous, bool enableProbes);
 
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);
 
     private:
 
+        bool _enableProbes;
         HPassThrough<int16_t>* _passthrough;
         HProbe<int16_t>* _passthroughProbe;
         HProbe<int16_t>* _gainProbe;

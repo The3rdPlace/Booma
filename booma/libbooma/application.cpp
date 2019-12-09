@@ -195,7 +195,7 @@ bool BoomaApplication::SetReceiver() {
     // Create receiver
     switch( _opts->GetReceiverModeType() ) {
         case CW:
-            _receiver = new BoomaCwReceiver(_opts->GetSampleRate(), _opts->GetFrequency(), _opts->GetRfGain(), _rfSplitter->Consumer());
+            _receiver = new BoomaCwReceiver(_opts->GetSampleRate(), _opts->GetFrequency(), _opts->GetRfGain(), _rfSplitter->Consumer(), _opts->GetEnableProbes());
             return true;
         default:
             std::cout << "Unknown receiver type defined" << std::endl;
