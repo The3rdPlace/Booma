@@ -25,11 +25,16 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     BoomaReceiver(samplerate) {
     HLog("Creating CW receiver chain");
 
+    // Add a passthrough block so that we can add a probe to the input
+    HLog("- Passthrough (input)");
+    _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", true);
+    _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
+
     // Add hum filter to remove 50Hz harmonics and the very lowest part of the spectrum (incl. 50Hz)
     // These components, which have very high levels, will completely botch the rest of the chain
     // if allowed through (50Hz input is here a.o., with an insanely high level)
     HLog("- HumFilter");
-    _humFilter = new HHumFilter<int16_t>(previous, GetSampleRate(), 50, 600, BLOCKSIZE);
+    _humFilter = new HHumFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, 600, BLOCKSIZE);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HLog("- RF gain");
