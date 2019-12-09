@@ -1,3 +1,10 @@
+booma (1.0-$) UNRELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Added debugging probes (Closes: #XXXXXX)
+
+ -- Mackie <henrik@hardttoolkit.org>  Mon, 09 Dec 2019 22:52:00 +0200
+
 booma (1.0-0) UNRELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
