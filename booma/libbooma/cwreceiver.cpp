@@ -33,26 +33,31 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HLog("- RF gain");
-    _gain = new HGain<int16_t>(_humFilter->Consumer(), gain, BLOCKSIZE);
+    _gainProbe = new HProbe<int16_t>("cwreceiver_03_gain", true);
+    _gain = new HGain<int16_t>(_humFilter->Consumer(), gain, BLOCKSIZE, _gainProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
     // (In this receiver, the results are good when the cutoff frequency is located at the local oscillator frequency)
     HLog("- Preselect");
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency, GetSampleRate(), 0.8071f, 1, BLOCKSIZE);
+    _preselectProbe = new HProbe<int16_t>("cwreceiver_04_preselect", true);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency, GetSampleRate(), 0.8071f, 1, BLOCKSIZE, _preselectProbe);
 
     // Mix down to the output frequency.
     // 17200Hz - 16160Hz = 1040Hz  (place it somewhere inside the bandpass filter pass region)
     HLog("- Mixer");
-    _multiplier = new HMultiplier<int16_t>(_preselect->Consumer(), GetSampleRate(), frequency - CW_TONE_FREQUENCY, BLOCKSIZE);
+    _multiplierProbe = new HProbe<int16_t>("cwreceiver_05_multiplier", true);
+    _multiplier = new HMultiplier<int16_t>(_preselect->Consumer(), GetSampleRate(), frequency - CW_TONE_FREQUENCY, BLOCKSIZE, _multiplierProbe);
 
     // Narrow butterworth bandpass filter, bandwidth 100Hz around 1000-1100. 4th. order, 4 biquads cascaded
     HLog("- Bandpass");
-    _bandpass = new HCascadedBiQuadFilter<int16_t>(_multiplier->Consumer(), _bandpassCoeffs, 20, BLOCKSIZE);
+    _bandpassProbe = new HProbe<int16_t>("cwreceiver_06_bandpass", true);
+    _bandpass = new HCascadedBiQuadFilter<int16_t>(_multiplier->Consumer(), _bandpassCoeffs, 20, BLOCKSIZE, _bandpassProbe);
 
     // General lowpass filtering after mixing down to IF
     HLog("- Lowpass");
-    _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, GetSampleRate(), 0.7071f, 1, BLOCKSIZE);
+    _lowpassProbe = new HProbe<int16_t>("cwreceiver_07_lowpass", true);
+    _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _lowpassProbe);
 }
 
 bool BoomaCwReceiver::SetFrequency(long int frequency) {

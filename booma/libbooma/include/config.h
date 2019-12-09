@@ -76,6 +76,8 @@ class ConfigOptions {
         bool ReadStoredConfig();
         void SaveStoredConfig();
 
+        bool _enableProbes = false;
+
     public:
 
         ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
@@ -182,6 +184,10 @@ class ConfigOptions {
 
         std::string GetWavFile() {
             return _wavFile;
+        }
+
+        bool GetEnableProbes() {
+            return _enableProbes;
         }
 };
 

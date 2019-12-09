@@ -41,6 +41,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Use wav file as input                    -i WAV filename") << std::endl;
     std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
+    std::cout << tr("Enable probes (dump intermediate pcm)    -x") << std::endl;
 }
 
 void ConfigOptions::PrintCards() {
@@ -105,6 +106,11 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
     // Second pass: config options
     for( int i = 0; i < argc; i++ ) {
+
+        // Enable probes
+        if( strcmp(argv[i], "-x") == 0 ) {
+            _enableProbes = true;
+        }
 
         // Dump output as ... to file
         if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {

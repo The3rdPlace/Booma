@@ -18,6 +18,12 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     private:
 
+        HProbe<int16_t>* _gainProbe;
+        HProbe<int16_t>* _preselectProbe;
+        HProbe<int16_t>* _multiplierProbe;
+        HProbe<int16_t>* _bandpassProbe;
+        HProbe<int16_t>* _lowpassProbe;
+
         HHumFilter<int16_t>* _humFilter;
 
         HGain<int16_t>* _gain;
