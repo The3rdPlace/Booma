@@ -35,7 +35,8 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     // These components, which have very high levels, will completely botch the rest of the chain
     // if allowed through (50Hz input is here a.o., with an insanely high level)
     HLog("- HumFilter");
-    _humFilter = new HHumFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, 600, BLOCKSIZE);
+    _humFilterProbe = new HProbe<int16_t>("cwreceiver_02_humfilter", _enableProbes);
+    _humFilter = new HHumFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, 600, BLOCKSIZE, _humFilterProbe);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HLog("- RF gain");
@@ -64,6 +65,26 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     HLog("- Lowpass");
     _lowpassProbe = new HProbe<int16_t>("cwreceiver_07_lowpass", _enableProbes);
     _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _lowpassProbe);
+}
+
+BoomaCwReceiver::~BoomaCwReceiver() {
+    delete _passthrough;
+    delete _humFilterProbe;
+    delete _passthroughProbe;
+    delete _gainProbe;
+    delete _preselectProbe;
+    delete _multiplierProbe;
+    delete _bandpassProbe;
+    delete _lowpassProbe;
+
+    delete _humFilter;
+
+    delete _gain;
+    delete _preselect;
+    delete _multiplier;
+
+    delete _bandpass;
+    delete _lowpass;
 }
 
 bool BoomaCwReceiver::SetFrequency(long int frequency) {
