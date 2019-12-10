@@ -21,7 +21,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         bool _enableProbes;
         HPassThrough<int16_t>* _passthrough;
-        HProbe<int16_t>* _humFilterProbe;
+        HProbe<int16_t>* _highpassProbe;
         HProbe<int16_t>* _passthroughProbe;
         HProbe<int16_t>* _gainProbe;
         HProbe<int16_t>* _preselectProbe;
@@ -29,7 +29,7 @@ class BoomaCwReceiver : public BoomaReceiver {
         HProbe<int16_t>* _bandpassProbe;
         HProbe<int16_t>* _lowpassProbe;
 
-        HHumFilter<int16_t>* _humFilter;
+        HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
 
         HGain<int16_t>* _gain;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
@@ -38,10 +38,9 @@ class BoomaCwReceiver : public BoomaReceiver {
         static float _bandpassCoeffs[];
 
         HCascadedBiQuadFilter<int16_t>* _bandpass;
-        HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpass;
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _lowpass->Consumer();
+            return _bandpass->Consumer();
         }
 };
 

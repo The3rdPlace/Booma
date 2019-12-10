@@ -31,17 +31,15 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", _enableProbes);
     _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
 
-    // Add hum filter to remove 50Hz harmonics and the very lowest part of the spectrum (incl. 50Hz)
-    // These components, which have very high levels, will completely botch the rest of the chain
-    // if allowed through (50Hz input is here a.o., with an insanely high level)
-    HLog("- HumFilter");
-    _humFilterProbe = new HProbe<int16_t>("cwreceiver_02_humfilter", _enableProbes);
-    _humFilter = new HHumFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, 600, BLOCKSIZE, _humFilterProbe);
+    // Add a highpass filter to remove the lowest part of the spectrum (50HZ/60HZ and nearest harmonics)
+    HLog("- Highpass");
+    _highpassProbe = new HProbe<int16_t>("cwreceiver_02_humfilter", _enableProbes);
+    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_passthrough->Consumer(), 200, GetSampleRate(), 0.8071f, 1, BLOCKSIZE, _highpassProbe);
 
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HLog("- RF gain");
     _gainProbe = new HProbe<int16_t>("cwreceiver_03_gain", _enableProbes);
-    _gain = new HGain<int16_t>(_humFilter->Consumer(), gain, BLOCKSIZE, _gainProbe);
+    _gain = new HGain<int16_t>(_highpass->Consumer(), gain, BLOCKSIZE, _gainProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
@@ -60,31 +58,25 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     HLog("- Bandpass");
     _bandpassProbe = new HProbe<int16_t>("cwreceiver_06_bandpass", _enableProbes);
     _bandpass = new HCascadedBiQuadFilter<int16_t>(_multiplier->Consumer(), _bandpassCoeffs, 20, BLOCKSIZE, _bandpassProbe);
-
-    // General lowpass filtering after mixing down to IF
-    HLog("- Lowpass");
-    _lowpassProbe = new HProbe<int16_t>("cwreceiver_07_lowpass", _enableProbes);
-    _lowpass = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_bandpass->Consumer(), 1000, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _lowpassProbe);
 }
 
 BoomaCwReceiver::~BoomaCwReceiver() {
-    delete _passthrough;
-    delete _humFilterProbe;
-    delete _passthroughProbe;
-    delete _gainProbe;
-    delete _preselectProbe;
-    delete _multiplierProbe;
-    delete _bandpassProbe;
-    delete _lowpassProbe;
-
-    delete _humFilter;
+    delete _highpass;
 
     delete _gain;
     delete _preselect;
     delete _multiplier;
 
     delete _bandpass;
-    delete _lowpass;
+
+    delete _passthrough;
+    delete _highpassProbe;
+    delete _passthroughProbe;
+    delete _gainProbe;
+    delete _preselectProbe;
+    delete _multiplierProbe;
+    delete _bandpassProbe;
+    delete _lowpassProbe;
 }
 
 bool BoomaCwReceiver::SetFrequency(long int frequency) {
