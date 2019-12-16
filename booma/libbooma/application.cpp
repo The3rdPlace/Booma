@@ -272,10 +272,11 @@ bool BoomaApplication::SetInput() {
 
     // Add a filewriter so that we can dump pcm data on request
     _rfMute = new HMute<int16_t>(_rfSplitter->Consumer(), !_opts->GetDumpRf(), BLOCKSIZE);
+    std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
     if( _opts->GetDumpFileFormat() == WAV ) {
-        _rfWriter = new HWavWriter<int16_t>("input.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _rfMute->Consumer());
+        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _rfMute->Consumer());
     } else {
-        _rfWriter = new HFileWriter<int16_t>("input.pcm", _rfMute->Consumer());
+        _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfMute->Consumer());
     }
 
     // Add RF spectrum calculation
@@ -303,10 +304,11 @@ bool BoomaApplication::SetOutput() {
 
     // Add a filewriter so that we can dump audio data on request
     _audioMute = new HMute<int16_t>(_audioSplitter->Consumer(), !_opts->GetDumpAudio(), BLOCKSIZE);
+    std::string dumpfile = "OUTPUT_" + std::to_string(std::time(nullptr));
     if( _opts->GetDumpFileFormat() == WAV ) {
-        _audioWriter = new HWavWriter<int16_t>("audio.wav", H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _audioMute->Consumer());
+        _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, _opts->GetSampleRate(), _audioMute->Consumer());
     } else {
-        _audioWriter = new HFileWriter<int16_t>("audio.pcm", _audioMute->Consumer());
+        _audioWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _audioMute->Consumer());
     }
 
     // Add audio signal level metering (before final volume adjust)

@@ -1,4 +1,11 @@
-booma (1.0-$) UNRELEASED; urgency=medium
+booma (1.0-2) UNRELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Changed names of input and output dumpfiles (Closes: #XXXXXX)
+
+ -- Mackie <henrik@hardttoolkit.org>  Mon, 16 Dec 2019 23:09:00 +0200
+
+booma (1.0-1) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
   * Added debugging probes (Closes: #XXXXXX)
@@ -6,7 +13,7 @@ booma (1.0-$) UNRELEASED; urgency=medium
 
  -- Mackie <henrik@hardttoolkit.org>  Mon, 09 Dec 2019 22:52:00 +0200
 
-booma (1.0-0) UNRELEASED; urgency=medium
+booma (1.0-0) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
   * Initial release (Closes: #XXXXXX)
