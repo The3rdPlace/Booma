@@ -22,6 +22,8 @@ class BoomaCwReceiver : public BoomaReceiver {
         bool _enableProbes;
         HPassThrough<int16_t>* _passthrough;
         HProbe<int16_t>* _highpassProbe;
+        HCombFilter<int16_t>* _humfilter;
+        HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _passthroughProbe;
         HProbe<int16_t>* _gainProbe;
         HProbe<int16_t>* _preselectProbe;
