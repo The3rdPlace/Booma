@@ -18,7 +18,7 @@ float BoomaCwReceiver::_bandpassCoeffs[] =
     0.000244140625, 0.00048828125, 0.000244140625, 1.9814486970269125, -0.9926669567470747,// b0, b1, b2, a1, a2
     0.000244140625, 0.00048828125, 0.000244140625, 1.9851881609275535, -0.996895491657892// b0, b1, b2, a1, a2
 };
-#define CW_TONE_FREQUENCY 850
+#define CW_TONE_FREQUENCY 835
 
 BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWriterConsumer<int16_t>* previous, bool enableProbes):
     BoomaReceiver(samplerate),
@@ -31,26 +31,26 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
 
     // Add a combfilter to kill 50 hz harmonics
-    HLog("- Humfilter");
+    /*HLog("- Humfilter");
     _humfilterProbe = new HProbe<int16_t>("cwreceiver_02_humfilter", _enableProbes);
-    _humfilter = new HCombFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, -0.995f, BLOCKSIZE, _humfilterProbe);
-
+    _humfilter = new HCombFilter<int16_t>(_passthrough->Consumer(), GetSampleRate(), 50, -0.707f, BLOCKSIZE, _humfilterProbe);
+*/
     // Add a highpass filter to remove the lowest part of the spectrum (50HZ/60HZ and nearest harmonics)
-    HLog("- Highpass");
+    /*HLog("- Highpass");
     _highpassProbe = new HProbe<int16_t>("cwreceiver_03_highpass", _enableProbes);
-    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_humfilter->Consumer(), 1000, GetSampleRate(), 0.9071f, 1, BLOCKSIZE, _highpassProbe);
-
+    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_passthrough->Consumer(), 10000, GetSampleRate(), 0.9071f, 1, BLOCKSIZE, _highpassProbe);
+*/
     // Increase signal strength after mixing to avoid losses before filtering and mixing
     HLog("- RF gain");
     _gainProbe = new HProbe<int16_t>("cwreceiver_04_gain", _enableProbes);
-    _gain = new HGain<int16_t>(_highpass->Consumer(), gain, BLOCKSIZE, _gainProbe);
+    _gain = new HGain<int16_t>(_passthrough->Consumer(), gain, BLOCKSIZE, _gainProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
     // (In this receiver, the results are good when the cutoff frequency is located at the local oscillator frequency)
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver_05_preselect", _enableProbes);
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency, GetSampleRate(), 0.8071f, 1, BLOCKSIZE, _preselectProbe);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_gain->Consumer(), frequency - CW_TONE_FREQUENCY, GetSampleRate(), 0.3071f, 1, BLOCKSIZE, _preselectProbe);
 
     // Mix down to the output frequency.
     // 17200Hz - 16160Hz = 1040Hz  (place it somewhere inside the bandpass filter pass region)
