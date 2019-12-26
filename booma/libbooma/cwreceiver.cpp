@@ -75,7 +75,7 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     delete _bandpass;
 
     delete _postSelect;
-    
+
     delete _passthrough;
     delete _passthroughProbe;
     delete _gainProbe;
