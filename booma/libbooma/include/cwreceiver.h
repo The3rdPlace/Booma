@@ -20,27 +20,28 @@ class BoomaCwReceiver : public BoomaReceiver {
     private:
 
         bool _enableProbes;
-        HPassThrough<int16_t>* _passthrough;
-        HCombFilter<int16_t>* _humfilter;
-        HProbe<int16_t>* _humfilterProbe;
+
         HProbe<int16_t>* _passthroughProbe;
+        HProbe<int16_t>* _highpassProbe;
         HProbe<int16_t>* _gainProbe;
-        HProbe<int16_t>* _agcProbe;
+        HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _preselectProbe;
+        HProbe<int16_t>* _agcProbe;
         HProbe<int16_t>* _multiplierProbe;
         HProbe<int16_t>* _bandpassProbe;
         HProbe<int16_t>* _postSelectProbe;
 
+        HPassThrough<int16_t>* _passthrough;
+        HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
         HGain<int16_t>* _gain;
-        HAgc<int16_t>* _agc;
+        HCombFilter<int16_t>* _humfilter;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
+        HAgc<int16_t>* _agc;
         HMultiplier<int16_t>* _multiplier;
+        HCascadedBiQuadFilter<int16_t>* _bandpass;
+        HCascadedBiQuadFilter<int16_t>* _postSelect;
 
         static float _bandpassCoeffs[];
-
-        HCascadedBiQuadFilter<int16_t>* _bandpass;
-
-        HCascadedBiQuadFilter<int16_t>* _postSelect;
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _postSelect->Consumer();
