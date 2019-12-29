@@ -41,7 +41,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Use wav file as input                    -i WAV filename") << std::endl;
     std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
-    std::cout << tr("Enable probes (dump intermediate pcm)    -x") << std::endl;
+    std::cout << tr("Enable probes and halt after 100 blocks  -x") << std::endl;
 }
 
 void ConfigOptions::PrintCards() {

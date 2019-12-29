@@ -22,7 +22,11 @@ class BoomaApplication {
 	    HLog("Run receiver chain");
             IsTerminated = false;
             _current = new std::thread( [this]()  {
-                this->processor->Run();
+                if( _opts->GetEnableProbes() ) {
+                    this->processor->Run(100);
+                } else {
+                    this->processor->Run();
+                }
                 IsTerminated = true;
                 _isRunning = false;
                 _current = NULL;
@@ -37,15 +41,15 @@ class BoomaApplication {
             IsTerminated = true;
             if( wait )
             {
-	        HLog("Wait for receiver chain to halt");
+	            HLog("Wait for receiver chain to halt");
                 if( _current != NULL ) {
- 		    HLog("Joining active thread");
+ 		            HLog("Joining active thread");
                     _current->join();
                     _current = NULL;
                     HLog("Thread joined");
                 }
 
-		HLog("Resetting running state");
+		        HLog("Resetting running state");
                 IsTerminated = false;
                 _isRunning = false;
             }
@@ -56,7 +60,7 @@ class BoomaApplication {
         void Wait() {
             HLog("Waiting for active receiver chain to halt");
             if( _current != NULL ) {
-	        HLog("Has active thread, joining");
+	            HLog("Has active thread, joining");
                 _current->join();
                 _current = NULL;
                 HLog("Active thread halted");
