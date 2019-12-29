@@ -3,6 +3,7 @@ booma (1.0-2) UNRELEASED; urgency=medium
   [ Henrik Witt-Hansen ]
   * Changed names of input and output dumpfiles (Closes: #XXXXXX)
   * Improved cw receiver performance (Closes: #XXXXXX)
+  * Added AGC and controlled levels in the receiver chain (Closes: #XXXXXX)
 
  -- Mackie <henrik@hardttoolkit.org>  Mon, 16 Dec 2019 23:09:00 +0200
 
