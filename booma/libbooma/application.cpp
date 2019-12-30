@@ -405,7 +405,7 @@ bool BoomaApplication::ChangeFrequency(int stepSize) {
 }
 
 bool BoomaApplication::SetVolume(int volume) {
-    if( volume >= _opts->GetSampleRate() / 2 || volume <= 0 ) {
+    if( volume >= 10 || volume <= 0 ) {
         return false;
     }
     _opts->SetVolume(volume);
@@ -414,7 +414,7 @@ bool BoomaApplication::SetVolume(int volume) {
 }
 
 bool BoomaApplication::ChangeVolume(int stepSize) {
-    if( _opts->GetVolume() + stepSize >= 1000 || _opts->GetVolume() + stepSize <= 0 ) {
+    if( _opts->GetVolume() + stepSize >= 10 || _opts->GetVolume() + stepSize <= 0 ) {
         return false;
     }
     _opts->SetVolume(_opts->GetVolume() + stepSize);

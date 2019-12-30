@@ -126,8 +126,8 @@ bool BoomaCwReceiver::SetFrequency(long int frequency) {
 bool BoomaCwReceiver::SetRfGain(int gain) {
 
     // Sane gain values are between 1 and 100
-    if( gain < 1 || gain > 100 ) {
-        HError("Unsupported rf gain value %d, must be between 1 and 100", gain);
+    if( gain < 1 || gain > 50 ) {
+        HError("Unsupported rf gain value %d, must be between 1 and 50", gain);
         return false;
     }
 
