@@ -279,13 +279,6 @@ bool BoomaApplication::SetInput() {
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfMute->Consumer());
     }
 
-    // Add RF spectrum calculation
-    _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, _rfSplitter->Consumer(), _rfFftWindow);
-    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaApplication>(this, &BoomaApplication::RfFftCallback, _rfFft->Consumer());
-    _rfSpectrum = new double[_rfFftSize / 2];
-    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
-
     // Ready
     return true;
 }
@@ -300,7 +293,7 @@ bool BoomaApplication::SetOutput() {
 
     // Setup a splitter to split off audio dump and signal level metering
     HLog("Setting up output audio splitter");
-    _audioSplitter = new HSplitter<int16_t>(_receiver->Consumer());
+    _audioSplitter = new HSplitter<int16_t>(_receiver->GetLastWriterConsumer());
 
     // Add a filewriter so that we can dump audio data on request
     _audioMute = new HMute<int16_t>(_audioSplitter->Consumer(), !_opts->GetDumpAudio(), BLOCKSIZE);
@@ -336,6 +329,13 @@ bool BoomaApplication::SetOutput() {
         _soundcardWriter = new HSoundcardWriter<int16_t>(_opts->GetOutputAudioDevice(), _opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _outputWriter->Consumer());
         _nullWriter = NULL;
     }
+
+    // Add RF spectrum calculation
+    _rfFftWindow = new HRectangularWindow<int16_t>();
+    _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, _receiver->GetSpectrumConsumer(), _rfFftWindow);
+    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaApplication>(this, &BoomaApplication::RfFftCallback, _rfFft->Consumer());
+    _rfSpectrum = new double[_rfFftSize / 2];
+    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
 
     // Output configured
     return true;

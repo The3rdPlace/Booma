@@ -48,10 +48,13 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     _humfilterProbe = new HProbe<int16_t>("cwreceiver_04_humfilter", _enableProbes);
     _humfilter = new HCombFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, -0.907f, BLOCKSIZE, _humfilterProbe);
 
+    // Add a splitter so that the outside world can (if requested) add a spectrum (or other) writer */
+    _spectrum = new HSplitter<int16_t>(_humfilter->Consumer());
+
     // Bandpass filter before mixing to remove or reduce frequencies we do not want to mix
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver_05_preselect", _enableProbes);
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_humfilter->Consumer(), frequency, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_spectrum->Consumer(), frequency, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
 
     // Increase signal strength before mixing to avoid losses.
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
@@ -86,6 +89,7 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     delete _highpass;
     delete _gain;
     delete _humfilter;
+    delete _spectrum;
     delete _preselect;
     delete _agc;
     delete _multiplier;

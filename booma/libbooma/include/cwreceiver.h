@@ -35,6 +35,7 @@ class BoomaCwReceiver : public BoomaReceiver {
         HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
         HGain<int16_t>* _gain;
         HCombFilter<int16_t>* _humfilter;
+        HSplitter<int16_t>* _spectrum;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HAgc<int16_t>* _agc;
         HMultiplier<int16_t>* _multiplier;
@@ -45,6 +46,10 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _postSelect->Consumer();
+        }
+
+        HWriterConsumer<int16_t>* GetSpectrumConsumer() {
+            return _spectrum->Consumer();
         }
 };
 
