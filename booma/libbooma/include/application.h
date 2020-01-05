@@ -6,7 +6,9 @@
 #include <hardtapi.h>
 
 #include "config.h"
+#include "input.h"
 #include "receiver.h"
+#include "output.h"
 #include "booma.h"
 
 class BoomaApplication {
@@ -102,6 +104,11 @@ class BoomaApplication {
         bool _isRunning;
         std::thread* _current;
 
+        // Structural blocks
+        BoomaInput* _input;
+        BoomaReceiver* _receiver;
+        BoomaOutput* _output;
+
         HProcessor<int16_t>* processor;
 
         // In- and output
@@ -139,9 +146,6 @@ class BoomaApplication {
         HRectangularWindow<int16_t>* _audioFftWindow;
         double* _audioSpectrum;
         int _audioFftSize;
-
-        // The active receiver
-        BoomaReceiver* _receiver;
 
         // Convenience functions for creating a receiver chain
         bool SetInput();

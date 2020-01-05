@@ -163,18 +163,21 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 bool BoomaApplication::InitializeReceiver() {
 
     // Setup input
+    _input = new BoomaInput(_opts);
     if( !SetInput() ) {
         HError("Failed to configure input");
         exit(1);
     }
 
     // Create receiver
+    //_receiver = new BoomaReceiver(_opts);
     if( !SetReceiver() ) {
         HError("Failed to configure receiver");
         exit(1);
     }
 
     // Setup output
+    _output = new BoomaOutput(_opts);
     if( !SetOutput() ) {
         HError("Failed to configure output");
         exit(1);

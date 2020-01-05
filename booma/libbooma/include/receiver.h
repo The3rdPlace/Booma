@@ -2,6 +2,7 @@
 #define __RECEIVER_H
 
 #include <hardtapi.h>
+#include "config.h"
 
 class BoomaReceiver {
 

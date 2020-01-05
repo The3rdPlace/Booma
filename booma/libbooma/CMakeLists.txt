@@ -18,6 +18,8 @@ target_sources(booma
         cwreceiver.cpp
         config.cpp
         receiver.cpp
+        input.cpp
+        output.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")
