@@ -6,12 +6,13 @@
 #include "booma.h"
 #include "config.h"
 #include "receiver.h"
+#include "input.h"
 
 class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(int sampleRate, int frequency, int gain, HWriterConsumer<int16_t>* previous, bool enableProbes);
+        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input);
         ~BoomaCwReceiver();
 
         bool SetFrequency(long int frequency);

@@ -12,6 +12,4 @@
 #define BOOMA_MINORVERSION @Booma_VERSION_MINOR@
 #define BOOMA_BUILDNO @Booma_VERSION_BUILD@
 
-#include "application.h"
-
 #endif

@@ -5,15 +5,11 @@
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv):
     _opts(NULL),
     _current(NULL),
-    _inputReader(NULL),
     _outputWriter(NULL),
     _soundcardWriter(NULL),
     _nullWriter(NULL),
-    _rfWriter(NULL),
     _audioWriter(NULL),
-    _rfSplitter(NULL),
     _audioSplitter(NULL),
-    _rfMute(NULL),
     _audioMute(NULL),
     _receiver(NULL),
     _isRunning(false),
@@ -66,10 +62,6 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
     _opts->SetReceiverModeType(receiverModeType);
 
     // Reset all previous receiver components
-    if( _inputReader != NULL ) {
-        delete _inputReader;
-        _inputReader = NULL;
-    }
     if( _outputWriter  != NULL ) {
         delete _outputWriter;
         _outputWriter = NULL;
@@ -82,25 +74,13 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         delete _nullWriter;
         _nullWriter = NULL;
     }
-    if( _rfWriter != NULL ) {
-        delete _rfWriter;
-        _rfWriter = NULL;
-    }
     if( _audioWriter != NULL ) {
         delete _audioWriter;
         _audioWriter = NULL;
     }
-    if( _rfSplitter != NULL ) {
-        delete _rfSplitter;
-        _rfSplitter = NULL;
-    }
     if( _audioSplitter != NULL ) {
         delete _audioSplitter;
         _audioSplitter = NULL;
-    }
-    if( _rfMute != NULL ) {
-        delete _rfMute;
-        _rfMute = NULL;
     }
     if( _audioMute != NULL ) {
         delete _audioMute;
@@ -151,6 +131,8 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         _audioSpectrum = NULL;
     }
 
+    delete _input;
+
     // Configure new receiver
     HLog("Creating new receiver");
     if( !InitializeReceiver() ) {
@@ -163,11 +145,7 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 bool BoomaApplication::InitializeReceiver() {
 
     // Setup input
-    _input = new BoomaInput(_opts);
-    if( !SetInput() ) {
-        HError("Failed to configure input");
-        exit(1);
-    }
+    _input = new BoomaInput(_opts, &_isTerminated);
 
     // Create receiver
     //_receiver = new BoomaReceiver(_opts);
@@ -198,7 +176,7 @@ bool BoomaApplication::SetReceiver() {
     // Create receiver
     switch( _opts->GetReceiverModeType() ) {
         case CW:
-            _receiver = new BoomaCwReceiver(_opts->GetSampleRate(), _opts->GetFrequency(), _opts->GetRfGain(), _rfSplitter->Consumer(), _opts->GetEnableProbes());
+            _receiver = new BoomaCwReceiver(_opts, _input);
             return true;
         default:
             std::cout << "Unknown receiver type defined" << std::endl;
@@ -206,7 +184,7 @@ bool BoomaApplication::SetReceiver() {
     }
 }
 
-bool BoomaApplication::SetInputReader() {
+/*bool BoomaApplication::SetInputReader() {
     switch( _opts->GetInputSourceType() ) {
         case AUDIO_DEVICE:
             HLog("Initializing audio input device %d", _opts->GetInputAudioDevice());
@@ -235,9 +213,9 @@ bool BoomaApplication::SetInputReader() {
             return false;
     }
     return true;
-}
+}*/
 
-bool BoomaApplication::SetInput() {
+/*bool BoomaApplication::SetInput() {
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( _opts->GetUseRemoteHead()) {
@@ -284,7 +262,7 @@ bool BoomaApplication::SetInput() {
 
     // Ready
     return true;
-}
+}*/
 
 bool BoomaApplication::SetOutput() {
 
@@ -430,13 +408,12 @@ int BoomaApplication::GetVolume() {
 }
 
 bool BoomaApplication::ToggleDumpRf() {
-    _opts->SetDumpRf(!_opts->GetDumpRf());
-    _rfMute->SetMuted(!_opts->GetDumpRf());
+    _opts->SetDumpRf( _input->SetDumpRf(!_opts->GetDumpRf()) );
     return true;
 }
 
 bool BoomaApplication::GetDumpRf() {
-    return !_rfMute->GetMuted();
+    return !_opts->GetDumpRf();
 }
 
 bool BoomaApplication::ToggleDumpAudio() {

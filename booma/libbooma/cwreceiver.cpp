@@ -22,15 +22,15 @@ float BoomaCwReceiver::_bandpassCoeffs[] =
 };
 #define CENTER_FREQUENCY 835
 
-BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWriterConsumer<int16_t>* previous, bool enableProbes):
-    BoomaReceiver(samplerate),
-    _enableProbes(enableProbes) {
+BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input): //  int frequency, int gain,
+    BoomaReceiver(opts),
+    _enableProbes(opts->GetEnableProbes()) {
     HLog("Creating CW receiver chain");
 
     // Add a passthrough block so that we can add a probe to the input
     HLog("- Passthrough (input)");
     _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", _enableProbes);
-    _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
+    _passthrough = new HPassThrough<int16_t>(input->GetLastConsumer(), BLOCKSIZE, _passthroughProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
@@ -41,7 +41,7 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     // Initial (fixed) gain before agc to compensate for weak input
     HLog("- RF gain");
     _gainProbe = new HProbe<int16_t>("cwreceiver_03_gain", _enableProbes);
-    _gain = new HGain<int16_t>(_highpass->Consumer(), gain, BLOCKSIZE, _gainProbe);
+    _gain = new HGain<int16_t>(_highpass->Consumer(), opts->GetRfGain(), BLOCKSIZE, _gainProbe);
 
     // Add a combfilter to kill (more) 50 hz harmonics
     HLog("- Humfilter");
@@ -54,7 +54,7 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     // Bandpass filter before mixing to remove or reduce frequencies we do not want to mix
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver_05_preselect", _enableProbes);
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_spectrum->Consumer(), frequency, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_spectrum->Consumer(), opts->GetFrequency(), GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
 
     // Increase signal strength before mixing to avoid losses.
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
@@ -68,7 +68,7 @@ BoomaCwReceiver::BoomaCwReceiver(int samplerate, int frequency, int gain, HWrite
     // should never have any overflows when combined with the output of the previous AGC since 10 * 2000 = 20.000
     HLog("- Mixer");
     _multiplierProbe = new HProbe<int16_t>("cwreceiver_07_multiplier", _enableProbes);
-    _multiplier = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), frequency - CENTER_FREQUENCY, 10, BLOCKSIZE, _multiplierProbe);
+    _multiplier = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), opts->GetFrequency() - CENTER_FREQUENCY, 10, BLOCKSIZE, _multiplierProbe);
 
     // Narrow butterworth bandpass filter, bandwidth 100Hz around 1000-1100. 4th. order, 4 biquads cascaded
     HLog("- Bandpass");

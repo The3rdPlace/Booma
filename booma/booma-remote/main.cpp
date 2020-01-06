@@ -5,6 +5,7 @@
 
 #include "main.h"
 #include "booma.h"
+#include "application.h"
 
 BoomaApplication* app;
 

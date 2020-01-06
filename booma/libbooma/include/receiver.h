@@ -18,8 +18,8 @@ class BoomaReceiver {
 
     public:
 
-        BoomaReceiver(int sampleRate):
-            _sampleRate(sampleRate) {};
+        BoomaReceiver(ConfigOptions* opts):
+            _sampleRate(opts->GetSampleRate()) {};
 
         virtual ~BoomaReceiver() = default;
 

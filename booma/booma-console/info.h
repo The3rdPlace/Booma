@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "booma.h"
+#include "application.h"
 
 #ifndef BOOMA_INFO_H
 #define BOOMA_INFO_H

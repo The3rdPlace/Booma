@@ -22,14 +22,14 @@ class BoomaApplication {
         // Run receiver chain
         void Run() {
 	    HLog("Run receiver chain");
-            IsTerminated = false;
+            _isTerminated = false;
             _current = new std::thread( [this]()  {
                 if( _opts->GetEnableProbes() ) {
-                    this->processor->Run(100);
+                    this->_input->GetProcessor()->Run(100);
                 } else {
-                    this->processor->Run();
+                    this->_input->GetProcessor()->Run();
                 }
-                IsTerminated = true;
+                _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
             } );
@@ -40,7 +40,7 @@ class BoomaApplication {
         // Halt receiver chain
         void Halt(bool wait = true) {
 	    HLog("Halt receiver chain");
-            IsTerminated = true;
+            _isTerminated = true;
             if( wait )
             {
 	            HLog("Wait for receiver chain to halt");
@@ -52,7 +52,7 @@ class BoomaApplication {
                 }
 
 		        HLog("Resetting running state");
-                IsTerminated = false;
+                _isTerminated = false;
                 _isRunning = false;
             }
             HLog("Receiver chain is halted");
@@ -100,7 +100,7 @@ class BoomaApplication {
 
         // Configuration and state
         ConfigOptions* _opts;
-        bool IsTerminated;
+        bool _isTerminated;
         bool _isRunning;
         std::thread* _current;
 
@@ -109,20 +109,13 @@ class BoomaApplication {
         BoomaReceiver* _receiver;
         BoomaOutput* _output;
 
-        HProcessor<int16_t>* processor;
-
-        // In- and output
-        HReader<int16_t>* _inputReader;
         HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
 
         // Splitting audio and RF
-        HWriter<int16_t>* _rfWriter;
         HWriter<int16_t>* _audioWriter;
-        HSplitter<int16_t>* _rfSplitter;
         HSplitter<int16_t>* _audioSplitter;
-        HMute<int16_t>* _rfMute;
         HMute<int16_t>* _audioMute;
 
         // Signal level reporting
