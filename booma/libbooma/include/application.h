@@ -24,11 +24,7 @@ class BoomaApplication {
 	    HLog("Run receiver chain");
             _isTerminated = false;
             _current = new std::thread( [this]()  {
-                if( _opts->GetEnableProbes() ) {
-                    this->_input->GetProcessor()->Run(100);
-                } else {
-                    this->_input->GetProcessor()->Run();
-                }
+                _input->Run( _opts->GetEnableProbes() ? 100 : 0);
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;

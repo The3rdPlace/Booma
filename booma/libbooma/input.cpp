@@ -2,7 +2,11 @@
 
 BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _streamProcessor(NULL),
-    _networkProcessor(NULL) {
+    _networkProcessor(NULL),
+    _inputReader(NULL),
+    _rfWriter(NULL),
+    _rfSplitter(NULL),
+    _rfMute(NULL) {
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( opts->GetUseRemoteHead()) {
@@ -96,4 +100,12 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
 bool BoomaInput::SetDumpRf(bool enabled) {
     _rfMute->SetMuted(enabled);
     return _rfMute->GetMuted();
+}
+
+void BoomaInput::Run(int blocks) {
+    if( blocks > 0 ) {
+        (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Run(blocks);
+    } else {
+        (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Run();
+    }
 }

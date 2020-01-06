@@ -30,7 +30,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input): //  in
     // Add a passthrough block so that we can add a probe to the input
     HLog("- Passthrough (input)");
     _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", _enableProbes);
-    _passthrough = new HPassThrough<int16_t>(input->GetLastConsumer(), BLOCKSIZE, _passthroughProbe);
+    _passthrough = new HPassThrough<int16_t>(input->GetLastWriterConsumer(), BLOCKSIZE, _passthroughProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.

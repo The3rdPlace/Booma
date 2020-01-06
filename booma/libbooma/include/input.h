@@ -33,14 +33,11 @@ class BoomaInput {
         BoomaInput(ConfigOptions* opts, bool* isTerminated);
         ~BoomaInput();
 
-        HWriterConsumer<int16_t>* GetLastConsumer() {
+        HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _rfSplitter->Consumer();
         }
 
-        // Todo: remove this and add a run() method instead
-        HProcessor<int16_t>* GetProcessor() {
-            return (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor);
-        }
+        void Run(int blocks = 0);
 
         bool SetDumpRf(bool enabled);
 };
