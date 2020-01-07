@@ -86,10 +86,6 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         delete _audioMute;
         _audioMute = NULL;
     }
-    if( _receiver != NULL ) {
-        delete _receiver;
-        _receiver = NULL;
-    }
     if( _signalLevel != NULL ) {
         delete _signalLevel;
         _signalLevel = NULL;
@@ -132,6 +128,8 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
     }
 
     delete _input;
+    delete _receiver;
+    delete _output;
 
     // Configure new receiver
     HLog("Creating new receiver");
@@ -147,29 +145,9 @@ bool BoomaApplication::InitializeReceiver() {
     // Setup input
     _input = new BoomaInput(_opts, &_isTerminated);
 
-    // Create receiver
-    //_receiver = new BoomaReceiver(_opts);
-    if( !SetReceiver() ) {
-        HError("Failed to configure receiver");
-        exit(1);
-    }
-
-    // Setup output
-    _output = new BoomaOutput(_opts);
-    if( !SetOutput() ) {
-        HError("Failed to configure output");
-        exit(1);
-    }
-
-    // Complete input-receiver-output chain configured
-    return true;
-}
-
-bool BoomaApplication::SetReceiver() {
-
-    // If we have a remote head, then do nothing
+    // If we have a remote head, then we have neither a receiver of output
     if( _opts->GetUseRemoteHead() ) {
-        HLog("Using remote head, no local receiver");
+        HLog("Using remote head, no local receiver and output");
         return true;
     }
 
@@ -182,6 +160,16 @@ bool BoomaApplication::SetReceiver() {
             std::cout << "Unknown receiver type defined" << std::endl;
             return false;
     }
+
+    // Setup output
+    _output = new BoomaOutput(_opts);
+    if( !SetOutput() ) {
+        HError("Failed to configure output");
+        exit(1);
+    }
+
+    // Complete input-receiver-output chain configured
+    return true;
 }
 
 bool BoomaApplication::SetOutput() {

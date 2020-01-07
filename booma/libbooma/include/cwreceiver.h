@@ -10,15 +10,9 @@
 
 class BoomaCwReceiver : public BoomaReceiver {
 
-    public:
-
-        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input);
-        ~BoomaCwReceiver();
-
-        bool SetFrequency(long int frequency);
-        bool SetRfGain(int gain);
-
     private:
+
+        HWriterConsumer<int16_t>* Create(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
         bool _enableProbes;
 
@@ -45,6 +39,14 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         static float _bandpassCoeffs[];
 
+    public:
+
+        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
+            BoomaReceiver(opts, input),
+            _enableProbes(opts->GetEnableProbes()) {}
+
+        ~BoomaCwReceiver();
+
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _postSelect->Consumer();
         }
@@ -52,6 +54,9 @@ class BoomaCwReceiver : public BoomaReceiver {
         HWriterConsumer<int16_t>* GetSpectrumConsumer() {
             return _spectrum->Consumer();
         }
+
+        bool SetFrequency(long int frequency);
+        bool SetRfGain(int gain);
 };
 
 #endif
