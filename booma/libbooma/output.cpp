@@ -1,5 +1,5 @@
 #include "output.h"
 
-BoomaOutput::BoomaOutput(ConfigOptions* opts) {
+BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver) {
 
 }

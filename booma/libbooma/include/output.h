@@ -3,12 +3,13 @@
 
 #include <hardtapi.h>
 #include "config.h"
+#include "receiver.h"
 
 class BoomaOutput {
 
     public:
 
-        BoomaOutput(ConfigOptions* opts);
+        BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver);
 };
 
 #endif

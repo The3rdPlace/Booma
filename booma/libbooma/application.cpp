@@ -162,7 +162,7 @@ bool BoomaApplication::InitializeReceiver() {
     }
 
     // Setup output
-    _output = new BoomaOutput(_opts);
+    _output = new BoomaOutput(_opts, _receiver);
     if( !SetOutput() ) {
         HError("Failed to configure output");
         exit(1);
