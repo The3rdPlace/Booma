@@ -66,7 +66,6 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::RfFftCallback, _rfFft->Consumer());
     _rfSpectrum = new double[_rfFftSize / 2];
     memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
-
 }
 
 BoomaOutput::~BoomaOutput() {

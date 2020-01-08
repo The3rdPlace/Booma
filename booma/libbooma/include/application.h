@@ -21,7 +21,11 @@ class BoomaApplication {
 
         // Run receiver chain
         void Run() {
-	    HLog("Run receiver chain");
+            if( _input == NULL ) {
+                HLog("Unable to run, receiver is NULL");
+                return;
+            }
+	        HLog("Run receiver chain");
             _isTerminated = false;
             _current = new std::thread( [this]()  {
                 _input->Run( _opts->GetEnableProbes() ? 100 : 0);
@@ -35,7 +39,7 @@ class BoomaApplication {
 
         // Halt receiver chain
         void Halt(bool wait = true) {
-	    HLog("Halt receiver chain");
+	        HLog("Halt receiver chain");
             _isTerminated = true;
             if( wait )
             {
@@ -70,24 +74,31 @@ class BoomaApplication {
         // Public control functions
         bool ChangeReceiver();
         bool ChangeReceiver(ReceiverModeType receiverModeType);
-        bool SetFrequency(long int frequency);
+        bool InitializeReceiver();
+
         long int GetFrequency();
+        bool SetFrequency(long int frequency);
         bool ChangeFrequency(int stepSize);
+
+        int GetVolume();
         bool SetVolume(int volume);
         bool ChangeVolume(int stepSize);
-        int GetVolume();
-        bool ToggleDumpRf();
+
         bool GetDumpRf();
-        bool ToggleDumpAudio();
+        bool ToggleDumpRf();
+
         bool GetDumpAudio();
+        bool ToggleDumpAudio();
+
+        int GetRfGain();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
-        int GetRfGain();
+
         int GetSampleRate() {
             return SAMPLERATE;
         }
 
-        // Public reporting functions
+        // Public reporting functions for spectrum and signallevel
         int GetSignalLevel();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
@@ -106,9 +117,6 @@ class BoomaApplication {
         BoomaInput* _input;
         BoomaReceiver* _receiver;
         BoomaOutput* _output;
-
-        // Convenience functions for creating a receiver chain
-        bool InitializeReceiver();
 };
 
 #endif

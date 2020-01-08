@@ -5,12 +5,12 @@
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv):
     _opts(NULL),
     _current(NULL),
+    _input(NULL),
     _receiver(NULL),
-    _isRunning(false)
-{
+    _output(NULL),
+    _isRunning(false) {
 
     // Initialize the Hardt toolkit.
-    // Set the last argument to 'true' to enable verbose output instead of logging to a local file
     HInit(std::string("Booma"), ConfigOptions::IsVerbose(argc, argv));
 
     // Show library name and and Hardt version.
@@ -44,9 +44,18 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
     _opts->SetReceiverModeType(receiverModeType);
 
     // Reset all previous receiver components
-    delete _input;
-    delete _receiver;
-    delete _output;
+    if( _input != NULL ) {
+        delete _input;
+        _input = NULL;
+    }
+    if( _receiver != NULL ) {
+        delete _receiver;
+        _receiver = NULL;
+    }
+    if( _output != NULL ) {
+        delete _output;
+        _output = NULL;
+    }
 
     // Configure new receiver
     HLog("Creating new receiver");
@@ -59,26 +68,33 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 
 bool BoomaApplication::InitializeReceiver() {
 
-    // Setup input
-    _input = new BoomaInput(_opts, &_isTerminated);
+    try {
 
-    // If we have a remote head, then we have neither a receiver of output
-    if( _opts->GetUseRemoteHead() ) {
-        HLog("Using remote head, no local receiver and output");
-        return true;
+        // Setup input
+        _input = new BoomaInput(_opts, &_isTerminated);
+
+        // If we have a remote head, then we have neither a receiver of output
+        if( _opts->GetUseRemoteHead() ) {
+            HLog("Using remote head, no local receiver and output");
+            return true;
+        }
+
+        // Create receiver
+        switch( _opts->GetReceiverModeType() ) {
+            case CW:
+                _receiver = new BoomaCwReceiver(_opts, _input);
+            default:
+                std::cout << "Unknown receiver type defined" << std::endl;
+                return false;
+        }
+
+        // Setup output
+        _output = new BoomaOutput(_opts, _receiver);
     }
-
-    // Create receiver
-    switch( _opts->GetReceiverModeType() ) {
-        case CW:
-            _receiver = new BoomaCwReceiver(_opts, _input);
-        default:
-            std::cout << "Unknown receiver type defined" << std::endl;
-            return false;
+    catch( BoomaException* e ) {
+        HError("InitializeReceiver() Caught %s = %s", e->Type().c_str(), e->What().c_str() );
+        return false;
     }
-
-    // Setup output
-    _output = new BoomaOutput(_opts, _receiver);
 
     // Complete input-receiver-output chain configured
     return true;
