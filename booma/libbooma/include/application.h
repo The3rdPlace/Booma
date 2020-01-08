@@ -83,14 +83,16 @@ class BoomaApplication {
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
         int GetRfGain();
+        int GetSampleRate() {
+            return SAMPLERATE;
+        }
+
+        // Public reporting functions
         int GetSignalLevel();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
-        int GetSampleRate() {
-            return SAMPLERATE;
-        }
 
     private:
 
@@ -105,42 +107,7 @@ class BoomaApplication {
         BoomaReceiver* _receiver;
         BoomaOutput* _output;
 
-        HGain<int16_t>* _outputWriter;
-        HSoundcardWriter<int16_t>* _soundcardWriter;
-        HNullWriter<int16_t>* _nullWriter;
-
-        // Splitting audio and RF
-        HWriter<int16_t>* _audioWriter;
-        HSplitter<int16_t>* _audioSplitter;
-        HMute<int16_t>* _audioMute;
-
-        // Signal level reporting
-        HSignalLevel<int16_t>* _signalLevel;
-        HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
-        int SignalLevelCallback(HSignalLevelResult* result, size_t length);
-        int _signalStrength;
-
-        // RF spectrum reporting
-        HFft<int16_t>* _rfFft;
-        HCustomWriter<HFftResults>* _rfFftWriter;
-        int RfFftCallback(HFftResults* result, size_t length);
-        HRectangularWindow<int16_t>* _rfFftWindow;
-        double* _rfSpectrum;
-        int _rfFftSize;
-
-        // Audio spectrum reporting
-        HFft<int16_t>* _audioFft;
-        HCustomWriter<HFftResults>* _audioFftWriter;
-        int AudioFftCallback(HFftResults* result, size_t length);
-        HRectangularWindow<int16_t>* _audioFftWindow;
-        double* _audioSpectrum;
-        int _audioFftSize;
-
         // Convenience functions for creating a receiver chain
-        bool SetInput();
-        bool SetInputReader();
-        bool SetReceiver();
-        bool SetOutput();
         bool InitializeReceiver();
 };
 
