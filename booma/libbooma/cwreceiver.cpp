@@ -22,13 +22,15 @@ float BoomaCwReceiver::_bandpassCoeffs[] =
 };
 #define CENTER_FREQUENCY 835
 
-HWriterConsumer<int16_t>* BoomaCwReceiver::Create(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
+    BoomaReceiver(opts, input),
+    _enableProbes(opts->GetEnableProbes()) {
     HLog("Creating CW receiver chain");
 
     // Add a passthrough block so that we can add a probe to the input
     HLog("- Passthrough (input)");
     _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", _enableProbes);
-    _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
+    _passthrough = new HPassThrough<int16_t>(input->GetLastWriterConsumer(), BLOCKSIZE, _passthroughProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
@@ -80,9 +82,6 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::Create(ConfigOptions* opts, HWriterCo
         HBandpassBiQuad<int16_t>(CENTER_FREQUENCY + 50, GetSampleRate(), 0.207f, 1).Calculate(),
         HBandpassBiQuad<int16_t>(CENTER_FREQUENCY - 50, GetSampleRate(), 0.207f, 1).Calculate()
     }, BLOCKSIZE, _postSelectProbe);
-
-    // Return consumer of last writer
-    return _postSelect->Consumer();
 }
 
 BoomaCwReceiver::~BoomaCwReceiver() {

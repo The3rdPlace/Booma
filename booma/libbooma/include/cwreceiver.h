@@ -12,8 +12,6 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     private:
 
-        HWriterConsumer<int16_t>* Create(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
-
         bool _enableProbes;
 
         HProbe<int16_t>* _passthroughProbe;
@@ -41,10 +39,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
-            BoomaReceiver(opts, input),
-            _enableProbes(opts->GetEnableProbes()) {}
-
+        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input);
         ~BoomaCwReceiver();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {

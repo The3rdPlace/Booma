@@ -9,15 +9,9 @@ class BoomaReceiver {
 
     private:
 
-        void CreateReceiver(ConfigOptions* opts, BoomaInput* input) {
-            Create(opts, input->GetLastWriterConsumer());
-        }
-
         int _sampleRate;
 
     protected:
-
-        virtual HWriterConsumer<int16_t>* Create(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
 
         int GetSampleRate() {
             return _sampleRate;
@@ -26,9 +20,7 @@ class BoomaReceiver {
     public:
 
         BoomaReceiver(ConfigOptions* opts, BoomaInput* input):
-            _sampleRate(opts->GetSampleRate()) {
-            CreateReceiver(opts, input);
-        };
+            _sampleRate(opts->GetSampleRate()) {};
 
         virtual ~BoomaReceiver() = default;
 
