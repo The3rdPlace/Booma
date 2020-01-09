@@ -6,7 +6,7 @@ booma (1.0-2) UNRELEASED; urgency=medium
   * Added AGC and controlled levels in the receiver chain (Closes: #XXXXXX)
   * Refactored main application logic to provide better isolation between logical tasks (Closes: #XXXXXX)
   
- -- Mackie <henrik@hardttoolkit.org>  Mon, 16 Dec 2019 23:09:00 +0200
+ -- Mackie <henrik@hardttoolkit.org>  Thu, 10 Jan 2020 00:43:00 +0200
 
 booma (1.0-1) RELEASED; urgency=medium
 
