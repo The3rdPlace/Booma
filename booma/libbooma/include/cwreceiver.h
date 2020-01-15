@@ -24,11 +24,13 @@ class BoomaCwReceiver : public BoomaReceiver {
         HProbe<int16_t>* _bandpassProbe;
         HProbe<int16_t>* _postSelectProbe;
 
+        // Preprocessing
         HPassThrough<int16_t>* _passthrough;
         HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
         HGain<int16_t>* _gain;
         HCombFilter<int16_t>* _humfilter;
-        HSplitter<int16_t>* _spectrum;
+
+        // Receiver
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HAgc<int16_t>* _agc;
         HMultiplier<int16_t>* _multiplier;
@@ -37,18 +39,22 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         static float _bandpassCoeffs[];
 
+        HWriterConsumer<int16_t>* PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
+
     public:
 
-        BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input);
+        BoomaCwReceiver(ConfigOptions* opts);
         ~BoomaCwReceiver();
 
-        HWriterConsumer<int16_t>* GetLastWriterConsumer() {
+        /*HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _postSelect->Consumer();
         }
 
         HWriterConsumer<int16_t>* GetSpectrumConsumer() {
             return _spectrum->Consumer();
-        }
+        }*/
 
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);

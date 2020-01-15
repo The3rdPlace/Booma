@@ -22,15 +22,17 @@ float BoomaCwReceiver::_bandpassCoeffs[] =
 };
 #define CENTER_FREQUENCY 835
 
-BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
-    BoomaReceiver(opts, input),
-    _enableProbes(opts->GetEnableProbes()) {
-    HLog("Creating CW receiver chain");
+BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts):
+    BoomaReceiver(opts),
+    _enableProbes(opts->GetEnableProbes()) {}
+
+HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+    HLog("Creating CW receiver preprocessing chain");
 
     // Add a passthrough block so that we can add a probe to the input
     HLog("- Passthrough (input)");
     _passthroughProbe = new HProbe<int16_t>("cwreceiver_01_input", _enableProbes);
-    _passthrough = new HPassThrough<int16_t>(input->GetLastWriterConsumer(), BLOCKSIZE, _passthroughProbe);
+    _passthrough = new HPassThrough<int16_t>(previous, BLOCKSIZE, _passthroughProbe);
 
     // Highpass filter before mixing to remove some of the lowest frequencies that may
     // get mirrored back into the final frequency range and cause (more) distortion.
@@ -48,13 +50,17 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
     _humfilterProbe = new HProbe<int16_t>("cwreceiver_04_humfilter", _enableProbes);
     _humfilter = new HCombFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, -0.907f, BLOCKSIZE, _humfilterProbe);
 
-    // Add a splitter so that the outside world can (if requested) add a spectrum (or other) writer */
-    _spectrum = new HSplitter<int16_t>(_humfilter->Consumer());
+    // End of preprocessing
+    return _humfilter->Consumer();
+}
+
+HWriterConsumer<int16_t>* BoomaCwReceiver::Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+    HLog("Creating CW receiver receiving chain");
 
     // Bandpass filter before mixing to remove or reduce frequencies we do not want to mix
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver_05_preselect", _enableProbes);
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_spectrum->Consumer(), opts->GetFrequency(), GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(previous, opts->GetFrequency(), GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _preselectProbe);
 
     // Increase signal strength before mixing to avoid losses.
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
@@ -82,6 +88,15 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, BoomaInput* input):
         HBandpassBiQuad<int16_t>(CENTER_FREQUENCY + 50, GetSampleRate(), 0.207f, 1).Calculate(),
         HBandpassBiQuad<int16_t>(CENTER_FREQUENCY - 50, GetSampleRate(), 0.207f, 1).Calculate()
     }, BLOCKSIZE, _postSelectProbe);
+
+    // End of receiver
+    return _postSelect->Consumer();
+}
+
+HWriterConsumer<int16_t>* BoomaCwReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+    HLog("Creating CW receiver postprocessing chain");
+    // No postprocessing of vlf cw
+    return previous;
 }
 
 BoomaCwReceiver::~BoomaCwReceiver() {
@@ -89,7 +104,6 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     delete _highpass;
     delete _gain;
     delete _humfilter;
-    delete _spectrum;
     delete _preselect;
     delete _agc;
     delete _multiplier;

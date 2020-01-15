@@ -82,12 +82,13 @@ bool BoomaApplication::InitializeReceiver() {
         // Create receiver
         switch( _opts->GetReceiverModeType() ) {
             case CW:
-                _receiver = new BoomaCwReceiver(_opts, _input);
+                _receiver = new BoomaCwReceiver(_opts);
                 break;
             default:
                 std::cout << "Unknown receiver type defined" << std::endl;
                 return false;
         }
+        _receiver->Build(_opts, _input);
 
         // Setup output
         _output = new BoomaOutput(_opts, _receiver);
