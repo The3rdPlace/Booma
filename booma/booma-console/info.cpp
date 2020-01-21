@@ -9,6 +9,33 @@
 
 void Info::GetInfo() {
 
+    // Input
+    InputSourceType ist = _app->GetInputSourceType();
+    std::cout << "Input: ";
+    switch( ist ) {
+        case AUDIO_DEVICE:
+            std::cout << "Audio device " << _app->GetInputAudioDevice() << std::endl;
+            break;
+        case SIGNAL_GENERATOR:
+            std::cout << "Signal generator at " << _app->GetSignalGeneratorFrequency() << "Hz" << std::endl;
+            break;
+        case PCM_FILE:
+            std::cout << "PCM file " << _app->GetPcmFile() << std::endl;
+            break;
+        case WAV_FILE:
+            std::cout << "WAV file " << _app->GetWavFile() << std::endl;
+            break;
+        case SILENCE:
+            std::cout << "Silence" << std::endl;
+            break;
+        case NETWORK:
+            std::cout << "Network " << _app->GetRemoteServer() << ":" << _app->GetRemotePort() << std::endl;
+            break;
+        default:
+            std::cout << "Unknown input source" << std::endl;
+            break;
+    }
+
     // Signallevel
     std::cout << "Average signallevel: S" << _app->GetSignalLevel() << std::endl;
     std::cout << std::endl;

@@ -10,7 +10,8 @@ enum InputSourceType {
     SIGNAL_GENERATOR = 2,
     PCM_FILE = 3,
     WAV_FILE = 4,
-    SILENCE = 5
+    SILENCE = 5,
+    NETWORK = 6
 };
 
 /** Type of receiver */

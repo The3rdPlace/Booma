@@ -98,6 +98,21 @@ class BoomaApplication {
             return SAMPLERATE;
         }
 
+        // Public control functions that would require a receiver restart after modifications
+        InputSourceType GetInputSourceType();
+
+        int GetInputAudioDevice();
+
+        std::string GetPcmFile();
+
+        std::string GetWavFile();
+
+        int GetSignalGeneratorFrequency();
+
+        std::string GetRemoteServer();
+
+        int GetRemotePort();
+
         // Public reporting functions for spectrum and signallevel
         int GetSignalLevel();
         int GetRfFftSize();

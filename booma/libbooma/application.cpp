@@ -193,3 +193,31 @@ int BoomaApplication::GetAudioFftSize() {
 int BoomaApplication::GetAudioSpectrum(double* spectrum) {
     return _output->GetAudioSpectrum(spectrum);
 }
+
+InputSourceType BoomaApplication::GetInputSourceType() {
+    return _opts->GetInputSourceType();
+}
+
+int BoomaApplication::GetInputAudioDevice() {
+    return _opts->GetInputAudioDevice();
+}
+
+std::string BoomaApplication::GetPcmFile() {
+    return _opts->GetPcmFile();
+}
+
+std::string BoomaApplication::GetWavFile() {
+    return _opts->GetWavFile();
+}
+
+int BoomaApplication::GetSignalGeneratorFrequency() {
+    return _opts->GetSignalGeneratorFrequency();
+}
+
+std::string BoomaApplication::GetRemoteServer() {
+    return _opts->GetRemoteServer();
+}
+
+int BoomaApplication::GetRemotePort() {
+    return _opts->GetRemotePort();
+}

@@ -226,6 +226,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _isRemoteHead = true;
             _useRemoteHead = false;
             _inputAudioDevice = -1;
+            _inputSourceType = NETWORK;
             i++;
             continue;
         }
@@ -395,6 +396,7 @@ bool ConfigOptions::ReadStoredConfig() {
     if( _inputAudioDevice > -1 ) {
         _isRemoteHead = false;
         _useRemoteHead = false;
+        _inputSourceType = AUDIO_DEVICE;
         HLog("Has input audio device from stored config, use local input");
     }
     if( _inputAudioDevice == -1 && _remoteServer.empty() && _remotePort > 0 ) {
@@ -405,6 +407,7 @@ bool ConfigOptions::ReadStoredConfig() {
     if( _inputAudioDevice == -1 && !_remoteServer.empty() && _remotePort > 0 ) {
         _useRemoteHead = false;
         _isRemoteHead = true;
+        _inputSourceType = NETWORK;
         HLog("Has remote port and remote server, is remote head");
     }
 
