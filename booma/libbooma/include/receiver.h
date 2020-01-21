@@ -4,6 +4,7 @@
 #include <hardtapi.h>
 #include "config.h"
 #include "input.h"
+#include "decoder.h"
 
 class BoomaReceiver {
 
@@ -14,6 +15,7 @@ class BoomaReceiver {
         HWriterConsumer<int16_t>* _receive;
         HWriterConsumer<int16_t>* _postProcess;
         HSplitter<int16_t>* _spectrum;
+        HSplitter<int16_t>* _decoder;
 
     protected:
 
@@ -34,7 +36,7 @@ class BoomaReceiver {
             delete _spectrum;
         }
 
-        void Build(ConfigOptions* opts, BoomaInput* input) {
+        void Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* decoder = NULL) {
 
             // Add preprocessing part of the receiver
             _preProcess = PreProcess(opts, input->GetLastWriterConsumer());
@@ -47,13 +49,19 @@ class BoomaReceiver {
 
             // Add postprocessing part of the receiver
             _postProcess = PostProcess(opts, _receive);
+
+            // Add a splitter so that we can push fully processed samples through an optional decoder
+            _decoder = new HSplitter<int16_t>(_postProcess);
+            if( decoder != NULL ) {
+                _decoder->SetWriter(decoder->Writer());
+            }
         };
 
         virtual bool SetFrequency(long int frequency) = 0;
         virtual bool SetRfGain(int gain) = 0;
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _postProcess;
+            return _decoder->Consumer();
         }
 
         HWriterConsumer<int16_t>* GetSpectrumConsumer() {

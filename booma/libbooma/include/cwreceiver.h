@@ -48,14 +48,6 @@ class BoomaCwReceiver : public BoomaReceiver {
         BoomaCwReceiver(ConfigOptions* opts);
         ~BoomaCwReceiver();
 
-        /*HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _postSelect->Consumer();
-        }
-
-        HWriterConsumer<int16_t>* GetSpectrumConsumer() {
-            return _spectrum->Consumer();
-        }*/
-
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);
 };
