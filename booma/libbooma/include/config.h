@@ -17,7 +17,8 @@ enum InputSourceType {
 /** Type of receiver */
 enum ReceiverModeType {
     NO_RECEIVE_MODE = 0,
-    CW = 1
+    CW = 1,
+    AURORAL = 2
 };
 
 /** Format of the dump file */

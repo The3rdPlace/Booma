@@ -189,6 +189,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             if( strcmp(argv[i + 1], "CW") == 0 ) {
                 _receiverModeType = CW;
             }
+            if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
+                _receiverModeType = AURORAL;
+            }
             i++;
             continue;
         }

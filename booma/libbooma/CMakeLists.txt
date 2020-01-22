@@ -20,6 +20,7 @@ target_sources(booma
         receiver.cpp
         input.cpp
         output.cpp
+        auroralreceiver.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")

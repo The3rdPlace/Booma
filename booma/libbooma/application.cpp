@@ -1,5 +1,6 @@
 #include "application.h"
 #include "cwreceiver.h"
+#include "auroralreceiver.h"
 #include "booma.h"
 
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv):
@@ -83,6 +84,9 @@ bool BoomaApplication::InitializeReceiver() {
         switch( _opts->GetReceiverModeType() ) {
             case CW:
                 _receiver = new BoomaCwReceiver(_opts);
+                break;
+            case AURORAL:
+                _receiver = new BoomaAuroralReceiver(_opts);
                 break;
             default:
                 std::cout << "Unknown receiver type defined" << std::endl;
