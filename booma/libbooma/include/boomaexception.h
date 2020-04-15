@@ -1,5 +1,5 @@
-#ifndef __EXCEPTION_H
-#define __EXCEPTION_H
+#ifndef __BOOMAEXCEPTION_H
+#define __BOOMAEXCEPTION_H
 
 #include <hardtapi.h>
 

@@ -3,7 +3,7 @@
 
 #include <hardtapi.h>
 #include "config.h"
-#include "exception.h"
+#include "boomaexception.h"
 #include "booma.h"
 
 class BoomaInput {
