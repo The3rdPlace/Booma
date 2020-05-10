@@ -23,6 +23,7 @@ class BoomaOutput {
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
         int _signalStrength;
+        double _signalSum;
 
         // RF spectrum reporting
         HFft<int16_t>* _rfFft;
@@ -49,6 +50,7 @@ class BoomaOutput {
         int SetVolume(int volume);
 
         int GetSignalLevel();
+        int GetSignalSum();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
         int GetAudioFftSize();

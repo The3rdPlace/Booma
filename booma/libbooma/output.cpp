@@ -47,7 +47,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Initialize the audio output and the output gain control (volume)
     HLog("Initializing audio output");
-    _outputWriter = new HGain<int16_t>(_audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE);
+    _outputWriter = new HGain<int16_t>(_audioSplitter->Consumer(), (float) opts->GetVolume() / 10, BLOCKSIZE);
     if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
         _soundcardWriter = NULL;
@@ -100,11 +100,18 @@ int BoomaOutput::SignalLevelCallback(HSignalLevelResult* result, size_t length) 
 
     // Store the current level
     _signalStrength = result->S;
+
+    // Store the signal sum, scaled
+    _signalSum = (int) (result->Sum / BLOCKSIZE);
     return length;
 }
 
 int BoomaOutput::GetSignalLevel() {
     return _signalStrength;
+}
+
+int BoomaOutput::GetSignalSum() {
+    return _signalSum;
 }
 
 int BoomaOutput::RfFftCallback(HFftResults* result, size_t length) {
@@ -145,9 +152,9 @@ bool BoomaOutput::SetDumpAudio(bool enabled) {
 }
 
 int BoomaOutput::SetVolume(int volume) {
-    if( volume >= 10 || volume <= 0 ) {
+    if( volume >= 100 || volume <= 0 ) {
         return false;
     }
-    _outputWriter->SetGain(volume);
-    return _outputWriter->GetGain();
+    _outputWriter->SetGain((float) volume/10);
+    return _outputWriter->GetGain() * 10;
 }

@@ -42,6 +42,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
     std::cout << tr("Enable probes and halt after 100 blocks  -x") << std::endl;
+    std::cout << tr("Reset cached configuration               -z") << std::endl;
 }
 
 void ConfigOptions::PrintCards() {
@@ -105,7 +106,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Second pass: config options
-    for( int i = 0; i < argc; i++ ) {
+    for( int i = 1; i < argc; i++ ) {
 
         // Enable probes
         if( strcmp(argv[i], "-x") == 0 ) {
@@ -203,7 +204,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Dump output audio as ...
+        // Dump input rf as ...
         if( strcmp(argv[i], "-p") == 0) {
             _dumpRf = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
@@ -230,7 +231,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _useRemoteHead = false;
             _inputAudioDevice = -1;
             _inputSourceType = NETWORK;
-            i++;
+            i += 2;
             continue;
         }
 
@@ -242,6 +243,22 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             i++;
             continue;
         }
+
+        // Reset cached configuration
+        if( strcmp(argv[i], "-z") == 0 ) {
+            RemoveStoredConfig();
+            std::cout << tr("Cached configuration has been removed") << std::endl;
+            exit(0);
+        }
+
+        // Parameters used outside the config object
+        if( strcmp(argv[i], "-d") == 0 ) {
+            continue;
+        }
+
+        // Unknown parameter
+        std::cout << tr("Unknown parameter") << " '" << argv[i] << "' (" << tr("use '-h' to show the help") << ")" << std::endl;
+        exit(1);
     }
 
     // Check configuration for remote server/head
@@ -317,6 +334,44 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
 ConfigOptions::~ConfigOptions() {
     SaveStoredConfig();
+}
+
+void ConfigOptions::RemoveStoredConfig() {
+
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to read configuration");
+        return;
+    }
+
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
+    // Check of the directory exists
+    struct stat stats;
+    if( stat(configPath.c_str(), &stats) != -1 ) {
+        if( !S_ISDIR(stats.st_mode) ) {
+            HError("File ~/.booma exists, but should be a directory");
+            return;
+        }
+        HLog("Config directory %s exists", configPath.c_str());
+    }
+    else
+    {
+        HLog("Config directory does not exists, no config to remove");
+        return;
+    }
+
+    // Compose path to config file
+    std::string configFile(configPath);
+    configFile += "/config.ini";
+    HLog("Config file is %s", configFile.c_str());
+
+    // Remove the config file
+    remove(configFile.c_str());
+    HLog("Removed the config file");
 }
 
 bool ConfigOptions::ReadStoredConfig() {

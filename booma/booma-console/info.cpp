@@ -38,6 +38,7 @@ void Info::GetInfo() {
 
     // Signallevel
     std::cout << "Average signallevel: S" << _app->GetSignalLevel() << std::endl;
+    std::cout << "Average signal measurement: " << _app->GetSignalSum() << std::endl;
     std::cout << std::endl;
 
     // RF spectrum
