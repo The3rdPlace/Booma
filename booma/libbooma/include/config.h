@@ -77,6 +77,7 @@ class ConfigOptions {
 
         bool ReadStoredConfig();
         void SaveStoredConfig();
+        void RemoveStoredConfig();
 
         bool _enableProbes = false;
 

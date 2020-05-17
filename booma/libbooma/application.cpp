@@ -146,7 +146,7 @@ bool BoomaApplication::ToggleDumpRf() {
 }
 
 bool BoomaApplication::GetDumpRf() {
-    return !_opts->GetDumpRf();
+    return _opts->GetDumpRf();
 }
 
 bool BoomaApplication::ToggleDumpAudio() {
@@ -180,6 +180,10 @@ int BoomaApplication::GetRfGain() {
 
 int BoomaApplication::GetSignalLevel() {
     return _output->GetSignalLevel();
+}
+
+double BoomaApplication::GetSignalSum() {
+    return _output->GetSignalSum();
 }
 
 int BoomaApplication::GetRfFftSize() {

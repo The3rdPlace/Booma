@@ -115,6 +115,7 @@ class BoomaApplication {
 
         // Public reporting functions for spectrum and signallevel
         int GetSignalLevel();
+        double GetSignalSum();
         int GetRfFftSize();
         int GetRfSpectrum(double* spectrum);
         int GetAudioFftSize();
