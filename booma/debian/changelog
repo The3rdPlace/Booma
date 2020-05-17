@@ -1,3 +1,10 @@
+booma (1.0-4) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Add a relative measurement mode to help finding the best antenna position
+  
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 17 May 2020 18:18:00 +0100
+
 booma (1.0-3) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
