@@ -32,6 +32,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
     std::cout << tr("Receiver for remote input                -r address port") << std::endl;
     std::cout << tr("Server for remote input                  -s port") << std::endl;
+    std::cout << tr("Wait untill scheduled time               -b YYYY-MM-DD HH:MM") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
@@ -249,6 +250,15 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             RemoveStoredConfig();
             std::cout << tr("Cached configuration has been removed") << std::endl;
             exit(0);
+        }
+
+        // Scheduled start and stop
+        if( strcmp(argv[i], "-b") == 0 ) {
+            _schedule.SetStart(argv[i + 1]);
+            i++;
+            _schedule.SetStop(argv[i + 1]);
+            i++;
+            continue;
         }
 
         // Parameters used outside the config object

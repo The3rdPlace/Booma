@@ -229,3 +229,7 @@ std::string BoomaApplication::GetRemoteServer() {
 int BoomaApplication::GetRemotePort() {
     return _opts->GetRemotePort();
 }
+
+HTimer BoomaApplication::GetSchedule() {
+    return _opts->GetSchedule();
+}

@@ -67,6 +67,9 @@ class ConfigOptions {
         bool _dumpAudio = false;
         DumpFileFormatType _dumpFileFormat = WAV;
 
+        // Scheduled start and stop
+        HTimer _schedule;
+
         // Debug options
         int _signalGeneratorFrequency = -1;
         std::string _pcmFile = "";
@@ -192,6 +195,10 @@ class ConfigOptions {
         bool GetEnableProbes() {
             return _enableProbes;
         }
-};
+
+        HTimer GetSchedule() {
+            return _schedule;
+        }
+    };
 
 #endif
