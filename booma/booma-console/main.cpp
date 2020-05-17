@@ -31,17 +31,42 @@ int main(int argc, char** argv) {
     ss << "version " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
 	BoomaApplication app("Booma-Console", ss.str(), argc, argv);
 
+    // Wait for scheduled start time or stop now if we have passed a scheduled stop time
+    if( app.GetSchedule().Before() ) {
+        HLog("Scheduled start is pending. Waiting %ld seconds", app.GetSchedule().Duration());
+        std::cout << "Scheduled start is pending. Waiting..." << std::endl;
+        app.GetSchedule().Wait();
+        std::cout << "Scheduled start time has arrived. Starting..." << std::endl;
+    }
+    if( app.GetSchedule().After() ) {
+        HLog("After scheduled stop, halting application");
+        std::cout << "Scheduled stop has been reached. Will exit now" << std::endl;
+        return 0;
+    }
+
     // Run initial receiver (if any configured)
     app.Run();
 
 	// Create an Info object to report various informations from the receiver
 	Info info(&app);
 
+    // If we have a schedule, non-interactive mode is selected
+    if( app.GetSchedule().Active() ) {
+        std::cout << "Running in non-interactive mode due to schedule" << std::endl;
+        while( !app.GetSchedule().After() ) {
+            sleep(1);
+        }
+        std::cout << "Scheduled stop time has been reached. Stopping..." << std::endl;
+        app.Halt();
+        return 0;
+    }
+
     // Read commands
     char cmd;
     char lastCmd;
     std::string opt;
     std::string lastOpt;
+    std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
     do {
         std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? "RF" : "__") << " " << (app.GetDumpAudio() ? "A" : "_") << " ]# ";
         cmd = (char) std::cin.get();

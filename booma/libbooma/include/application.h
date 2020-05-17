@@ -121,6 +121,9 @@ class BoomaApplication {
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
 
+        // Schedule
+        HTimer GetSchedule();
+
     private:
 
         // Configuration and state
