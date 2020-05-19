@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     std::string lastOpt;
     std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
     do {
-        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? "RF" : "__") << " " << (app.GetDumpAudio() ? "A" : "_") << " ]# ";
+        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? (app.GetEnableBuffers() ? "RF" : "rf") : "  ") << " " << (app.GetDumpAudio() ? (app.GetEnableBuffers() ? "A" : "a") : " ") << " ]# ";
         cmd = (char) std::cin.get();
 
         // Repeat last command ?

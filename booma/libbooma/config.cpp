@@ -13,37 +13,38 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
-    std::cout << tr("Show a list of audio devices             -c --cards") << std::endl;
-    std::cout << tr("Show this help and exit                  -h --help") << std::endl;
-    std::cout << tr("Show version and exit                    -v --version") << std::endl;
+    std::cout << tr("Show a list of audio devices                       -c --cards") << std::endl;
+    std::cout << tr("Show this help and exit                            -h --help") << std::endl;
+    std::cout << tr("Show version and exit                              -v --version") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Options]==") << std::endl;
-    std::cout << tr("Dump output audio as pcm to file         -a PCM") << std::endl;
-    std::cout << tr("Dump output audio as wav to file         -a WAV") << std::endl;
-    std::cout << tr("Select frequency (default 17.2KHz)       -f frequecy") << std::endl;
-    std::cout << tr("Rf gain (default 30)                     -g gain") << std::endl;
-    std::cout << tr("Select audio input source                -i AUDIO devicenumber ") << std::endl;
-    std::cout << tr("Output volume (default 200)              -l volume") << std::endl;
-    std::cout << tr("Select CW receive mode (default)         -m CW") << std::endl;
-    std::cout << tr("Select output device                     -o devicenumber") << std::endl;
-    std::cout << tr("Dump rf input as pcm to file             -p PCM") << std::endl;
-    std::cout << tr("Dump rf input as wav to file (default)   -p WAV") << std::endl;
-    std::cout << tr("Samplerate (default 48KHz)               -q rate") << std::endl;
-    std::cout << tr("Receiver for remote input                -r address port") << std::endl;
-    std::cout << tr("Server for remote input                  -s port") << std::endl;
-    std::cout << tr("Wait untill scheduled time               -b YYYY-MM-DD HH:MM") << std::endl;
+    std::cout << tr("Dump output audio as pcm to file                   -a PCM (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as wav to file                   -a WAV (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Wait untill scheduled time                         -b YYYY-MM-DD HH:MM") << std::endl;
+    std::cout << tr("Select frequency (default 17.2KHz)                 -f frequecy") << std::endl;
+    std::cout << tr("Rf gain (default 30)                               -g gain") << std::endl;
+    std::cout << tr("Select audio input source                          -i AUDIO devicenumber ") << std::endl;
+    std::cout << tr("Output volume (default 200)                        -l volume") << std::endl;
+    std::cout << tr("Select CW receive mode (default)                   -m CW") << std::endl;
+    std::cout << tr("Set initial buffersize for file IO (0 to disable)  -n reserved-block") << std::endl;
+    std::cout << tr("Select output device                               -o devicenumber") << std::endl;
+    std::cout << tr("Dump rf input as pcm to file                       -p PCM (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump rf input as wav to file (default)             -p WAV (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Samplerate (default 48KHz)                         -q rate") << std::endl;
+    std::cout << tr("Receiver for remote input                          -r address port") << std::endl;
+    std::cout << tr("Server for remote input                            -s port") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
-    std::cout << tr("Verbose debug output                     -d --debug") << std::endl;
-    std::cout << tr("Use sine generator as input              -i GENERATOR frequency") << std::endl;
-    std::cout << tr("Use pcm file as input                    -i PCM filename") << std::endl;
-    std::cout << tr("Use wav file as input                    -i WAV filename") << std::endl;
-    std::cout << tr("Use silence as input                     -i SILENCE") << std::endl;
-    std::cout << tr("Select /dev/null as output device        -o -1") << std::endl;
-    std::cout << tr("Enable probes and halt after 100 blocks  -x") << std::endl;
-    std::cout << tr("Reset cached configuration               -z") << std::endl;
+    std::cout << tr("Verbose debug output                               -d --debug") << std::endl;
+    std::cout << tr("Use sine generator as input                        -i GENERATOR frequency") << std::endl;
+    std::cout << tr("Use pcm file as input                              -i PCM filename") << std::endl;
+    std::cout << tr("Use wav file as input                              -i WAV filename") << std::endl;
+    std::cout << tr("Use silence as input                               -i SILENCE") << std::endl;
+    std::cout << tr("Select /dev/null as output device                  -o -1") << std::endl;
+    std::cout << tr("Enable probes and halt after 100 blocks            -x") << std::endl;
+    std::cout << tr("Reset cached configuration                         -z") << std::endl;
 }
 
 void ConfigOptions::PrintCards() {
@@ -116,11 +117,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump output as ... to file
         if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {
-            _dumpAudio = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                _dumpAudio = true;
                 _dumpFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+                _dumpAudio = true;
                _dumpFileFormat = WAV;
+            } else {
+                _dumpAudio = false;
             }
             i++;
             continue;
@@ -164,6 +168,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             }
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
                 _inputSourceType = SILENCE;
+                i -= 1;
                 HLog("input silence");
             }
             else
@@ -198,6 +203,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Disable file buffers
+        if( strcmp(argv[i], "-n") == 0 && i < argc + 1 ) {
+            _reservedBuffers = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
         // Select output device
         if( strcmp(argv[i], "-o") == 0 && i < argc + 1) {
             _outputAudioDevice = atoi(argv[i + 1]);
@@ -207,11 +219,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump input rf as ...
         if( strcmp(argv[i], "-p") == 0) {
-            _dumpRf = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                _dumpRf = true;
                 _dumpFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+                _dumpRf = true;
                _dumpFileFormat = WAV;
+            } else {
+                _dumpRf = false;
             }
             i++;
             continue;
@@ -453,6 +468,7 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
             if( name == "pcmFile" )                 _pcmFile = value;
             if( name == "wavFile" )                 _wavFile = value;
+            if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
         }
         configStream >> opt;
     }
@@ -545,6 +561,7 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
     configStream << "pcmFile=" << _pcmFile << std::endl;
     configStream << "wavFile=" << _wavFile << std::endl;
+    configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
 
     // Done writing the config file
     configStream.close();

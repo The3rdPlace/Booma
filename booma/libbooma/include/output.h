@@ -16,7 +16,8 @@ class BoomaOutput {
         // Splitting audio and RF
         HWriter<int16_t>* _audioWriter;
         HSplitter<int16_t>* _audioSplitter;
-        HMute<int16_t>* _audioMute;
+        HBreaker<int16_t>* _audioBreaker;
+        HBufferedWriter<int16_t>* _audioBuffer;
 
         // Signal level reporting
         HSignalLevel<int16_t>* _signalLevel;

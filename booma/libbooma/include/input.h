@@ -16,7 +16,8 @@ class BoomaInput {
         HReader<int16_t>* _inputReader;
         HWriter<int16_t>* _rfWriter;
         HSplitter<int16_t>* _rfSplitter;
-        HMute<int16_t>* _rfMute;
+        HBreaker<int16_t>* _rfBreaker;
+        HBufferedWriter<int16_t>* _rfBuffer;
 
         bool SetInputReader(ConfigOptions* opts);
 

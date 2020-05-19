@@ -84,6 +84,8 @@ class ConfigOptions {
 
         bool _enableProbes = false;
 
+        int _reservedBuffers = 200;
+
     public:
 
         ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
@@ -194,6 +196,14 @@ class ConfigOptions {
 
         bool GetEnableProbes() {
             return _enableProbes;
+        }
+
+        int GetReservedBuffers() {
+            return _reservedBuffers;
+        }
+
+        bool GetEnableBuffers() {
+            return _reservedBuffers > 0;
         }
 
         HTimer GetSchedule() {
