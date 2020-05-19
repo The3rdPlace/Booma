@@ -6,7 +6,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _inputReader(NULL),
     _rfWriter(NULL),
     _rfSplitter(NULL),
-    _rfMute(NULL),
+    _rfBreaker(NULL),
     _rfBuffer(NULL) {
 
     // If we are a server for a remote head, then initialize the input and a network processor
@@ -42,8 +42,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
 
     // Add a filewriter so that we can dump pcm data on request
-    _rfMute = new HMute<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
-    _rfBuffer = new HBufferedWriter<int16_t>(_rfMute->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
+    _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
+    _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
     if( opts->GetDumpFileFormat() == WAV ) {
         _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _rfBuffer->Consumer());
@@ -64,7 +64,7 @@ BoomaInput::~BoomaInput() {
     delete _inputReader;
     delete _rfWriter;
     delete _rfSplitter;
-    delete _rfMute;
+    delete _rfBreaker;
     delete _rfBuffer;
 }
 
@@ -101,8 +101,8 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
 }
 
 bool BoomaInput::SetDumpRf(bool enabled) {
-    _rfMute->SetMuted(!enabled);
-    return !_rfMute->GetMuted();
+    _rfBreaker->SetOff(!enabled);
+    return !_rfBreaker->GetOff();
 }
 
 void BoomaInput::Run(int blocks) {
