@@ -150,8 +150,8 @@ int BoomaOutput::GetAudioSpectrum(double* spectrum) {
 }
 
 bool BoomaOutput::SetDumpAudio(bool enabled) {
-    _audioMute->SetMuted(enabled);
-    return _audioMute->GetMuted();
+    _audioMute->SetMuted(!enabled);
+    return !_audioMute->GetMuted();
 }
 
 int BoomaOutput::SetVolume(int volume) {

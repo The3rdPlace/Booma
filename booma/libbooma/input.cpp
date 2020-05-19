@@ -101,8 +101,8 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
 }
 
 bool BoomaInput::SetDumpRf(bool enabled) {
-    _rfMute->SetMuted(enabled);
-    return _rfMute->GetMuted();
+    _rfMute->SetMuted(!enabled);
+    return !_rfMute->GetMuted();
 }
 
 void BoomaInput::Run(int blocks) {
