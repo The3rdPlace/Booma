@@ -233,3 +233,7 @@ int BoomaApplication::GetRemotePort() {
 HTimer BoomaApplication::GetSchedule() {
     return _opts->GetSchedule();
 }
+
+bool BoomaApplication::GetEnableBuffers() {
+    return _opts->GetEnableBuffers();
+}

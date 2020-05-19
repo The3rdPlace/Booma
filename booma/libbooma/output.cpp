@@ -7,6 +7,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
      _audioWriter(NULL),
      _audioSplitter(NULL),
      _audioMute(NULL),
+     _audioBuffer(NULL),
      _signalLevel(NULL),
      _signalLevelWriter(NULL),
      _rfFft(NULL),
@@ -27,11 +28,12 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Add a filewriter so that we can dump audio data on request
     _audioMute = new HMute<int16_t>(_audioSplitter->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
+    _audioBuffer = new HBufferedWriter<int16_t>(_audioMute->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "OUTPUT_" + std::to_string(std::time(nullptr));
     if( opts->GetDumpFileFormat() == WAV ) {
-        _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _audioMute->Consumer());
+        _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _audioBuffer->Consumer());
     } else {
-        _audioWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _audioMute->Consumer());
+        _audioWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _audioBuffer->Consumer());
     }
 
     // Add audio signal level metering (before final volume adjust)
@@ -84,6 +86,7 @@ BoomaOutput::~BoomaOutput() {
     delete _audioWriter;
     delete _audioSplitter;
     delete _audioMute;
+    delete _audioBuffer;
     delete _signalLevel;
     delete _signalLevelWriter;
     delete _rfFft;

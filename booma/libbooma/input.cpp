@@ -6,7 +6,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _inputReader(NULL),
     _rfWriter(NULL),
     _rfSplitter(NULL),
-    _rfMute(NULL) {
+    _rfMute(NULL),
+    _rfBuffer(NULL) {
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( opts->GetUseRemoteHead()) {
@@ -42,11 +43,12 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Add a filewriter so that we can dump pcm data on request
     _rfMute = new HMute<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
+    _rfBuffer = new HBufferedWriter<int16_t>(_rfMute->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
     if( opts->GetDumpFileFormat() == WAV ) {
-        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _rfMute->Consumer());
+        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _rfBuffer->Consumer());
     } else {
-        _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfMute->Consumer());
+        _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
 }
 
@@ -63,6 +65,7 @@ BoomaInput::~BoomaInput() {
     delete _rfWriter;
     delete _rfSplitter;
     delete _rfMute;
+    delete _rfBuffer;
 }
 
 bool BoomaInput::SetInputReader(ConfigOptions* opts) {

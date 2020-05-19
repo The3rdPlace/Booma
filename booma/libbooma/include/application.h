@@ -124,6 +124,9 @@ class BoomaApplication {
         // Schedule
         HTimer GetSchedule();
 
+        // Other reporting functions
+        bool GetEnableBuffers();
+
     private:
 
         // Configuration and state
