@@ -19,8 +19,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Options]==") << std::endl;
-    std::cout << tr("Dump output audio as pcm to file                   -a PCM") << std::endl;
-    std::cout << tr("Dump output audio as wav to file                   -a WAV") << std::endl;
+    std::cout << tr("Dump output audio as pcm to file                   -a PCM (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as wav to file                   -a WAV (enable) | -a OFF (disable)") << std::endl;
     std::cout << tr("Wait untill scheduled time                         -b YYYY-MM-DD HH:MM") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                 -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 30)                               -g gain") << std::endl;
@@ -29,8 +29,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Select CW receive mode (default)                   -m CW") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)  -n reserved-block") << std::endl;
     std::cout << tr("Select output device                               -o devicenumber") << std::endl;
-    std::cout << tr("Dump rf input as pcm to file                       -p PCM") << std::endl;
-    std::cout << tr("Dump rf input as wav to file (default)             -p WAV") << std::endl;
+    std::cout << tr("Dump rf input as pcm to file                       -p PCM (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump rf input as wav to file (default)             -p WAV (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Samplerate (default 48KHz)                         -q rate") << std::endl;
     std::cout << tr("Receiver for remote input                          -r address port") << std::endl;
     std::cout << tr("Server for remote input                            -s port") << std::endl;
@@ -117,11 +117,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump output as ... to file
         if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {
-            _dumpAudio = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                _dumpAudio = true;
                 _dumpFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+                _dumpAudio = true;
                _dumpFileFormat = WAV;
+            } else {
+                _dumpAudio = false;
             }
             i++;
             continue;
@@ -216,11 +219,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump input rf as ...
         if( strcmp(argv[i], "-p") == 0) {
-            _dumpRf = true;
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
+                _dumpRf = true;
                 _dumpFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+                _dumpRf = true;
                _dumpFileFormat = WAV;
+            } else {
+                _dumpRf = false;
             }
             i++;
             continue;
