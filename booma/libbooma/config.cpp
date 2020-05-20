@@ -21,7 +21,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Options]==") << std::endl;
     std::cout << tr("Dump output audio as pcm to file                   -a PCM (enable) | -a OFF (disable)") << std::endl;
     std::cout << tr("Dump output audio as wav to file                   -a WAV (enable) | -a OFF (disable)") << std::endl;
-    std::cout << tr("Wait untill scheduled time                         -b YYYY-MM-DD HH:MM") << std::endl;
+    std::cout << tr("Wait untill scheduled time                         -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                 -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 30)                               -g gain") << std::endl;
     std::cout << tr("Select audio input source                          -i AUDIO devicenumber ") << std::endl;

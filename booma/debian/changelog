@@ -1,3 +1,11 @@
+booma (1.0-5) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Add buffering when writing dump files
+  * Fix problems with controlling file dumping of samles
+  
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0100
+
 booma (1.0-4) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
