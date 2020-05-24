@@ -119,10 +119,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _dumpAudio = true;
-                _dumpFileFormat = PCM;
+                _dumpAudioFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
                 _dumpAudio = true;
-               _dumpFileFormat = WAV;
+               _dumpAudioFileFormat = WAV;
             } else {
                 _dumpAudio = false;
             }
@@ -221,10 +221,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-p") == 0) {
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _dumpRf = true;
-                _dumpFileFormat = PCM;
+                _dumpRfFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
                 _dumpRf = true;
-               _dumpFileFormat = WAV;
+               _dumpRfFileFormat = WAV;
             } else {
                 _dumpRf = false;
             }
@@ -464,7 +464,8 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "volume" )                  _volume = atoi(value.c_str());
             if( name == "dumpRf" )                  _dumpRf = atoi(value.c_str());
             if( name == "dumpAudio" )               _dumpAudio = atoi(value.c_str());
-            if( name == "dumpFileFormat" )          _dumpFileFormat = (DumpFileFormatType) atoi(value.c_str());
+            if( name == "dumpRfFileFormat" )        _dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
+            if( name == "dumpAudioFileFormat" )     _dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
             if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
             if( name == "pcmFile" )                 _pcmFile = value;
             if( name == "wavFile" )                 _wavFile = value;
@@ -557,7 +558,8 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "volume=" << _volume << std::endl;
     configStream << "dumpRf=" << _dumpRf << std::endl;
     configStream << "dumpAudio=" << _dumpAudio << std::endl;
-    configStream << "dumpFileFormat" << _dumpFileFormat << std::endl;
+    configStream << "dumpRfFileFormat" << _dumpRfFileFormat << std::endl;
+    configStream << "dumpAudioFileFormat" << _dumpAudioFileFormat << std::endl;
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
     configStream << "pcmFile=" << _pcmFile << std::endl;
     configStream << "wavFile=" << _wavFile << std::endl;

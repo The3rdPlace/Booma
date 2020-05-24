@@ -1,3 +1,10 @@
+booma (1.0-6) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Allow different fileformats for dump files for audio and rf
+  
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0100
+
 booma (1.0-5) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

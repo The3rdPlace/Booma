@@ -30,7 +30,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _audioBreaker = new HBreaker<int16_t>(_audioSplitter->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
     _audioBuffer = new HBufferedWriter<int16_t>(_audioBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "OUTPUT_" + std::to_string(std::time(nullptr));
-    if( opts->GetDumpFileFormat() == WAV ) {
+    if( opts->GetDumpAudioFileFormat() == WAV ) {
         _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _audioBuffer->Consumer());
     } else {
         _audioWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _audioBuffer->Consumer());

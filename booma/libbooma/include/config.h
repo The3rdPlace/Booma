@@ -65,7 +65,8 @@ class ConfigOptions {
         // Dump pcm and audio
         bool _dumpRf = false;
         bool _dumpAudio = false;
-        DumpFileFormatType _dumpFileFormat = WAV;
+        DumpFileFormatType _dumpRfFileFormat = PCM;
+        DumpFileFormatType _dumpAudioFileFormat = WAV;
 
         // Scheduled start and stop
         HTimer _schedule;
@@ -170,8 +171,12 @@ class ConfigOptions {
             _dumpAudio = enabled;
         }
 
-        DumpFileFormatType GetDumpFileFormat() {
-            return _dumpFileFormat;
+        DumpFileFormatType GetDumpRfFileFormat() {
+            return _dumpRfFileFormat;
+        }
+
+        DumpFileFormatType GetDumpAudioFileFormat() {
+            return _dumpAudioFileFormat;
         }
 
         int GetSignalGeneratorFrequency() {
