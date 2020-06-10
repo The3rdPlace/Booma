@@ -27,6 +27,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Select audio input source                          -i AUDIO devicenumber ") << std::endl;
     std::cout << tr("Output volume (default 200)                        -l volume") << std::endl;
     std::cout << tr("Select CW receive mode (default)                   -m CW") << std::endl;
+    std::cout << tr("Select AURORAL receive mode                        -m AURORAL") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)  -n reserved-block") << std::endl;
     std::cout << tr("Select output device                               -o devicenumber") << std::endl;
     std::cout << tr("Dump rf input as pcm to file                       -p PCM (enable) | -p OFF (disable)") << std::endl;

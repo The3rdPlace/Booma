@@ -38,7 +38,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
     // get mirrored back into the final frequency range and cause (more) distortion.
     HLog("- Highpass");
     _highpassProbe = new HProbe<int16_t>("cwreceiver_02_highpass", _enableProbes);
-    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_passthrough->Consumer(), 500, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _highpassProbe);
+    _highpass = new HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>(_passthrough->Consumer(), 2000, GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _highpassProbe);
 
     // Initial (fixed) gain before agc to compensate for weak input
     HLog("- RF gain");
@@ -48,7 +48,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
     // Add a combfilter to kill (more) 50 hz harmonics
     HLog("- Humfilter");
     _humfilterProbe = new HProbe<int16_t>("cwreceiver_04_humfilter", _enableProbes);
-    _humfilter = new HCombFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, -0.907f, BLOCKSIZE, _humfilterProbe);
+    _humfilter = new HCombFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, -0.707f, BLOCKSIZE, _humfilterProbe);
 
     // End of preprocessing
     return _humfilter->Consumer();
@@ -60,7 +60,8 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::Receive(ConfigOptions* opts, HWr
     // Narrow butterworth bandpass filter, bandwidth 100Hz around 1000-1100. 4th. order, 4 biquads cascaded
     HLog("- Bandpass");
     _bandpassProbe = new HProbe<int16_t>("cwreceiver_08_bandpass", _enableProbes);
-    _bandpass = new HCascadedBiQuadFilter<int16_t>(previous, _bandpassCoeffs, 20, BLOCKSIZE, _bandpassProbe);
+    //_bandpass = new HCascadedBiQuadFilter<int16_t>(previous, _bandpassCoeffs, 20, BLOCKSIZE, _bandpassProbe);
+    _bandpass = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(previous, 5000, opts->GetSampleRate(), 0.7071f, 1, BLOCKSIZE, _bandpassProbe);
 
     // Increase signal strength before mixing to avoid losses.
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'

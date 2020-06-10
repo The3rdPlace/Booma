@@ -28,7 +28,8 @@ class BoomaAuroralReceiver : public BoomaReceiver {
         HCombFilter<int16_t>* _humfilter;
 
         // Receiver
-        HCascadedBiQuadFilter<int16_t>* _bandpass;
+        //HCascadedBiQuadFilter<int16_t>* _bandpass;
+        HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _bandpass;
         HAgc<int16_t>* _agc;
 
         static float _bandpassCoeffs[];
