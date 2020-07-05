@@ -66,7 +66,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::Receive(ConfigOptions* opts, HWriterC
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
     HLog("- RF gain");
     _agcProbe = new HProbe<int16_t>("cwreceiver_06_agc", _enableProbes);
-    _agc = new HAgc<int16_t>(_preselect->Consumer(), 2000, 2500, 3, 20, BLOCKSIZE, _gainProbe);
+    _agc = new HAgc<int16_t>(_preselect->Consumer(), 2000, 3000, 3, 20, BLOCKSIZE, _gainProbe);
 
     // Mix down to the output frequency.
     // 17200Hz - 16360Hz = 840Hz  (place it somewhere inside the bandpass filter pass region)
