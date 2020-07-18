@@ -1,5 +1,6 @@
 #include "application.h"
 #include "cwreceiver.h"
+#include "cwreceiver2.h"
 #include "auroralreceiver.h"
 #include "booma.h"
 
@@ -84,6 +85,9 @@ bool BoomaApplication::InitializeReceiver() {
         switch( _opts->GetReceiverModeType() ) {
             case CW:
                 _receiver = new BoomaCwReceiver(_opts);
+                break;
+            case CW2:
+                _receiver = new BoomaCwReceiver2(_opts);
                 break;
             case AURORAL:
                 _receiver = new BoomaAuroralReceiver(_opts);
@@ -236,4 +240,8 @@ HTimer BoomaApplication::GetSchedule() {
 
 bool BoomaApplication::GetEnableBuffers() {
     return _opts->GetEnableBuffers();
+}
+
+ReceiverModeType BoomaApplication::GetReceiver() {
+    return _opts->GetReceiverModeType();
 }

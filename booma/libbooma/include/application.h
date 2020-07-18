@@ -75,6 +75,7 @@ class BoomaApplication {
         bool ChangeReceiver();
         bool ChangeReceiver(ReceiverModeType receiverModeType);
         bool InitializeReceiver();
+        ReceiverModeType GetReceiver();
 
         long int GetFrequency();
         bool SetFrequency(long int frequency);

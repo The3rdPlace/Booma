@@ -1,9 +1,16 @@
+booma (1.0-7) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Allow a wider range of volume and gain levels
+  
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 05 Jul 2020 18:36:00 +0200
+
 booma (1.0-6) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
   * Allow different fileformats for dump files for audio and rf
   
- -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0200
 
 booma (1.0-5) RELEASED; urgency=medium
 
@@ -11,7 +18,7 @@ booma (1.0-5) RELEASED; urgency=medium
   * Add buffering when writing dump files
   * Fix problems with controlling file dumping of samles
   
- -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 20 May 2020 00:41:00 +0200
 
 booma (1.0-4) RELEASED; urgency=medium
 
@@ -19,14 +26,14 @@ booma (1.0-4) RELEASED; urgency=medium
   * Add a relative measurement mode to help finding the best antenna position
   * Add commandline option for running in a scheduled mode
   
- -- Mackie <henrik@hardttoolkit.org>  Sun, 17 May 2020 18:18:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 17 May 2020 18:18:00 +0200
 
 booma (1.0-3) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
   * Internal refactoring to get a more modular architecture (Closes: #XXXXXX)
   
- -- Mackie <henrik@hardttoolkit.org>  Wed, 15 Apr 2020 12:38:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Wed, 15 Apr 2020 12:38:00 +0200
 
 booma (1.0-2) RELEASED; urgency=medium
 

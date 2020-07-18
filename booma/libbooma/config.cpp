@@ -113,6 +113,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Enable probes
         if( strcmp(argv[i], "-x") == 0 ) {
             _enableProbes = true;
+            continue;
         }
 
         // Dump output as ... to file
@@ -195,6 +196,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-m") == 0 && i < argc + 1) {
             if( strcmp(argv[i + 1], "CW") == 0 ) {
                 _receiverModeType = CW;
+            }
+            if( strcmp(argv[i + 1], "CW2") == 0 ) {
+                _receiverModeType = CW2;
             }
             if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
                 _receiverModeType = AURORAL;

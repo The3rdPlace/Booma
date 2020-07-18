@@ -20,14 +20,14 @@ class BoomaOutput {
         HBufferedWriter<int16_t>* _audioBuffer;
 
         // Signal level reporting
-        HSignalLevel<int16_t>* _signalLevel;
+        HSignalLevelOutput<int16_t>* _signalLevel;
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
         int _signalStrength;
         double _signalSum;
 
         // RF spectrum reporting
-        HFft<int16_t>* _rfFft;
+        HFftOutput<int16_t>* _rfFft;
         HCustomWriter<HFftResults>* _rfFftWriter;
         int RfFftCallback(HFftResults* result, size_t length);
         HRectangularWindow<int16_t>* _rfFftWindow;
@@ -35,7 +35,7 @@ class BoomaOutput {
         int _rfFftSize;
 
         // Audio spectrum reporting
-        HFft<int16_t>* _audioFft;
+        HFftOutput<int16_t>* _audioFft;
         HCustomWriter<HFftResults>* _audioFftWriter;
         int AudioFftCallback(HFftResults* result, size_t length);
         HRectangularWindow<int16_t>* _audioFftWindow;

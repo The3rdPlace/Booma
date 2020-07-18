@@ -37,12 +37,12 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     }
 
     // Add audio signal level metering (before final volume adjust)
-    _signalLevel = new HSignalLevel<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 10);
+    _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 10);
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
     // Add RF spectrum calculation
     _audioFftWindow = new HRectangularWindow<int16_t>();
-    _audioFft = new HFft<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, _audioSplitter->Consumer(), _audioFftWindow);
+    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, _audioSplitter->Consumer(), _audioFftWindow);
     _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
     _audioSpectrum = new double[_audioFftSize / 2];
     memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
@@ -64,7 +64,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFft<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, receiver->GetSpectrumConsumer(), _rfFftWindow);
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, receiver->GetSpectrumConsumer(), _rfFftWindow);
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::RfFftCallback, _rfFft->Consumer());
     _rfSpectrum = new double[_rfFftSize / 2];
     memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);

@@ -18,7 +18,8 @@ enum InputSourceType {
 enum ReceiverModeType {
     NO_RECEIVE_MODE = 0,
     CW = 1,
-    AURORAL = 2
+    AURORAL = 2,
+    CW2 = 3
 };
 
 /** Format of the dump file */
@@ -53,7 +54,7 @@ class ConfigOptions {
         // Remote head configuration
         bool _isRemoteHead = false;
         std::string _remoteServer;
-        int _remotePort = 1720;
+        int _remotePort = 0;
         bool _useRemoteHead = false;
 
         // First stage gain

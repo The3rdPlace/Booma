@@ -24,6 +24,15 @@ void signalMeasurementWorker(std::future<void> future, BoomaApplication* app, bo
     }
 }
 
+std::string TranslateReceiverModeType(ReceiverModeType type) {
+    switch(type) {
+        case ReceiverModeType::AURORAL: return "Auroral";
+        case ReceiverModeType::CW: return "CW";
+        case ReceiverModeType::CW2: return "CW2";
+        default: return "UNKNOWN_RECEIVER";
+    }
+}
+
 int main(int argc, char** argv) {
 
 	// Initialize Booma
@@ -68,7 +77,7 @@ int main(int argc, char** argv) {
     std::string lastOpt;
     std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
     do {
-        std::cout << "Booma [ f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? (app.GetEnableBuffers() ? "RF" : "rf") : "  ") << " " << (app.GetDumpAudio() ? (app.GetEnableBuffers() ? "A" : "a") : " ") << " ]# ";
+        std::cout << "Booma [ " << TranslateReceiverModeType(app.GetReceiver()) << " f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? (app.GetEnableBuffers() ? "RF" : "rf") : "  ") << " " << (app.GetDumpAudio() ? (app.GetEnableBuffers() ? "A" : "a") : " ") << " ]# ";
         cmd = (char) std::cin.get();
 
         // Repeat last command ?
