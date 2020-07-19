@@ -1,25 +1,30 @@
 #include "cwreceiver2.h"
 
-float BoomaCwReceiver2::_bandpassCoeffs[] =
+float BoomaCwReceiver2::_bandpassCoeffs[3][20] =
 {
     // 50 Hz @ 6KHz
-    //0.002048572294543357, 0.004097144589086714, 0.002048572294543357, 1.408067592516551, -0.9938554560160351,// b0, b1, b2, a1, a2
-    //0.0078125, -0.015625, 0.0078125, 1.4116734879341142, -0.9938710552646586,// b0, b1, b2, a1, a2
-    //0.0009765625, 0.001953125, 0.0009765625, 1.408045459371766, -0.9974456925740307,// b0, b1, b2, a1, a2
-    //0.0078125, -0.015625, 0.0078125, 1.4167508604593735, -0.9974613476810194// b0, b1, b2, a1, a2
-
+    {
+        0.002048572294543357, 0.004097144589086714, 0.002048572294543357, 1.408067592516551, -0.9938554560160351,// b0, b1, b2, a1, a2
+        0.0078125, -0.015625, 0.0078125, 1.4116734879341142, -0.9938710552646586,// b0, b1, b2, a1, a2
+        0.0009765625, 0.001953125, 0.0009765625, 1.408045459371766, -0.9974456925740307,// b0, b1, b2, a1, a2
+        0.0078125, -0.015625, 0.0078125, 1.4167508604593735, -0.9974613476810194// b0, b1, b2, a1, a2
+    },
 
     // 100 Hz @ 6KHz
-    0.0033509644355716028, 0.0067019288711432055, 0.0033509644355716028, 1.4026434633408733, -0.9883093940592698,// b0, b1, b2, a1, a2
-    0.015625, -0.03125, 0.015625, 1.4095146965221208, -0.9883657437885459,// b0, b1, b2, a1, a2
-    0.001953125, 0.00390625, 0.001953125, 1.4025641509285973, -0.9951244773940543,// b0, b1, b2, a1, a2
-    0.015625, -0.03125, 0.015625, 1.4191527482568658, -0.9951812092261056// b0, b1, b2, a1, a2
+    {
+        0.0033509644355716028, 0.0067019288711432055, 0.0033509644355716028, 1.4026434633408733, -0.9883093940592698,// b0, b1, b2, a1, a2
+        0.015625, -0.03125, 0.015625, 1.4095146965221208, -0.9883657437885459,// b0, b1, b2, a1, a2
+        0.001953125, 0.00390625, 0.001953125, 1.4025641509285973, -0.9951244773940543,// b0, b1, b2, a1, a2
+        0.015625, -0.03125, 0.015625, 1.4191527482568658, -0.9951812092261056// b0, b1, b2, a1, a2
+    },
 
     // 200 Hz @ 6KHz
-    //0.007439398273347204, 0.014878796546694408, 0.007439398273347204, 1.3903155004925956, -0.9759828267704111,// b0, b1, b2, a1, a2
-    //0.03125, -0.0625, 0.03125, 1.4044836752325582, -0.9762194821504804,// b0, b1, b2, a1, a2
-    //0.00390625, 0.0078125, 0.00390625, 1.3899786395895477, -0.9899122406330527,// b0, b1, b2, a1, a2
-    //0.03125, -0.0625, 0.03125, 1.4241834185016982, -0.9901521572645293// b0, b1, b2, a1, a2
+    {
+        0.007439398273347204, 0.014878796546694408, 0.007439398273347204, 1.3903155004925956, -0.9759828267704111,// b0, b1, b2, a1, a2
+        0.03125, -0.0625, 0.03125, 1.4044836752325582, -0.9762194821504804,// b0, b1, b2, a1, a2
+        0.00390625, 0.0078125, 0.00390625, 1.3899786395895477, -0.9899122406330527,// b0, b1, b2, a1, a2
+        0.03125, -0.0625, 0.03125, 1.4241834185016982, -0.9901521572645293// b0, b1, b2, a1, a2
+    }
 };
 
 float BoomaCwReceiver2::_cwCoeffs[] =
@@ -33,7 +38,22 @@ float BoomaCwReceiver2::_cwCoeffs[] =
 
 BoomaCwReceiver2::BoomaCwReceiver2(ConfigOptions* opts):
     BoomaReceiver(opts),
-    _enableProbes(opts->GetEnableProbes()) {}
+    _enableProbes(opts->GetEnableProbes()) {
+
+        std::vector<OptionValue> values {
+            OptionValue {"Narrow, 50Hz", 0},
+            OptionValue {"Medium, 100Hz", 0},
+            OptionValue {"Wide, 200Hz", 0}};
+        Option option {
+            "Bandwidth",
+            "Bandwidth of IF filter",
+            values,
+            0
+        };
+
+        // Register options
+        RegisterOption(option);
+    }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating CW2 receiver preprocessing chain");
@@ -61,7 +81,6 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWri
 
     // End of preprocessing
     return _humfilter->Consumer();
-    //return _gain->Consumer();
 }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
@@ -80,25 +99,25 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriter
 
     // Mix down to IF frequency = 6000Hz
     HLog("- IF Mixer");
-    _ifProbe = new HProbe<int16_t>("cwreceiver2_07_if_mixer", _enableProbes);
-    _if = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), opts->GetFrequency() - 6000, 10, BLOCKSIZE, _ifProbe);
+    _ifMixerProbe = new HProbe<int16_t>("cwreceiver2_07_if_mixer", _enableProbes);
+    _ifMixer = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), opts->GetFrequency() - 6000, 10, BLOCKSIZE, _ifMixerProbe);
 
     // Narrow if filter consisting of a number of cascaded 2. order bandpass filters
-    HLog("- Bandpass");
-    _bandpassProbe = new HProbe<int16_t>("cwreceiver_08_bandpass", _enableProbes);
-    _bandpass = new HCascadedBiQuadFilter<int16_t>(_if->Consumer(), _bandpassCoeffs, 20, BLOCKSIZE, _bandpassProbe);
+    HLog("- IF filter");
+    _ifFilterProbe = new HProbe<int16_t>("cwreceiver_08_if_filter", _enableProbes);
+    _ifFilter = new HCascadedBiQuadFilter<int16_t>(_ifMixer->Consumer(), _bandpassCoeffs[GetOption("Bandwidth")], 20, BLOCKSIZE, _ifFilterProbe);
 
     // Mix down to the output frequency.
     // 6000Hz - 5160Hz = 840Hz
-    HLog("- Beat frequency mixer");
-    _multiplierProbe = new HProbe<int16_t>("cwreceiver2_09_multiplier", _enableProbes);
-    _multiplier = new HMultiplier<int16_t>(_bandpass->Consumer(), GetSampleRate(), 5150, 1, BLOCKSIZE, _multiplierProbe);
+    HLog("- Beat tone mixer");
+    _beatToneMixerProbe = new HProbe<int16_t>("cwreceiver2_09_beat_tone_mixer", _enableProbes);
+    _beatToneMixer = new HMultiplier<int16_t>(_ifFilter->Consumer(), GetSampleRate(), 5150, 1, BLOCKSIZE, _beatToneMixerProbe);
 
     // Smoother bandpass filter (2 stacked biquads) to remove artifacts from the very narrow detector
     // filter above
     HLog("- Output filter");
     _postSelectProbe = new HProbe<int16_t>("cwreceiver2_10_postselect", _enableProbes);
-    _postSelect = new HCascadedBiQuadFilter<int16_t>(_multiplier->Consumer(), _cwCoeffs, 20, BLOCKSIZE, _bandpassProbe);
+    _postSelect = new HCascadedBiQuadFilter<int16_t>(_beatToneMixer->Consumer(), _cwCoeffs, 20, BLOCKSIZE, _postSelectProbe);
 
     // End of receiver
     return _postSelect->Consumer();
@@ -117,9 +136,9 @@ BoomaCwReceiver2::~BoomaCwReceiver2() {
     delete _humfilter;
     delete _preselect;
     delete _agc;
-    delete _if;
-    delete _bandpass;
-    delete _multiplier;
+    delete _ifMixer;
+    delete _ifFilter;
+    delete _beatToneMixer;
     delete _postSelect;
     
     delete _passthroughProbe;
@@ -128,9 +147,9 @@ BoomaCwReceiver2::~BoomaCwReceiver2() {
     delete _humfilterProbe;
     delete _preselectProbe;
     delete _agcProbe;
-    delete _ifProbe;
-    delete _bandpassProbe;
-    delete _multiplierProbe;
+    delete _ifMixerProbe;
+    delete _ifFilterProbe;
+    delete _beatToneMixerProbe;
     delete _postSelectProbe;
 }
 
@@ -143,7 +162,7 @@ bool BoomaCwReceiver2::SetFrequency(long int frequency) {
     }
 
     // Set new multiplier frequency and adjust the preselect bandpass filter
-    _if->SetFrequency(frequency - 6000);
+    _ifMixer->SetFrequency(frequency - 6000);
     //((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency, GetSampleRate(), 0.7071f, 1, BLOCKSIZE);
 
     // Ready

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "input.h"
 #include "decoder.h"
+#include "option.h"
 
 class BoomaReceiver {
 
@@ -17,6 +18,8 @@ class BoomaReceiver {
         HSplitter<int16_t>* _spectrum;
         HSplitter<int16_t>* _decoder;
 
+        std::vector<Option> _options;
+
     protected:
 
         int GetSampleRate() {
@@ -27,6 +30,39 @@ class BoomaReceiver {
         virtual HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
         virtual HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
 
+        std::vector<Option>* GetOptions() {
+            return &_options;
+        }
+
+        void RegisterOption(Option option) {
+            _options.push_back(option);
+        }
+
+        int GetOption(std::string name) {
+            for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
+                if( (*it).Name == name ) {
+                    return (*it).CurrentValue;
+                }
+            }
+            return -1;
+        };
+
+        bool SetOption(std::string name, int value){
+            for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
+                if( (*it).Name == name ) {
+                    for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
+                        if( (*valIt).Value == value ) {
+                            (*it).CurrentValue = value;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        virtual void OptionChanged(std::string name, int value) = 0;
+        
     public:
 
         BoomaReceiver(ConfigOptions* opts):

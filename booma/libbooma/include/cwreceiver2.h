@@ -20,9 +20,9 @@ class BoomaCwReceiver2 : public BoomaReceiver {
         HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _preselectProbe;
         HProbe<int16_t>* _agcProbe;
-        HProbe<int16_t>* _ifProbe;
-        HProbe<int16_t>* _bandpassProbe;
-        HProbe<int16_t>* _multiplierProbe;
+        HProbe<int16_t>* _ifMixerProbe;
+        HProbe<int16_t>* _ifFilterProbe;
+        HProbe<int16_t>* _beatToneMixerProbe;
         HProbe<int16_t>* _postSelectProbe;
 
         // Preprocessing
@@ -34,12 +34,12 @@ class BoomaCwReceiver2 : public BoomaReceiver {
         // Receiver
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HAgc<int16_t>* _agc;
-        HMultiplier<int16_t>* _if;
-        HCascadedBiQuadFilter<int16_t>* _bandpass;
-        HMultiplier<int16_t>* _multiplier;
+        HMultiplier<int16_t>* _ifMixer;
+        HCascadedBiQuadFilter<int16_t>* _ifFilter;
+        HMultiplier<int16_t>* _beatToneMixer;
         HCascadedBiQuadFilter<int16_t>* _postSelect;
         
-        static float _bandpassCoeffs[];
+        static float _bandpassCoeffs[3][20];
         static float _cwCoeffs[];
 
         HWriterConsumer<int16_t>* PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
