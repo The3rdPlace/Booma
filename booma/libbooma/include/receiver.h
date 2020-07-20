@@ -20,7 +20,9 @@ class BoomaReceiver {
 
         std::vector<Option> _options;
 
-        bool SetOption(std::string name, int value){
+        bool _hasBuilded;
+
+        bool SetOption(ConfigOptions* opts, std::string name, int value){
             for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
                 if( (*it).Name == name ) {
                     for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
@@ -30,7 +32,9 @@ class BoomaReceiver {
                                 return true;
                             }
                             (*it).CurrentValue = value;
-                            OptionChanged(name, value);
+                            if( _hasBuilded ) {
+                                OptionChanged(opts, name, value);
+                            }
                             return true;
                         }
                     }
@@ -57,12 +61,13 @@ class BoomaReceiver {
             _options.push_back(option);
         }
 
-        virtual void OptionChanged(std::string name, int value) = 0;
+        virtual void OptionChanged(ConfigOptions* opts, std::string name, int value) = 0;
 
     public:
 
         BoomaReceiver(ConfigOptions* opts):
-            _sampleRate(opts->GetSampleRate()) {}
+            _sampleRate(opts->GetSampleRate()),
+            _hasBuilded(false) {}
 
         virtual ~BoomaReceiver() {
             delete _spectrum;
@@ -81,13 +86,13 @@ class BoomaReceiver {
             return -1;
         };
 
-        bool SetOption(std::string name, std::string value){
+        bool SetOption(ConfigOptions* opts, std::string name, std::string value){
             HLog("Setting option '%s' to value '%s'", name.c_str(), value.c_str());
             for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
                 if( (*it).Name == name ) {
                     for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
                         if( (*valIt).Name == value ) {
-                            return SetOption(name, (*valIt).Value);
+                            return SetOption(opts, name, (*valIt).Value);
                         }
                     }
                     HError("Attempt to set receiver option '%s' to non-existing value '%s'", name.c_str(), value.c_str());
@@ -102,7 +107,7 @@ class BoomaReceiver {
 
             // Set options
             for( std::map<std::string, std::string>::iterator it = opts->GetReceiverOptions()->begin(); it != opts->GetReceiverOptions()->end(); it++ ) {
-                SetOption((*it).first, (*it).second);
+                SetOption(opts, (*it).first, (*it).second);
             }
 
             // Add preprocessing part of the receiver
@@ -122,6 +127,9 @@ class BoomaReceiver {
             if( decoder != NULL ) {
                 _decoder->SetWriter(decoder->Writer());
             }
+
+            // Receiver has been build and all components is initialized (or so they should be!)
+            _hasBuilded = true;
         };
 
         virtual bool SetFrequency(long int frequency) = 0;

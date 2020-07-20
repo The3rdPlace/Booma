@@ -49,9 +49,7 @@ class BoomaCwReceiver2 : public BoomaReceiver {
 
     public:
 
-        void OptionChanged(std::string name, int value) {
-            HLog("Option %s has changed to value %d", name.c_str(), value);
-        }
+        void OptionChanged(ConfigOptions* opts, std::string name, int value);
 
     public:
 

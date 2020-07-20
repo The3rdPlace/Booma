@@ -131,7 +131,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriter
     // Bandpass filter before mixing to remove or reduce frequencies we do not want to mix
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver2_05_preselect", _enableProbes);
-    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(previous, opts->GetFrequency(), GetSampleRate(), 1.0f, 1, BLOCKSIZE, _preselectProbe);
+    _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(previous, opts->GetFrequency() + offset, GetSampleRate(), 1.0f, 1, BLOCKSIZE, _preselectProbe);
 
     // Increase signal strength before mixing to avoid losses.
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
@@ -205,7 +205,6 @@ bool BoomaCwReceiver2::SetFrequency(long int frequency) {
 
     // Set new multiplier frequency and adjust the preselect bandpass filter
     _ifMixer->SetFrequency(frequency - 6000);
-    //((HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>*) _preselect)->SetCoefficients(frequency, GetSampleRate(), 0.7071f, 1, BLOCKSIZE);
 
     // Ready
     return true;
@@ -224,4 +223,19 @@ bool BoomaCwReceiver2::SetRfGain(int gain) {
 
     // Done
     return true;
+}
+
+void BoomaCwReceiver2::OptionChanged(ConfigOptions* opts, std::string name, int value) {
+    HLog("Option %s has changed to value %d", name.c_str(), value);
+
+    // Calculate mixer offsets due to if filter shifting
+    int offset = GetOption("Ifshift") * (_bandpassWidths[GetOption("Bandwidth")] / 4);
+    HLog("IF mixer offset due to IF shift set to %dHz", offset);
+
+    // Reconfigure receiver
+    _preselect->SetCoefficients(opts->GetFrequency() + offset, GetSampleRate(), 1.0f, 1, BLOCKSIZE); 
+    _ifMixer->SetFrequency(opts->GetFrequency() - 6000 + offset);
+    _ifFilter->SetCoefficients(_bandpassCoeffs[GetOption("Bandwidth")], 20);
+    _beatToneMixer->SetFrequency(6000 - GetOption("Beattone") - offset);
+    HLog("Receiver chain reconfigured");
 }
