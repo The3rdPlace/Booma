@@ -40,6 +40,7 @@ class BoomaCwReceiver2 : public BoomaReceiver {
         HCascadedBiQuadFilter<int16_t>* _postSelect;
         
         static float _bandpassCoeffs[3][20];
+        static int _bandpassWidths[];
         static float _cwCoeffs[];
 
         HWriterConsumer<int16_t>* PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);

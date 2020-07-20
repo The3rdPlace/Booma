@@ -27,6 +27,13 @@ float BoomaCwReceiver2::_bandpassCoeffs[3][20] =
     }
 };
 
+int BoomaCwReceiver2::_bandpassWidths[] =
+{
+    50,
+    100,
+    200
+};
+
 float BoomaCwReceiver2::_cwCoeffs[] =
 {
     // 400 Hz @ 1000 Hz
@@ -117,6 +124,10 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWri
 HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating CW2 receiver receiving chain");
 
+    // Calculate mixer offsets due to if filter shifting
+    int offset = GetOption("Ifshift") * (_bandpassWidths[GetOption("Bandwidth")] / 4);
+    HLog("IF mixer offset due to IF shift set to %dHz", offset);
+
     // Bandpass filter before mixing to remove or reduce frequencies we do not want to mix
     HLog("- Preselect");
     _preselectProbe = new HProbe<int16_t>("cwreceiver2_05_preselect", _enableProbes);
@@ -131,7 +142,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriter
     // Mix down to IF frequency = 6000Hz
     HLog("- IF Mixer");
     _ifMixerProbe = new HProbe<int16_t>("cwreceiver2_07_if_mixer", _enableProbes);
-    _ifMixer = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), opts->GetFrequency() - 6000, 10, BLOCKSIZE, _ifMixerProbe);
+    _ifMixer = new HMultiplier<int16_t>(_agc->Consumer(), GetSampleRate(), opts->GetFrequency() - 6000 + offset, 10, BLOCKSIZE, _ifMixerProbe);
 
     // Narrow if filter consisting of a number of cascaded 2. order bandpass filters
     HLog("- IF filter");
@@ -142,7 +153,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriter
     // 6000Hz - 5160Hz = 840Hz
     HLog("- Beat tone mixer");
     _beatToneMixerProbe = new HProbe<int16_t>("cwreceiver2_09_beat_tone_mixer", _enableProbes);
-    _beatToneMixer = new HMultiplier<int16_t>(_ifFilter->Consumer(), GetSampleRate(), 5150, 1, BLOCKSIZE, _beatToneMixerProbe);
+    _beatToneMixer = new HMultiplier<int16_t>(_ifFilter->Consumer(), GetSampleRate(), 6000 - GetOption("Beattone") - offset, 1, BLOCKSIZE, _beatToneMixerProbe);
 
     // Smoother bandpass filter (2 stacked biquads) to remove artifacts from the very narrow detector
     // filter above
