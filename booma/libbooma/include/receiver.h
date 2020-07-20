@@ -20,6 +20,28 @@ class BoomaReceiver {
 
         std::vector<Option> _options;
 
+        bool SetOption(std::string name, int value){
+            for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
+                if( (*it).Name == name ) {
+                    for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
+                        if( (*valIt).Value == value ) {
+                            if( (*it).CurrentValue == value ) {
+                                HLog("Value is the same as the current value, discarding option set");
+                                return true;
+                            }
+                            (*it).CurrentValue = value;
+                            OptionChanged(name, value);
+                            return true;
+                        }
+                    }
+                    HError("Attempt to internal set receiver option '%s' to non-existing value %d", name.c_str(), value);
+                    return false;
+                }
+            }
+            HError("Attempt to internal set non-existing receiver option '%s' to value '%d'", name.c_str(), value);
+            return false;
+        };
+
     protected:
 
         int GetSampleRate() {
@@ -30,12 +52,24 @@ class BoomaReceiver {
         virtual HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
         virtual HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
 
-        std::vector<Option>* GetOptions() {
-            return &_options;
+        void RegisterOption(Option option) {
+            HLog("Registering option %s", option.Name.c_str());
+            _options.push_back(option);
         }
 
-        void RegisterOption(Option option) {
-            _options.push_back(option);
+        virtual void OptionChanged(std::string name, int value) = 0;
+
+    public:
+
+        BoomaReceiver(ConfigOptions* opts):
+            _sampleRate(opts->GetSampleRate()) {}
+
+        virtual ~BoomaReceiver() {
+            delete _spectrum;
+        }
+
+        std::vector<Option>* GetOptions() {
+            return &_options;
         }
 
         int GetOption(std::string name) {
@@ -47,32 +81,29 @@ class BoomaReceiver {
             return -1;
         };
 
-        bool SetOption(std::string name, int value){
+        bool SetOption(std::string name, std::string value){
+            HLog("Setting option '%s' to value '%s'", name.c_str(), value.c_str());
             for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
                 if( (*it).Name == name ) {
                     for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
-                        if( (*valIt).Value == value ) {
-                            (*it).CurrentValue = value;
-                            return true;
+                        if( (*valIt).Name == value ) {
+                            return SetOption(name, (*valIt).Value);
                         }
                     }
+                    HError("Attempt to set receiver option '%s' to non-existing value '%s'", name.c_str(), value.c_str());
+                    return false;
                 }
             }
+            HError("Attempt to set non-existing receiver option '%s' to value '%s'", name.c_str(), value.c_str());
             return false;
         };
 
-        virtual void OptionChanged(std::string name, int value) = 0;
-        
-    public:
-
-        BoomaReceiver(ConfigOptions* opts):
-            _sampleRate(opts->GetSampleRate()) {}
-
-        virtual ~BoomaReceiver() {
-            delete _spectrum;
-        }
-
         void Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* decoder = NULL) {
+
+            // Set options
+            for( std::map<std::string, std::string>::iterator it = opts->GetReceiverOptions()->begin(); it != opts->GetReceiverOptions()->end(); it++ ) {
+                SetOption((*it).first, (*it).second);
+            }
 
             // Add preprocessing part of the receiver
             _preProcess = PreProcess(opts, input->GetLastWriterConsumer());

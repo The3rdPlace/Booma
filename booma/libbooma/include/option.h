@@ -8,6 +8,7 @@
 struct OptionValue {
     
     std::string Name;
+    std::string Description;
     int Value;
 };
 

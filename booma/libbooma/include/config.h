@@ -83,10 +83,14 @@ class ConfigOptions {
         bool ReadStoredConfig();
         void SaveStoredConfig();
         void RemoveStoredConfig();
+        std::map<std::string, std::string> ReadStoredReceiverOptions(std::string optionsString);
+        std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
 
         bool _enableProbes = false;
 
         int _reservedBuffers = 200;
+
+        std::map<std::string, std::string> _receiverOptions;
 
     public:
 
@@ -214,6 +218,10 @@ class ConfigOptions {
 
         HTimer GetSchedule() {
             return _schedule;
+        }
+
+        std::map<std::string, std::string>* GetReceiverOptions() {
+            return &_receiverOptions;
         }
     };
 

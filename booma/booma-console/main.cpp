@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires an option ?
-            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' ) {
                 std::cin >> opt;
             }
             else
@@ -196,6 +196,7 @@ int main(int argc, char** argv) {
             std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change receiver type:           r CW           or  s (use current receiver and input)" << std::endl;
+            std::cout << "Set receiver option:            o NAME=VALUE" << std::endl;
             std::cout << "Toggle audio recording on/off:  a" << std::endl;
             std::cout << "Toggle rf recording on/off:     p" << std::endl;
             std::cout << "Enter measurement mode:         m" << std::endl;
@@ -203,6 +204,8 @@ int main(int argc, char** argv) {
             std::cout << "Press enter on a blank line to repeat the last command" << std::endl;
             std::cout << std::endl;
             std::cout << "Get help (this text):           ?  or  h" << std::endl;
+            std::cout << "Get reception status:           i" << std::endl;
+            std::cout << "List receiver options:          l" << std::endl;
             std::cout << "Quit:                           q" << std::endl;
             std::cout << "-------------------------------------------------------------------------------------" << std::endl;
         }
@@ -262,11 +265,49 @@ int main(int argc, char** argv) {
             #endif
         }
 
+        // Show receiver options
+        else if( cmd == 'l' ) {
+            std::vector<Option>* options = app.GetOptions();
+            for( std::vector<Option>::iterator it = options->begin(); it != options->end(); it++ ) {
+                int current = app.GetOption((*it).Name);
+                std::cout << (*it).Name << ":" << std::endl;
+                for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
+                    if( (*valIt).Value == current ) {
+                        std::cout << "* " << (*valIt).Name << " (" << (*valIt).Description << ") = " << (*valIt).Value << std::endl;
+                    } else {
+                        std::cout << "  " << (*valIt).Name << " (" << (*valIt).Description << ") = " << (*valIt).Value << std::endl;
+                    }
+                }
+            }
+        }
+
+        // Set receiver options
+        else if( cmd == 'o' ) {
+            if( opt.size() == 0 ) {
+                std::cout << "Missing option name and value" << std::endl;
+                continue;
+            }
+            int pos = opt.find("=");
+            if( pos < 0 ) {
+                std::cout << "Option name and value must be given as 'NAME=VALUE'" << std::endl;
+                continue;
+            }
+            if( pos == 0 ) {
+                std::cout << "Option 'NAME' can not be empty" << std::endl;
+                continue;
+            }
+            if( pos >= opt.size() - 1 ) {
+                std::cout << "Option 'VALUE' can not be empty" << std::endl;
+                continue;
+            }
+            app.SetOption(opt.substr(0, pos), opt.substr(pos + 1));
+        }
+
         // Unknown command
         else if( cmd != 'q' ) {
             std::cout << "Unknown command !" << std::endl;
         }
-        
+
         // Save last command and options
         lastCmd = cmd;
         lastOpt = opt;

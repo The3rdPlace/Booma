@@ -3,6 +3,7 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <include/auroralreceiver.h>
 
 #include "booma.h"
 #include "config.h"
@@ -32,6 +33,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Dump rf input as pcm to file                       -p PCM (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Dump rf input as wav to file (default)             -p WAV (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Samplerate (default 48KHz)                         -q rate") << std::endl;
+    std::cout << tr("Set receiver option (can be repeated)              -ro NAME=VALUE") << std::endl;
     std::cout << tr("Receiver for remote input                          -r address port") << std::endl;
     std::cout << tr("Server for remote input                            -s port") << std::endl;
     std::cout << std::endl;
@@ -239,6 +241,26 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Samplerate
         if( strcmp(argv[i], "-q") == 0 && argc < argc + 1) {
             _sampleRate = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
+        if( strcmp(argv[i], "-ro") == 0 && argc < argc + 2) {
+            std::string s(argv[i + 1]);
+            int pos = s.find("=");
+            if( pos < 0 ) {
+                std::cout << "Option '-ro' must have a parameter on the form 'NAME=VALUE'" << std::endl;
+                exit(1);
+            }
+            if( pos == 0 ) {
+                std::cout << "NAME can not be empty in receiver option definition" << std::endl;
+                exit(1);
+            }
+            if( pos >= s.size() - 1 ) {
+                std::cout << "VALUE can not be empty in receiver option definition" << std::endl;
+                exit(1);
+            }
+            _receiverOptions[s.substr(0, pos)] = s.substr(pos + 1);
             i++;
             continue;
         }
@@ -474,6 +496,7 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "pcmFile" )                 _pcmFile = value;
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
+            if( name == "receiverOptions" )         _receiverOptions = ReadStoredReceiverOptions(value);
         }
         configStream >> opt;
     }
@@ -568,7 +591,47 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "pcmFile=" << _pcmFile << std::endl;
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
+    configStream << "receiverOptions=" << WriteStoredReceiverOptions(_receiverOptions) << std::endl;
 
     // Done writing the config file
     configStream.close();
+}
+
+std::map<std::string, std::string> ConfigOptions::ReadStoredReceiverOptions(std::string optionsString) {
+    std::map<std::string, std::string> options;
+    if( optionsString.size() == 0 ) {
+        return options;
+    }
+
+    int pos = optionsString.find("=");
+    int stop;
+    while( pos >= 0 ) {
+        stop = optionsString.find(",");
+        if( stop < pos ) {
+            stop = optionsString.size() - 1;
+        }
+
+        std::string name = optionsString.substr(0, pos);
+        std::string value = optionsString.substr(pos + 1, stop - pos - 1);
+        options[name] = value;
+
+        if( stop < optionsString.size() ) {
+            optionsString = optionsString.substr(stop + 1);
+        }
+
+        pos = optionsString.find("=");
+    }
+
+    return options;
+}
+
+std::string ConfigOptions::WriteStoredReceiverOptions(std::map<std::string, std::string> options) {
+    std::string optionsString = "";
+    for( std::map<std::string, std::string>::iterator it = _receiverOptions.begin(); it != _receiverOptions.end(); it++ ) {
+        optionsString += (*it).first + "=" + (*it).second + ",";
+    }
+    if( optionsString[optionsString.size() - 1] == ',') {
+        optionsString = optionsString.substr(0, optionsString.size() - 1);
+    }
+    return optionsString;
 }

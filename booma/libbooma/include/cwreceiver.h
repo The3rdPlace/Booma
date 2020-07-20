@@ -45,6 +45,10 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
+        void OptionChanged(std::string name, int value) {}
+
+    public:
+
         BoomaCwReceiver(ConfigOptions* opts);
         ~BoomaCwReceiver();
 

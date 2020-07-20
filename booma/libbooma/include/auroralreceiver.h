@@ -39,6 +39,10 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
     public:
 
+        void OptionChanged(std::string name, int value) {}
+
+    public:
+
         BoomaAuroralReceiver(ConfigOptions* opts);
         ~BoomaAuroralReceiver();
 

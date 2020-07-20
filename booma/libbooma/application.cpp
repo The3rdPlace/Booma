@@ -245,3 +245,15 @@ bool BoomaApplication::GetEnableBuffers() {
 ReceiverModeType BoomaApplication::GetReceiver() {
     return _opts->GetReceiverModeType();
 }
+
+std::vector<Option>* BoomaApplication::GetOptions() {
+    return _receiver->GetOptions();
+}
+
+int BoomaApplication::GetOption(std::string name) {
+    return _receiver->GetOption(name);
+}
+
+bool BoomaApplication::SetOption(std::string name, std::string value) {
+    return _receiver->SetOption(name, value);
+}

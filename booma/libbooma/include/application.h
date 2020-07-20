@@ -127,6 +127,9 @@ class BoomaApplication {
 
         // Other reporting functions
         bool GetEnableBuffers();
+        std::vector<Option>* GetOptions();
+        int GetOption(std::string name);
+        bool SetOption(std::string name, std::string value);
 
     private:
 
