@@ -46,6 +46,7 @@ class BoomaCwReceiver : public BoomaReceiver {
     public:
 
         void OptionChanged(ConfigOptions* opts, std::string name, int value) {}
+        std::string GetOptionInfoString() { return ""; }
 
     public:
 

@@ -103,6 +103,8 @@ class BoomaReceiver {
             return false;
         };
 
+        virtual std::string GetOptionInfoString() = 0;
+
         void Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* decoder = NULL) {
 
             // Set options

@@ -33,6 +33,19 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
     }
 }
 
+std::string ComposeInfoPrompt(BoomaApplication* app) {
+    return "Booma [ " +
+    TranslateReceiverModeType(app->GetReceiver()) +
+    " f=" + std::to_string(app->GetFrequency()) + "[" + app->GetOptionInfoString() + "]" +
+    " v=" + std::to_string(app->GetVolume()) +
+    " gain=" + std::to_string(app->GetRfGain()) +
+    (app->GetDumpRf() ? " " : "") +
+    (app->GetDumpRf() ? (app->GetEnableBuffers() ? "RF(b)" : "RF") : "") +
+    (app->GetDumpAudio() ? " " : "") +
+    (app->GetDumpAudio() ? (app->GetEnableBuffers() ? "AUDIO(b)" : "AUDIO") : "") +
+    " ]# ";
+}
+
 int main(int argc, char** argv) {
 
 	// Initialize Booma
@@ -77,7 +90,7 @@ int main(int argc, char** argv) {
     std::string lastOpt;
     std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
     do {
-        std::cout << "Booma [ " << TranslateReceiverModeType(app.GetReceiver()) << " f=" << app.GetFrequency() << ", v=" << app.GetVolume() << ", rf.g=" << app.GetRfGain() << " " << (app.GetDumpRf() ? (app.GetEnableBuffers() ? "RF" : "rf") : "  ") << " " << (app.GetDumpAudio() ? (app.GetEnableBuffers() ? "A" : "a") : " ") << " ]# ";
+        std::cout << ComposeInfoPrompt(&app);
         cmd = (char) std::cin.get();
 
         // Repeat last command ?

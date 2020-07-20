@@ -239,3 +239,12 @@ void BoomaCwReceiver2::OptionChanged(ConfigOptions* opts, std::string name, int 
     _beatToneMixer->SetFrequency(6000 - GetOption("Beattone") - offset);
     HLog("Receiver chain reconfigured");
 }
+
+std::string BoomaCwReceiver2::GetOptionInfoString() { 
+    std::string info = "bw:" + std::to_string(_bandpassWidths[GetOption("Bandwidth")]) + "Hz";
+    if( GetOption("Ifshift") != 0 ) {
+        int shift = _bandpassWidths[GetOption("Bandwidth")] / 4;
+        info += (GetOption("Ifshift") > 0 ? " " + std::to_string(shift) + "-->" : " <--" + std::to_string(shift));
+    } 
+    return  info;
+}

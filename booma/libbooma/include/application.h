@@ -130,6 +130,7 @@ class BoomaApplication {
         std::vector<Option>* GetOptions();
         int GetOption(std::string name);
         bool SetOption(std::string name, std::string value);
+        std::string GetOptionInfoString();
 
     private:
 
@@ -143,6 +144,11 @@ class BoomaApplication {
         BoomaInput* _input;
         BoomaReceiver* _receiver;
         BoomaOutput* _output;
+
+        // Disable copy constructor usage since that would
+        // create multiple instances of the application core!
+        BoomaApplication(const BoomaApplication&);
+        BoomaApplication& operator=(const BoomaApplication&);
 };
 
 #endif
