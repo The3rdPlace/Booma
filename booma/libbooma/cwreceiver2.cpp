@@ -40,19 +40,50 @@ BoomaCwReceiver2::BoomaCwReceiver2(ConfigOptions* opts):
     BoomaReceiver(opts),
     _enableProbes(opts->GetEnableProbes()) {
 
-        std::vector<OptionValue> values {
-            OptionValue {"Narrow, 50Hz", 0},
-            OptionValue {"Medium, 100Hz", 0},
-            OptionValue {"Wide, 200Hz", 0}};
-        Option option {
+        std::vector<OptionValue> bandwidthValues {
+            OptionValue {"Narrow", "Narrow IF filter at 50Hz", 0},
+            OptionValue {"Medium", "Medium IF filter at 100Hz", 1},
+            OptionValue {"Wide", "Wide IF filter at 200Hz", 2}};
+        std::vector<OptionValue> beattoneValues {
+            OptionValue {"800", "CW Beattone 800Hz", 800},
+            OptionValue {"840", "CW Beattone 840Hz", 840},
+            OptionValue {"880", "CW Beattone 880Hz", 880},
+            OptionValue {"920", "CW Beattone 920Hz", 920},
+            OptionValue {"960", "CW Beattone 960Hz", 960},
+            OptionValue {"1000", "CW Beattone 1000Hz", 1000},
+            OptionValue {"1040", "CW Beattone 1040Hz", 1040},
+            OptionValue {"1080", "CW Beattone 1080Hz", 1080},
+            OptionValue {"1120", "CW Beattone 1120Hz", 1120},
+            OptionValue {"1160", "CW Beattone 1160Hz", 1160},
+            OptionValue {"1200", "CW Beattone 1200Hz", 1200}};
+        std::vector<OptionValue> ifshiftValues {
+            OptionValue {"Left", "Shift IF passband to the left", -1},
+            OptionValue {"Center", "Center IF passband", 0},
+            OptionValue {"Right", "Shift IF passband to the right", 1}};
+
+        Option bandwidthOption {
             "Bandwidth",
             "Bandwidth of IF filter",
-            values,
-            0
+            bandwidthValues,
+            1
+        };
+        Option beattoneOption {
+                "Beattone",
+                "CW beattone frequency",
+                beattoneValues,
+                840
+        };
+        Option ifshiftOption {
+                "Ifshift",
+                "IF shift",
+                ifshiftValues,
+                0
         };
 
         // Register options
-        RegisterOption(option);
+        RegisterOption(bandwidthOption);
+        RegisterOption(beattoneOption);
+        RegisterOption(ifshiftOption);
     }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
