@@ -67,6 +67,10 @@ BoomaCwReceiver2::BoomaCwReceiver2(ConfigOptions* opts):
             OptionValue {"Left", "Shift IF passband to the left", -1},
             OptionValue {"Center", "Center IF passband", 0},
             OptionValue {"Right", "Shift IF passband to the right", 1}};
+        std::vector<OptionValue> agcValues {
+            OptionValue {"Slow", "Slow agc", 5},
+            OptionValue {"Normal", "Normal agc", 3},
+            OptionValue {"Fast", "Fast agc", 1}};
 
         Option bandwidthOption {
             "Bandwidth",
@@ -86,11 +90,18 @@ BoomaCwReceiver2::BoomaCwReceiver2(ConfigOptions* opts):
                 ifshiftValues,
                 0
         };
+        Option agcOption {
+                "Agc",
+                "AGC response",
+                agcValues,
+                3
+        };
 
         // Register options
         RegisterOption(bandwidthOption);
         RegisterOption(beattoneOption);
         RegisterOption(ifshiftOption);
+        RegisterOption(agcOption);
     }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
@@ -115,7 +126,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::PreProcess(ConfigOptions* opts, HWri
     // Add a combfilter to kill (more) 50 hz harmonics
     HLog("- Humfilter");
     _humfilterProbe = new HProbe<int16_t>("cwreceiver2_04_humfilter", _enableProbes);
-    _humfilter = new HCombFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, -0.707f, BLOCKSIZE, _humfilterProbe);
+    _humfilter = new HHumFilter<int16_t>(_gain->Consumer(), GetSampleRate(), 50, 1000, BLOCKSIZE, _humfilterProbe);
 
     // End of preprocessing
     return _humfilter->Consumer();
@@ -137,7 +148,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver2::Receive(ConfigOptions* opts, HWriter
     // The agc ensures that (if at all possible), the output has an average maximum amplitude of '2000'
     HLog("- RF gain");
     _agcProbe = new HProbe<int16_t>("cwreceiver2_06_agc", _enableProbes);
-    _agc = new HAgc<int16_t>(_preselect->Consumer(), 2000, 3000, 3, 20, BLOCKSIZE, _gainProbe);
+    _agc = new HAgc<int16_t>(_preselect->Consumer(), 2000, 3000, GetOption("Agc"), GetOption("Agc") * 10, BLOCKSIZE, _gainProbe);
 
     // Mix down to IF frequency = 6000Hz
     HLog("- IF Mixer");
@@ -237,6 +248,12 @@ void BoomaCwReceiver2::OptionChanged(ConfigOptions* opts, std::string name, int 
     _ifMixer->SetFrequency(opts->GetFrequency() - 6000 + offset);
     _ifFilter->SetCoefficients(_bandpassCoeffs[GetOption("Bandwidth")], 20);
     _beatToneMixer->SetFrequency(6000 - GetOption("Beattone") - offset);
+
+    // AGC
+    _agc->SetAverage(GetOption("Agc"));
+    _agc->SetLock(GetOption("Agc") * 10);
+
+    // Settings applied
     HLog("Receiver chain reconfigured");
 }
 

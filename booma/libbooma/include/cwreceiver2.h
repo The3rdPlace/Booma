@@ -29,7 +29,7 @@ class BoomaCwReceiver2 : public BoomaReceiver {
         HPassThrough<int16_t>* _passthrough;
         HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
         HGain<int16_t>* _gain;
-        HCombFilter<int16_t>* _humfilter;
+        HHumFilter<int16_t>* _humfilter;
 
         // Receiver
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
