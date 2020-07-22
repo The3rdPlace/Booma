@@ -497,6 +497,7 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
             if( name == "receiverOptions" )         _receiverOptions = ReadStoredReceiverOptions(value);
+            if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
         }
         configStream >> opt;
     }
@@ -592,6 +593,7 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
     configStream << "receiverOptions=" << WriteStoredReceiverOptions(_receiverOptions) << std::endl;
+    configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
 
     // Done writing the config file
     configStream.close();
@@ -608,7 +610,7 @@ std::map<std::string, std::string> ConfigOptions::ReadStoredReceiverOptions(std:
     while( pos >= 0 ) {
         stop = optionsString.find(",");
         if( stop < pos ) {
-            stop = optionsString.size() - 1;
+            stop = optionsString.size();
         }
 
         std::string name = optionsString.substr(0, pos);
@@ -617,6 +619,8 @@ std::map<std::string, std::string> ConfigOptions::ReadStoredReceiverOptions(std:
 
         if( stop < optionsString.size() ) {
             optionsString = optionsString.substr(stop + 1);
+        } else {
+            optionsString = "";
         }
 
         pos = optionsString.find("=");
@@ -634,4 +638,75 @@ std::string ConfigOptions::WriteStoredReceiverOptions(std::map<std::string, std:
         optionsString = optionsString.substr(0, optionsString.size() - 1);
     }
     return optionsString;
+}
+
+void ConfigOptions::SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options) {
+    std::map<std::string, std::map<std::string, std::string>>::iterator it = _receiverOptionsFor.find(receiver);
+    if( it != _receiverOptionsFor.end() ) {
+        HLog("Has existing options map for receiver %s", receiver.c_str());
+        it->second = options;
+        return;
+    }
+    HLog("Adding options map for receiver %s", receiver.c_str());
+    _receiverOptionsFor[receiver] = options;
+}
+
+std::map<std::string, std::string> ConfigOptions::GetReceiverOptionsFor(std::string receiver) {
+    std::map<std::string, std::map<std::string, std::string>>::iterator it = _receiverOptionsFor.find(receiver);
+    if( it != _receiverOptionsFor.end() ) {
+        HLog("Found existing options map for receiver %s", receiver.c_str());
+        return it->second;
+    }
+    HLog("No existing options map for receiver %s. Returning empty list", receiver.c_str());
+    std::map<std::string, std::string> empty;
+    return empty;
+}
+
+std::string ConfigOptions::WriteStoredReceiverOptionsFor(std::map<std::string, std::map<std::string, std::string>> options) {
+    std::string optionsString = "";
+    for( std::map<std::string, std::map<std::string, std::string>>::iterator rit = options.begin(); rit != options.end(); rit++ ) {
+        optionsString += rit->first + ":{";
+        for( std::map<std::string, std::string>::iterator it = rit->second.begin(); it != rit->second.end(); it++ ) {
+            optionsString += (*it).first + "=" + (*it).second + ",";
+        }
+        if( optionsString[optionsString.size() - 1] == ',') {
+            optionsString = optionsString.substr(0, optionsString.size() - 1);
+        }
+        optionsString += "},";
+    }
+    if( optionsString[optionsString.size() - 1] == ',') {
+        optionsString = optionsString.substr(0, optionsString.size() - 1);
+    }
+    return optionsString;
+}
+
+std::map<std::string, std::map<std::string, std::string>> ConfigOptions::ReadStoredReceiverOptionsFor(std::string optionsForString) {
+    std::map<std::string, std::map<std::string, std::string>> optionsFor;
+    if( optionsForString.size() == 0 ) {
+        return optionsFor;
+    }
+
+    int pos = optionsForString.find("{");
+    int stop;
+    while( pos >= 0 ) {
+        stop = optionsForString.find("}");
+        if( stop < pos ) {
+            stop = optionsForString.size() - 1;
+        }
+
+        std::string receiver = optionsForString.substr(0, pos - 1);
+        std::string value = optionsForString.substr(pos + 1, stop - pos - 1);
+
+        optionsFor[receiver] = ReadStoredReceiverOptions (value);
+
+        if( stop + 1 < optionsForString.size() ) {
+            optionsForString = optionsForString.substr(stop + 2);
+        } else if( stop < optionsForString.size() ) {
+            optionsForString = optionsForString.substr(stop + 1);
+        }
+
+        pos = optionsForString.find("{");
+    }
+
+    return optionsFor;
 }

@@ -27,14 +27,34 @@ class BoomaReceiver {
                 if( (*it).Name == name ) {
                     for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
                         if( (*valIt).Value == value ) {
+
+                            // Discard repeated setting of the same value
                             if( (*it).CurrentValue == value ) {
                                 HLog("Value is the same as the current value, discarding option set");
                                 return true;
                             }
+
+                            // Set current value
                             (*it).CurrentValue = value;
+
+                            // Update the stored copy of receiver options
+                            std::map<std::string, std::string> optionsMap;
+                            for( std::vector<Option>::iterator optIt = _options.begin(); optIt != _options.end(); optIt++ ) {
+                                for( std::vector<OptionValue>::iterator optValIt = (*optIt).Values.begin(); optValIt != (*optIt).Values.end(); optValIt++ ) {
+                                    if( (*optValIt).Value == (*optIt).CurrentValue ) {
+                                        optionsMap[(*optIt).Name] = (*optValIt).Name;
+                                        continue;
+                                    }
+                                }
+                            }
+                            opts->SetReceiverOptionsFor(GetName(), optionsMap);
+
+                            // Report the change to the receiver implementation
                             if( _hasBuilded ) {
                                 OptionChanged(opts, name, value);
                             }
+
+                            // Receiver option set
                             return true;
                         }
                     }
@@ -47,6 +67,8 @@ class BoomaReceiver {
         };
 
     protected:
+
+        virtual std::string GetName() = 0;
 
         int GetSampleRate() {
             return _sampleRate;
@@ -67,7 +89,8 @@ class BoomaReceiver {
 
         BoomaReceiver(ConfigOptions* opts):
             _sampleRate(opts->GetSampleRate()),
-            _hasBuilded(false) {}
+            _hasBuilded(false) {
+            }
 
         virtual ~BoomaReceiver() {
             delete _spectrum;
@@ -107,7 +130,13 @@ class BoomaReceiver {
 
         void Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* decoder = NULL) {
 
-            // Set options
+            // Set options from saved configuration
+            std::map<std::string, std::string> storedOptions = opts->GetReceiverOptionsFor(GetName());
+            for( std::map<std::string, std::string>::iterator it = storedOptions.begin(); it != storedOptions.end(); it++ ) {
+                SetOption(opts, (*it).first, (*it).second);
+            }
+
+            // Set options from the command line
             for( std::map<std::string, std::string>::iterator it = opts->GetReceiverOptions()->begin(); it != opts->GetReceiverOptions()->end(); it++ ) {
                 SetOption(opts, (*it).first, (*it).second);
             }

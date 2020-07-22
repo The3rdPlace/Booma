@@ -85,12 +85,15 @@ class ConfigOptions {
         void RemoveStoredConfig();
         std::map<std::string, std::string> ReadStoredReceiverOptions(std::string optionsString);
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
+        std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);
+        std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
 
         bool _enableProbes = false;
 
         int _reservedBuffers = 200;
 
         std::map<std::string, std::string> _receiverOptions;
+        std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
 
     public:
 
@@ -223,6 +226,10 @@ class ConfigOptions {
         std::map<std::string, std::string>* GetReceiverOptions() {
             return &_receiverOptions;
         }
+
+        void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);
+
+        std::map<std::string, std::string> GetReceiverOptionsFor(std::string receiver);
     };
 
 #endif

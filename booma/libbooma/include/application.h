@@ -10,6 +10,7 @@
 #include "receiver.h"
 #include "output.h"
 #include "booma.h"
+#include "option.h"
 
 class BoomaApplication {
 
@@ -101,17 +102,11 @@ class BoomaApplication {
 
         // Public control functions that would require a receiver restart after modifications
         InputSourceType GetInputSourceType();
-
         int GetInputAudioDevice();
-
         std::string GetPcmFile();
-
         std::string GetWavFile();
-
         int GetSignalGeneratorFrequency();
-
         std::string GetRemoteServer();
-
         int GetRemotePort();
 
         // Public reporting functions for spectrum and signallevel

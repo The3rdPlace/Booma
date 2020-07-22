@@ -55,6 +55,10 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         bool SetFrequency(long int frequency);
         bool SetRfGain(int gain);
+
+        std::string GetName() {
+            return "CW";
+        }
 };
 
 #endif

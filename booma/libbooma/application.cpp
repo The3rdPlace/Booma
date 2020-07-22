@@ -261,3 +261,4 @@ bool BoomaApplication::SetOption(std::string name, std::string value) {
 std::string BoomaApplication::GetOptionInfoString() {
     return _receiver->GetOptionInfoString();
 }
+
