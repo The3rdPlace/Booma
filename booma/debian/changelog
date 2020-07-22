@@ -1,3 +1,10 @@
+booma (1.0-9) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Retain receiver options once set
+
+ -- Mackie <henrik@hardttoolkit.org>  Wed, 22 Jul 2020 23:23:00 +0200
+
 booma (1.0-8) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
