@@ -496,7 +496,6 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "pcmFile" )                 _pcmFile = value;
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
-            if( name == "receiverOptions" )         _receiverOptions = ReadStoredReceiverOptions(value);
             if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
         }
         configStream >> opt;
@@ -592,7 +591,6 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "pcmFile=" << _pcmFile << std::endl;
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
-    configStream << "receiverOptions=" << WriteStoredReceiverOptions(_receiverOptions) << std::endl;
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
 
     // Done writing the config file
@@ -631,7 +629,7 @@ std::map<std::string, std::string> ConfigOptions::ReadStoredReceiverOptions(std:
 
 std::string ConfigOptions::WriteStoredReceiverOptions(std::map<std::string, std::string> options) {
     std::string optionsString = "";
-    for( std::map<std::string, std::string>::iterator it = _receiverOptions.begin(); it != _receiverOptions.end(); it++ ) {
+    for( std::map<std::string, std::string>::iterator it = options.begin(); it != options.end(); it++ ) {
         optionsString += (*it).first + "=" + (*it).second + ",";
     }
     if( optionsString[optionsString.size() - 1] == ',') {
@@ -666,12 +664,13 @@ std::string ConfigOptions::WriteStoredReceiverOptionsFor(std::map<std::string, s
     std::string optionsString = "";
     for( std::map<std::string, std::map<std::string, std::string>>::iterator rit = options.begin(); rit != options.end(); rit++ ) {
         optionsString += rit->first + ":{";
-        for( std::map<std::string, std::string>::iterator it = rit->second.begin(); it != rit->second.end(); it++ ) {
+        optionsString += WriteStoredReceiverOptions(rit->second);
+        /*for( std::map<std::string, std::string>::iterator it = rit->second.begin(); it != rit->second.end(); it++ ) {
             optionsString += (*it).first + "=" + (*it).second + ",";
         }
         if( optionsString[optionsString.size() - 1] == ',') {
             optionsString = optionsString.substr(0, optionsString.size() - 1);
-        }
+        }*/
         optionsString += "},";
     }
     if( optionsString[optionsString.size() - 1] == ',') {
