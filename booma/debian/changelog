@@ -1,3 +1,11 @@
+booma (1.0-8) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Added an experimental cw receiver (CW2) which will replace the old one 
+    when the new receiver has been tested.
+
+ -- Mackie <henrik@hardttoolkit.org>  Wed, 22 Jul 2020 17:03:00 +0200
+
 booma (1.0-7) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
