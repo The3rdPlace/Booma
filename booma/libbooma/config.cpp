@@ -274,7 +274,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _useRemoteHead = false;
             _inputAudioDevice = -1;
             _inputSourceType = NETWORK;
-            i += 2;
+            i += 3;
             continue;
         }
 
