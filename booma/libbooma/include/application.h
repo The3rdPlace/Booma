@@ -128,6 +128,12 @@ class BoomaApplication {
         bool SetOption(std::string name, std::string value);
         std::string GetOptionInfoString();
 
+        // Bookmarks
+        void SetBookmark(std::string name);
+        std::vector<std::string> GetBookmarks();
+        void ApplyBookmark(std::string name);
+        void DeleteBookmark(std::string name);
+
     private:
 
         // Configuration and state
@@ -145,6 +151,9 @@ class BoomaApplication {
         // create multiple instances of the application core!
         BoomaApplication(const BoomaApplication&);
         BoomaApplication& operator=(const BoomaApplication&);
+
+        // Reconfigure the entire receiver
+        bool Reconfigure();
 };
 
 #endif

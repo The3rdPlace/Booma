@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
         else
         {
             // Does the command requires an option ?
-            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' ) {
+            if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd') {
                 std::cin >> opt;
             }
             else
@@ -208,11 +208,15 @@ int main(int argc, char** argv) {
             std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
             std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
-            std::cout << "Change receiver type:           r CW           or  s (use current receiver and input)" << std::endl;
-            std::cout << "Set receiver option:            o NAME=VALUE" << std::endl;
+            std::cout << "Change receiver type:           r <CW|CW2|AURORAL> or  s (use current receiver and input)" << std::endl;
+            std::cout << "Set receiver option:            o <NAME=VALUE>" << std::endl;
             std::cout << "Toggle audio recording on/off:  a" << std::endl;
             std::cout << "Toggle rf recording on/off:     p" << std::endl;
             std::cout << "Enter measurement mode:         m" << std::endl;
+            std::cout << "Set bookmark:                   b <name>" << std::endl;
+            std::cout << "Get bookmark:                   c <name>" << std::endl;
+            std::cout << "Delete bookmark                 d" << std::endl;            
+            std::cout << "List bookmarks:                 x" << std::endl;
             std::cout << std::endl;
             std::cout << "Press enter on a blank line to repeat the last command" << std::endl;
             std::cout << std::endl;
@@ -314,6 +318,33 @@ int main(int argc, char** argv) {
                 continue;
             }
             app.SetOption(opt.substr(0, pos), opt.substr(pos + 1));
+        }
+
+        else if( cmd == 'b' ) {
+            app.SetBookmark(opt);
+        }
+
+        else if( cmd == 'c' ) {
+            app.ApplyBookmark(opt);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            app.Run();
+        }
+
+        else if( cmd == 'x' ) {
+            std::vector<std::string> bookmarks = app.GetBookmarks();
+            for( std::vector<std::string>::iterator it = bookmarks.begin(); it != bookmarks.end(); it++ ) {
+                std::cout << (*it) << std::endl;
+            }
+        }
+
+        else if( cmd == 'd' ) {
+            std::cout << "Really delete bookmark '" << opt << "' ? [y|n] ";
+            std::string answer;
+            std::cin >> answer;
+            while( std::cin.get() != '\n' ) {}
+            if( answer == "y" ) {
+                app.DeleteBookmark(opt);
+            }
         }
 
         // Unknown command

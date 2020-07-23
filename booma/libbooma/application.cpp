@@ -35,15 +35,11 @@ bool BoomaApplication::ChangeReceiver() {
     return ChangeReceiver(_opts->GetReceiverModeType());
 }
 
-bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
+bool BoomaApplication::Reconfigure() {
 
     // Make sure that a running receiver has been shut down
     HLog("Shutting down a running receiver (should we have one)");
     Halt();
-
-    // Register new receiver type
-    HLog("Setting new receiver type");
-    _opts->SetReceiverModeType(receiverModeType);
 
     // Reset all previous receiver components
     if( _input != NULL ) {
@@ -66,6 +62,16 @@ bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
         return false;
     }
     return true;
+}
+
+bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
+
+    // Register new receiver type
+    HLog("Setting new receiver type");
+    _opts->SetReceiverModeType(receiverModeType);
+
+    // Reconfigure
+    return Reconfigure();
 }
 
 bool BoomaApplication::InitializeReceiver() {
@@ -266,3 +272,20 @@ std::string BoomaApplication::GetOptionInfoString() {
     return _receiver->GetOptionInfoString();
 }
 
+void BoomaApplication::SetBookmark(std::string name) {
+    _opts->WriteBookmark(name);
+}
+
+void BoomaApplication::ApplyBookmark(std::string name) {
+    if( _opts->ReadBookmark(name) ) {
+        Reconfigure();
+    }
+}
+
+void BoomaApplication::DeleteBookmark(std::string name) {
+    _opts->DeleteBookmark(name);
+}
+
+std::vector<std::string> BoomaApplication::GetBookmarks() {
+    return _opts->ListBookmarks();
+}
