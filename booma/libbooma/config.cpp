@@ -3,7 +3,9 @@
 #include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <include/auroralreceiver.h>
+#include <dirent.h>
+
+//#include <include/auroralreceiver.h>
 
 #include "booma.h"
 #include "config.h"
@@ -103,8 +105,8 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Seed configuration with values from last execution
-    if( !ReadStoredConfig("config.ini") && argc == 1 ) {
-        std::cout << "No stored config in ~/.booma/config.ini and no arguments. Kindly presenting options" << std::endl << std::endl;
+    if( !ReadStoredConfig(CONFIGNAME) && argc == 1 ) {
+        std::cout << "No stored config in ~/.booma/" << CONFIGNAME << " and no arguments. Kindly presenting options" << std::endl << std::endl;
         PrintUsage();
         exit(1);
     }
@@ -290,7 +292,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Reset cached configuration
         if( strcmp(argv[i], "-z") == 0 ) {
-            RemoveStoredConfig("config.ini");
+            RemoveStoredConfig(CONFIGNAME);
             std::cout << tr("Cached configuration has been removed") << std::endl;
             exit(0);
         }
@@ -395,7 +397,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 ConfigOptions::~ConfigOptions() {
-    SaveStoredConfig("config.ini");
+    WriteStoredConfig(CONFIGNAME);
 }
 
 void ConfigOptions::RemoveStoredConfig(std::string configname) {
@@ -540,7 +542,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
 }
 
 
-void ConfigOptions::SaveStoredConfig(std::string configname) {
+void ConfigOptions::WriteStoredConfig(std::string configname) {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
@@ -678,12 +680,6 @@ std::string ConfigOptions::WriteStoredReceiverOptionsFor(std::map<std::string, s
     for( std::map<std::string, std::map<std::string, std::string>>::iterator rit = options.begin(); rit != options.end(); rit++ ) {
         optionsString += rit->first + ":{";
         optionsString += WriteStoredReceiverOptions(rit->second);
-        /*for( std::map<std::string, std::string>::iterator it = rit->second.begin(); it != rit->second.end(); it++ ) {
-            optionsString += (*it).first + "=" + (*it).second + ",";
-        }
-        if( optionsString[optionsString.size() - 1] == ',') {
-            optionsString = optionsString.substr(0, optionsString.size() - 1);
-        }*/
         optionsString += "},";
     }
     if( optionsString[optionsString.size() - 1] == ',') {
@@ -721,4 +717,65 @@ std::map<std::string, std::map<std::string, std::string>> ConfigOptions::ReadSto
     }
 
     return optionsFor;
+}
+
+void ConfigOptions::WriteBookmark(std::string name) {
+    WriteStoredConfig(name + ".bookmark");
+}
+
+bool ConfigOptions::ReadBookmark(std::string name) {
+    return ReadStoredConfig(name + ".bookmark");
+}
+
+void ConfigOptions::DeleteBookmark(std::string name) {
+    RemoveStoredConfig(name + ".bookmark");
+}
+
+std::vector<std::string> ConfigOptions::ListBookmarks() {
+    std::vector<std::string> bms;    
+
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to list bookmarks");
+        return bms;
+    }
+
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
+    // Check of the directory exists
+    struct stat stats;
+    if( stat(configPath.c_str(), &stats) != -1 ) {
+        if( !S_ISDIR(stats.st_mode) ) {
+            HError("File ~/.booma exists, but should be a directory");
+            return bms;
+        }
+        HLog("Config directory %s exists", configPath.c_str());
+    }
+    else
+    {
+        HLog("Config directory does not exists, no bookmarks to list");
+        return bms;
+    }
+
+    // List content of the config folder
+    DIR *directory;
+    struct dirent *entry;
+    if( (directory = opendir( configPath.c_str()) ) != NULL ) {
+        while( (entry = readdir( directory )) != NULL ) {
+            std::string bm( entry->d_name );
+            
+            if( bm != "." && bm != ".." && bm != CONFIGNAME && bm.find(".bookmark") != std::string::npos )  {
+                bms.push_back( bm.substr(0, bm.size() - strlen(".bookmark")) );
+            }
+        }
+        closedir (directory);
+    } else {
+        HError("Unable to list content of the ~/.booma folder");
+    }
+
+    // Return the list of bookmarks
+    return bms;
 }

@@ -28,6 +28,8 @@ enum DumpFileFormatType {
     WAV = 1
 };
 
+#define CONFIGNAME "config.ini"
+
 /** Configuration object */
 class ConfigOptions {
 
@@ -82,7 +84,7 @@ class ConfigOptions {
         void PrintCards();
 
         bool ReadStoredConfig(std::string configname);
-        void SaveStoredConfig(std::string configname);
+        void WriteStoredConfig(std::string configname);
         void RemoveStoredConfig(std::string configname);
         std::map<std::string, std::string> ReadStoredReceiverOptions(std::string optionsString);
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
@@ -235,6 +237,14 @@ class ConfigOptions {
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);
 
         std::map<std::string, std::string> GetReceiverOptionsFor(std::string receiver);
+
+        void WriteBookmark(std::string name);
+
+        bool ReadBookmark(std::string name);
+
+        void DeleteBookmark(std::string name);
+
+        std::vector<std::string> ListBookmarks();
     };
 
 #endif
