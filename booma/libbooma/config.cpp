@@ -350,6 +350,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
         else if( _inputSourceType == AUDIO_DEVICE && _inputAudioDevice < 0 ) {
             std::cout << tr("Please select the input audio device with '-i [AUDIO] devicenumber'") << std::endl;
+            std::cout << tr("Hint: Use '-c' to get a list of audio devices on your system (Raspian may require sudo)") << std::endl;
             exit(1);
         }
         else if( _inputSourceType == SIGNAL_GENERATOR && _signalGeneratorFrequency < 0 ) {

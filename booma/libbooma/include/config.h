@@ -49,7 +49,7 @@ class ConfigOptions {
         long int _frequency = 17200;
 
         // Receiver mode
-        ReceiverModeType _receiverModeType = CW;
+        ReceiverModeType _receiverModeType = CW2;
 
         // Remote head configuration
         bool _isRemoteHead = false;
@@ -62,7 +62,7 @@ class ConfigOptions {
         int _rfGain = 5;
 
         // Output volume
-        int _volume = 5;
+        int _volume = 50;
 
         // Dump pcm and audio
         bool _dumpRf = false;
