@@ -81,9 +81,9 @@ class ConfigOptions {
         void PrintUsage();
         void PrintCards();
 
-        bool ReadStoredConfig();
-        void SaveStoredConfig();
-        void RemoveStoredConfig();
+        bool ReadStoredConfig(std::string configname);
+        void SaveStoredConfig(std::string configname);
+        void RemoveStoredConfig(std::string configname);
         std::map<std::string, std::string> ReadStoredReceiverOptions(std::string optionsString);
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
         std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);

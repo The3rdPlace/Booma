@@ -103,7 +103,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Seed configuration with values from last execution
-    if( !ReadStoredConfig() && argc == 1 ) {
+    if( !ReadStoredConfig("config.ini") && argc == 1 ) {
         std::cout << "No stored config in ~/.booma/config.ini and no arguments. Kindly presenting options" << std::endl << std::endl;
         PrintUsage();
         exit(1);
@@ -290,7 +290,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Reset cached configuration
         if( strcmp(argv[i], "-z") == 0 ) {
-            RemoveStoredConfig();
+            RemoveStoredConfig("config.ini");
             std::cout << tr("Cached configuration has been removed") << std::endl;
             exit(0);
         }
@@ -395,10 +395,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 ConfigOptions::~ConfigOptions() {
-    SaveStoredConfig();
+    SaveStoredConfig("config.ini");
 }
 
-void ConfigOptions::RemoveStoredConfig() {
+void ConfigOptions::RemoveStoredConfig(std::string configname) {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
@@ -428,7 +428,7 @@ void ConfigOptions::RemoveStoredConfig() {
 
     // Compose path to config file
     std::string configFile(configPath);
-    configFile += "/config.ini";
+    configFile += "/" + configname;
     HLog("Config file is %s", configFile.c_str());
 
     // Remove the config file
@@ -436,7 +436,7 @@ void ConfigOptions::RemoveStoredConfig() {
     HLog("Removed the config file");
 }
 
-bool ConfigOptions::ReadStoredConfig() {
+bool ConfigOptions::ReadStoredConfig(std::string configname) {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
@@ -466,7 +466,7 @@ bool ConfigOptions::ReadStoredConfig() {
 
     // Compose path to config file
     std::string configFile(configPath);
-    configFile += "/config.ini";
+    configFile += "/" + configname;
     HLog("Config file is %s", configFile.c_str());
 
     // Open the config file
@@ -540,7 +540,7 @@ bool ConfigOptions::ReadStoredConfig() {
 }
 
 
-void ConfigOptions::SaveStoredConfig() {
+void ConfigOptions::SaveStoredConfig(std::string configname) {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
@@ -573,7 +573,7 @@ void ConfigOptions::SaveStoredConfig() {
 
     // Compose path to config file
     std::string configFile(configPath);
-    configFile += "/config.ini";
+    configFile += "/" + configname;
     HLog("Config file is %s", configFile.c_str());
 
     // Open the config file

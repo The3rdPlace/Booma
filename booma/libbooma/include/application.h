@@ -128,6 +128,11 @@ class BoomaApplication {
         bool SetOption(std::string name, std::string value);
         std::string GetOptionInfoString();
 
+        // Bookmarks
+        void SetBookmark();
+        void GetBookmark() {}
+        void ApplyBookmark() {}
+
     private:
 
         // Configuration and state
