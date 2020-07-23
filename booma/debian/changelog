@@ -1,3 +1,10 @@
+booma (1.0-10) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * A network processor now must have data AND command port given as parameters
+
+ -- Mackie <henrik@hardttoolkit.org>  Thu, 23 Jul 2020 18:30:00 +0200
+
 booma (1.0-9) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
