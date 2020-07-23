@@ -29,7 +29,7 @@ void Info::GetInfo() {
             std::cout << "Silence" << std::endl;
             break;
         case NETWORK:
-            std::cout << "Network " << _app->GetRemoteServer() << ":" << _app->GetRemotePort() << std::endl;
+            std::cout << "Network " << _app->GetRemoteServer() << ":" << _app->GetRemoteDataPort() << " (commands at :" << _app->GetRemoteCommandPort() << ")" <<  std::endl;
             break;
         default:
             std::cout << "Unknown input source" << std::endl;

@@ -18,14 +18,14 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         }
 
         HLog("Initializing network processor with selected input device");
-        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemotePort(), _inputReader, BLOCKSIZE, isTerminated);
+        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteDataPort(), opts->GetRemoteDataPort(), _inputReader, BLOCKSIZE, isTerminated);
         return;
     }
 
     // If we are a remote head, then initialize a network processor, otherwise configure a local input
     if( opts->GetIsRemoteHead() ) {
-        HLog("Initializing network processor with remote input at %s:%d", opts->GetRemoteServer().c_str(), opts->GetRemotePort());
-        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteServer().c_str(), opts->GetRemotePort(), BLOCKSIZE, isTerminated);
+        HLog("Initializing network processor with remote input at %s:%d", opts->GetRemoteServer().c_str(), opts->GetRemoteDataPort());
+        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteServer().c_str(), opts->GetRemoteDataPort(), opts->GetRemoteCommandPort(), BLOCKSIZE, isTerminated);
     }
     else {
         HLog("Creating input reader");

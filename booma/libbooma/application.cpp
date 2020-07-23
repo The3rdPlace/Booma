@@ -230,8 +230,12 @@ std::string BoomaApplication::GetRemoteServer() {
     return _opts->GetRemoteServer();
 }
 
-int BoomaApplication::GetRemotePort() {
-    return _opts->GetRemotePort();
+int BoomaApplication::GetRemoteDataPort() {
+    return _opts->GetRemoteDataPort();
+}
+
+int BoomaApplication::GetRemoteCommandPort() {
+    return _opts->GetRemoteDataPort();
 }
 
 HTimer BoomaApplication::GetSchedule() {

@@ -34,8 +34,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Dump rf input as wav to file (default)             -p WAV (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Samplerate (default 48KHz)                         -q rate") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)              -ro NAME=VALUE") << std::endl;
-    std::cout << tr("Receiver for remote input                          -r address port") << std::endl;
-    std::cout << tr("Server for remote input                            -s port") << std::endl;
+    std::cout << tr("Receiver for remote input                          -r address dataport commandport") << std::endl;
+    std::cout << tr("Server for remote input                            -s dataport commandport") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
@@ -266,9 +266,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Receiver for remote input
-        if( strcmp(argv[i], "-r") == 0 && argc < argc + 2) {
+        if( strcmp(argv[i], "-r") == 0 && argc < argc + 3) {
             _remoteServer = argv[i + 1];
-            _remotePort = atoi(argv[i + 2]);
+            _remoteDataPort = atoi(argv[i + 2]);
+            _remoteCommandPort = atoi(argv[i + 3]);
             _isRemoteHead = true;
             _useRemoteHead = false;
             _inputAudioDevice = -1;
@@ -278,8 +279,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Server for remote input
-        if( strcmp(argv[i], "-s") == 0 && argc < argc + 1) {
-            _remotePort = atoi(argv[i + 1]);
+        if( strcmp(argv[i], "-s") == 0 && argc < argc + 2) {
+            _remoteDataPort = atoi(argv[i + 1]);
+            _remoteCommandPort = atoi(argv[i + 2]);
             _isRemoteHead = false;
             _useRemoteHead = true;
             i++;
@@ -317,12 +319,20 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         std::cout << tr("Please select address of remote input with '-r address port'") << std::endl;
         exit(1);
     }
-    if( _isRemoteHead && _remotePort == 0 ) {
-        std::cout << tr("Please select port of remote input with '-r address port'") << std::endl;
+    if( _isRemoteHead && _remoteDataPort == 0 ) {
+        std::cout << tr("Please select data port of remote input with '-r address dataport commandport'") << std::endl;
         exit(1);
     }
-    if( _useRemoteHead && _remotePort == 0 ) {
-        std::cout << tr("Please select port for the input server with '-s port'") << std::endl;
+    if( _useRemoteHead && _remoteDataPort == 0 ) {
+        std::cout << tr("Please select data port for the input server with '-s dataport commandport'") << std::endl;
+        exit(1);
+    }
+    if( _isRemoteHead && _remoteCommandPort == 0 ) {
+        std::cout << tr("Please select command port of remote input with '-r address dataport commandport'") << std::endl;
+        exit(1);
+    }
+    if( _useRemoteHead && _remoteCommandPort == 0 ) {
+        std::cout << tr("Please select command  for the input server with '-s dataport commandport'") << std::endl;
         exit(1);
     }
 
@@ -485,7 +495,8 @@ bool ConfigOptions::ReadStoredConfig() {
             if( name == "frequency" )               _frequency = atoi(value.c_str());
             if( name == "receiverModeType" )        _receiverModeType = (ReceiverModeType) atoi(value.c_str());
             if( name == "remoteServer" )            _remoteServer = value;
-            if( name == "remotePort" )              _remotePort = atoi(value.c_str());
+            if( name == "remoteDataPort" )          _remoteDataPort = atoi(value.c_str());
+            if( name == "remoteCommandPort" )       _remoteCommandPort = atoi(value.c_str());
             if( name == "rfGain" )                  _rfGain = atoi(value.c_str());
             if( name == "volume" )                  _volume = atoi(value.c_str());
             if( name == "dumpRf" )                  _dumpRf = atoi(value.c_str());
@@ -511,12 +522,12 @@ bool ConfigOptions::ReadStoredConfig() {
         _inputSourceType = AUDIO_DEVICE;
         HLog("Has input audio device from stored config, use local input");
     }
-    if( _inputAudioDevice == -1 && _remoteServer.empty() && _remotePort > 0 ) {
+    if( _inputAudioDevice == -1 && _remoteServer.empty() && _remoteDataPort > 0 ) {
         _useRemoteHead = true;
         _isRemoteHead = false;
         HLog("Has remote port but no remote server, use remote head");
     }
-    if( _inputAudioDevice == -1 && !_remoteServer.empty() && _remotePort > 0 ) {
+    if( _inputAudioDevice == -1 && !_remoteServer.empty() && _remoteDataPort > 0 ) {
         _useRemoteHead = false;
         _isRemoteHead = true;
         _inputSourceType = NETWORK;
@@ -580,7 +591,8 @@ void ConfigOptions::SaveStoredConfig() {
     configStream << "frequency=" << _frequency << std::endl;
     configStream << "receiverModeType=" << _receiverModeType << std::endl;
     configStream << "remoteServer=" << _remoteServer << std::endl;
-    configStream << "remotePort=" << _remotePort << std::endl;
+    configStream << "remoteDataPort=" << _remoteDataPort << std::endl;
+    configStream << "remoteCommandPort=" << _remoteCommandPort << std::endl;
     configStream << "rfGain=" << _rfGain << std::endl;
     configStream << "volume=" << _volume << std::endl;
     configStream << "dumpRf=" << _dumpRf << std::endl;

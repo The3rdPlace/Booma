@@ -107,7 +107,8 @@ class BoomaApplication {
         std::string GetWavFile();
         int GetSignalGeneratorFrequency();
         std::string GetRemoteServer();
-        int GetRemotePort();
+        int GetRemoteDataPort();
+        int GetRemoteCommandPort();
 
         // Public reporting functions for spectrum and signallevel
         int GetSignalLevel();
