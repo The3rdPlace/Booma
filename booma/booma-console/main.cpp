@@ -338,7 +338,13 @@ int main(int argc, char** argv) {
         }
 
         else if( cmd == 'd' ) {
-            app.DeleteBookmark(opt);
+            std::cout << "Really delete bookmark '" << opt << "' ? [y|n] ";
+            std::string answer;
+            std::cin >> answer;
+            while( std::cin.get() != '\n' ) {}
+            if( answer == "y" ) {
+                app.DeleteBookmark(opt);
+            }
         }
 
         // Unknown command
