@@ -286,7 +286,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             _remoteCommandPort = atoi(argv[i + 2]);
             _isRemoteHead = false;
             _useRemoteHead = true;
-            i++;
+            i += 2;
             continue;
         }
 
