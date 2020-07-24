@@ -18,7 +18,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         }
 
         HLog("Initializing network processor with selected input device");
-        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteDataPort(), opts->GetRemoteDataPort(), _inputReader, BLOCKSIZE, isTerminated);
+        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteDataPort(), opts->GetRemoteCommandPort(), _inputReader, BLOCKSIZE, isTerminated);
         return;
     }
 
