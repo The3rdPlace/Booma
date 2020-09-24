@@ -2,12 +2,12 @@
 #define __RECEIVER_H
 
 #include <hardtapi.h>
-#include "config.h"
-#include "input.h"
-#include "decoder.h"
+#include "configoptions.h"
+#include "boomainput.h"
+#include "boomadecoder.h"
 #include "option.h"
 
-#include "receiverexception.h"
+#include "boomareceiverexception.h"
 
 class BoomaReceiver {
 
@@ -146,7 +146,7 @@ class BoomaReceiver {
             if( !IsDataTypeSupported(opts->GetInputSourceDataType()) ) {
                 HError("Attempt to build receiver for unsupported input data type");
                 _hasBuilded = false;
-                throw new ReceiverException("Attempt to build receiver for unsupported input data type");
+                throw new BoomaReceiverException("Attempt to build receiver for unsupported input data type");
             }
 
             // Set options from saved configuration

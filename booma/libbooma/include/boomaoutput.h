@@ -2,8 +2,8 @@
 #define __OUTPUT_H
 
 #include <hardtapi.h>
-#include "config.h"
-#include "receiver.h"
+#include "configoptions.h"
+#include "boomareceiver.h"
 
 class BoomaOutput {
 

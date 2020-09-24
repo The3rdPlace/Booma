@@ -1,7 +1,7 @@
-#include <include/amreceiver.h>
-#include "application.h"
-#include "cwreceiver.h"
-#include "auroralreceiver.h"
+#include <include/boomaamreceiver.h>
+#include "boomaapplication.h"
+#include "boomacwreceiver.h"
+#include "boomaauroralreceiver.h"
 #include "booma.h"
 
 BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, int argc, char** argv):

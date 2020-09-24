@@ -1,4 +1,4 @@
-#include "output.h"
+#include "boomaoutput.h"
 
 BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
      _outputWriter(NULL),

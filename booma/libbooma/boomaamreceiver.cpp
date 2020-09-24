@@ -1,4 +1,4 @@
-#include "amreceiver.h"
+#include "boomaamreceiver.h"
 
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain):
         BoomaReceiver(opts, initialFrequency, initialRfGain),

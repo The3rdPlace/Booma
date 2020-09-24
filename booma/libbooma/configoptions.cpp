@@ -8,7 +8,7 @@
 //#include <include/auroralreceiver.h>
 
 #include "booma.h"
-#include "config.h"
+#include "configoptions.h"
 #include "language.h"
 
 void ConfigOptions::PrintUsage() {

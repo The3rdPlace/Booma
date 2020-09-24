@@ -1,4 +1,4 @@
-#include "input.h"
+#include "boomainput.h"
 
 BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _streamProcessor(NULL),

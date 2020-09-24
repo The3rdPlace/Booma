@@ -1,4 +1,4 @@
-#include "cwreceiver.h"
+#include "boomacwreceiver.h"
 
 float BoomaCwReceiver::_bandpassCoeffs[3][20] =
 {

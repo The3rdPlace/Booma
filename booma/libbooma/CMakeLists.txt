@@ -14,14 +14,14 @@ set_target_properties( booma PROPERTIES
 
 target_sources(booma
     PRIVATE
-        application.cpp
-        cwreceiver.cpp
-        config.cpp
-        receiver.cpp
-        input.cpp
-        output.cpp
-        auroralreceiver.cpp
-		amreceiver.cpp
+		boomaapplication.cpp
+		boomacwreceiver.cpp
+		configoptions.cpp
+		boomareceiver.cpp
+		boomainput.cpp
+		boomaoutput.cpp
+		boomaauroralreceiver.cpp
+		boomaamreceiver.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")

@@ -5,10 +5,10 @@
 
 #include <hardtapi.h>
 
-#include "config.h"
-#include "input.h"
-#include "receiver.h"
-#include "output.h"
+#include "configoptions.h"
+#include "boomainput.h"
+#include "boomareceiver.h"
+#include "boomaoutput.h"
 #include "booma.h"
 #include "option.h"
 

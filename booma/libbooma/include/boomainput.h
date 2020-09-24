@@ -2,7 +2,7 @@
 #define __INPUT_H
 
 #include <hardtapi.h>
-#include "config.h"
+#include "configoptions.h"
 #include "boomaexception.h"
 #include "booma.h"
 

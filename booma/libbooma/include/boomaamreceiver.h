@@ -4,8 +4,8 @@
 #include <hardtapi.h>
 
 #include "booma.h"
-#include "config.h"
-#include "receiver.h"
+#include "configoptions.h"
+#include "boomareceiver.h"
 
 class BoomaAmReceiver : public BoomaReceiver {
 
