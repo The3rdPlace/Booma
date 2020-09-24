@@ -291,9 +291,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 _inputSourceDataType = Q;
                 HLog("Setting input data type to Q");
             }
-            if( strcmp(argv[i + 1], "REAL") == 0 ) {
+            else if( strcmp(argv[i + 1], "REAL") == 0 ) {
                 _inputSourceDataType = REAL;
                 HLog("Setting input data type to REAL");
+            }
+            else {
+                std::cout << "Unknown input data type '" << argv[i + 1] << std::endl;
+                exit(1);
             }
 
             i++;
