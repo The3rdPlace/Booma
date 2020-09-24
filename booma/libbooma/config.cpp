@@ -16,42 +16,58 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
-    std::cout << tr("Show a list of audio devices                       -c --cards") << std::endl;
-    std::cout << tr("Show this help and exit                            -h --help") << std::endl;
-    std::cout << tr("Show version and exit                              -v --version") << std::endl;
+    std::cout << tr("Show a list of audio devices                           -c --cards") << std::endl;
+    std::cout << tr("Show a list of RTL-SDR devices                         -r --rtlsdrs") << std::endl;
+    std::cout << tr("Show this help and exit                                -h --help") << std::endl;
+    std::cout << tr("Show version and exit                                  -v --version") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Input, data type and samplerate(s)]==") << std::endl;
+    std::cout << tr("Use audio input source                                 -i AUDIO devicenumber") << std::endl;
+    std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)     -i RTLSDR devicenumber [directsampling]]") << std::endl;
+    std::cout << tr("Use network input                                      -i NETWORK address dataport commandport") << std::endl;
+    std::cout << tr("Set input datatype (required for NETWORK input)        -it REAl|IQ|I|Q") << std::endl;
+    std::cout << tr("Device (input) samplerate (default 48KHz)              -dr rate") << std::endl;
+    std::cout << tr("Output samplerate (default 48KHz)                      -or rate") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
+    std::cout << tr("Select receiver (CW2 default)                          -m CW|CW2|AURORAL|AM") << std::endl;
+    std::cout << tr("Select frequency (default 17.2KHz)                     -f frequecy") << std::endl;
+    std::cout << tr("Rf gain (default 30)                                   -g gain") << std::endl;
+    std::cout << tr("Set receiver option (can be repeated)                  -ro NAME=VALUE") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Output, recordings]==") << std::endl;
+    std::cout << tr("Select output (audio) device                           -o devicenumber") << std::endl;
+    std::cout << tr("Output volume (default 200)                            -l volume") << std::endl;
+    std::cout << tr("Dump rf input as pcm to file                           -p PCM (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump rf input as wav to file (default)                 -p WAV (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as pcm to file                       -a PCM (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as wav to file                       -a WAV (enable) | -a OFF (disable)") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Use remote head]==") << std::endl;
+    std::cout << tr("Server for remote input                                -s dataport commandport") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Options]==") << std::endl;
-    std::cout << tr("Dump output audio as pcm to file                   -a PCM (enable) | -a OFF (disable)") << std::endl;
-    std::cout << tr("Dump output audio as wav to file                   -a WAV (enable) | -a OFF (disable)") << std::endl;
-    std::cout << tr("Wait untill scheduled time                         -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
-    std::cout << tr("Select frequency (default 17.2KHz)                 -f frequecy") << std::endl;
-    std::cout << tr("Rf gain (default 30)                               -g gain") << std::endl;
-    std::cout << tr("Select audio input source                          -i AUDIO devicenumber ") << std::endl;
-    std::cout << tr("Output volume (default 200)                        -l volume") << std::endl;
-    std::cout << tr("Select CW receive mode (default)                   -m CW") << std::endl;
-    std::cout << tr("Set initial buffersize for file IO (0 to disable)  -n reserved-block") << std::endl;
-    std::cout << tr("Select output device                               -o devicenumber") << std::endl;
-    std::cout << tr("Dump rf input as pcm to file                       -p PCM (enable) | -p OFF (disable)") << std::endl;
-    std::cout << tr("Dump rf input as wav to file (default)             -p WAV (enable) | -p OFF (disable)") << std::endl;
-    std::cout << tr("Samplerate (default 48KHz)                         -q rate") << std::endl;
-    std::cout << tr("Set receiver option (can be repeated)              -ro NAME=VALUE") << std::endl;
-    std::cout << tr("Receiver for remote input                          -r address dataport commandport") << std::endl;
-    std::cout << tr("Server for remote input                            -s dataport commandport") << std::endl;
+    std::cout << tr("Wait untill scheduled time                             -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
+    std::cout << tr("Set initial buffersize for file IO (0 to disable)      -n reserved-block") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
-    std::cout << tr("Verbose debug output                               -d --debug") << std::endl;
-    std::cout << tr("Use sine generator as input                        -i GENERATOR frequency") << std::endl;
-    std::cout << tr("Use pcm file as input                              -i PCM filename") << std::endl;
-    std::cout << tr("Use wav file as input                              -i WAV filename") << std::endl;
-    std::cout << tr("Use silence as input                               -i SILENCE") << std::endl;
-    std::cout << tr("Select /dev/null as output device                  -o -1") << std::endl;
-    std::cout << tr("Enable probes and halt after 100 blocks            -x") << std::endl;
-    std::cout << tr("Reset cached configuration                         -z") << std::endl;
+    std::cout << tr("Verbose debug output                                   -d --debug") << std::endl;
+    std::cout << tr("Use sine generator as input                            -i GENERATOR frequency") << std::endl;
+    std::cout << tr("Use pcm file as input                                  -i PCM filename") << std::endl;
+    std::cout << tr("Use wav file as input                                  -i WAV filename") << std::endl;
+    std::cout << tr("Use silence as input                                   -i SILENCE") << std::endl;
+    std::cout << tr("Select /dev/null as output device                      -o -1") << std::endl;
+    std::cout << tr("Enable probes and halt after 100 blocks                -x") << std::endl;
+    std::cout << tr("Reset cached configuration                             -z") << std::endl;
 }
 
-void ConfigOptions::PrintCards() {
+void ConfigOptions::PrintAudioDevices() {
 
     if( HSoundcard::AvailableDevices() == 0 )
     {
@@ -66,6 +82,22 @@ void ConfigOptions::PrintCards() {
         std::cout << "        \"" << (*it).Name << "\"" << std::endl;
         std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
         std::cout << "        Outputs:  " << (*it).Outputs << std::endl;
+        std::cout << std::endl;
+    }
+}
+
+void ConfigOptions::PrintRtlsdrDevices() {
+    if( HRtl2832::AvailableDevices() == 0)
+    {
+        std::cout << "There is no RTL-SDR devices connected to this system" << std::endl;
+        return;
+    }
+    std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
+    std::cout << std::endl;
+    for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        std::cout << "Device: " << (*it).Device << std::endl;
+        std::cout << "        \"" << (*it).Vendor << " " << (*it).Product << "\"" << std::endl;
         std::cout << std::endl;
     }
 }
@@ -85,9 +117,15 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
 
-        // Show available audio cards
+        // Show available audio devices
         if( strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cards") == 0 ) {
-            PrintCards();
+            PrintAudioDevices();
+            exit(0);
+        }
+
+        // Show available RTL-SDR devices
+        if( strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--rtlsdrs") == 0 ) {
+            PrintRtlsdrDevices();
             exit(0);
         }
 
@@ -121,7 +159,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Dump output as ... to file
-        if( strcmp(argv[i], "-a") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-a") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _dumpAudio = true;
                 _dumpAudioFileFormat = PCM;
@@ -136,90 +174,167 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Frequency
-        if( strcmp(argv[i], "-f") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-f") == 0 && i < argc - 1) {
             _frequency = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         // Rf gain
-        if( strcmp(argv[i], "-g") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-g") == 0 && i < argc - 1) {
             _rfGain = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
-        // Select input device
-        if( strcmp(argv[i], "-i") == 0 && i < argc + 2) {
+        // Select input device and optional device-specific settings
+        if( strcmp(argv[i], "-i") == 0 && i < argc - 2) {
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
                 _inputSourceType = AUDIO_DEVICE;
-                _inputAudioDevice = atoi(argv[i + 2]);
-                HLog("Input audio device %d", _inputAudioDevice);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputDevice = atoi(argv[i + 2]);
+                _isRemoteHead = false;
+                HLog("Input audio device %d", _inputDevice);
             }
             else if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _isRemoteHead = false;
                 HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
             }
             else if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _isRemoteHead = false;
                 HLog("Input file %s", _pcmFile.c_str());
             }
             else if( strcmp(argv[i + 1], "WAV") == 0 ) {
                 _inputSourceType = WAV_FILE;
                 _wavFile = argv[i + 2];
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _isRemoteHead = false;
                 HLog("Input file %s", _wavFile.c_str());
             }
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
                 _inputSourceType = SILENCE;
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _isRemoteHead = false;
                 i -= 1;
                 HLog("input silence");
             }
+            else if( strcmp(argv[i + 1], "RTLSDR") == 0 ) {
+                _inputDevice = atoi(argv[i + 2]);
+                _inputSourceType = RTLSDR;
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ : _inputSourceDataType);
+                _isRemoteHead = false;
+                HLog("Input RTL-SDR device %d", _inputDevice);
+
+                // Check for explicit reader mode for RTL-2832 device
+                if( i < argc - 3 && argv[i + 3][0] != '-' ) {
+                    if( strcmp(argv[i + 3], "directsampling") == 0 ) {
+                        _directSampling = true;
+                        HLog("RTL-2832 uses direct sampling");
+                        i++;
+                    }
+                }
+            }
+            else if( strcmp(argv[i + 1], "NETWORK") == 0 ) {
+                _inputDevice = -1;
+                _inputSourceType = NETWORK;
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _remoteServer = argv[i + 2];
+                _isRemoteHead = true;
+
+                // Optional port assignments
+                if( i < argc - 3 && argv[i + 3][0] != '-' ) {
+                    _remoteDataPort = atoi(argv[i + 3]);
+                    if( i < argc - 4 && argv[i + 4][0] != '-' ) {
+                        _remoteCommandPort = atoi(argv[i + 4]);
+                        i++;
+                    } else {
+                        _remoteCommandPort = _remoteDataPort + 1;
+                    }
+                    i++;
+                } else {
+                    _remoteDataPort = 1720;
+                    _remoteCommandPort = _remoteDataPort + 1;
+                }
+
+                HLog("Input NETWORK device %s:%d+%d", _remoteServer.c_str(), _remoteDataPort, _remoteCommandPort);
+            }
             else
             {
-                std::cout << tr("Unknown input source. Please use on of the types AUDIO|GENERATOR|PCM|WAV|SILENCE") << std::endl;
+                std::cout << tr("Unknown input source. Please use on of the types AUDIO|RTLSDR|GENERATOR|PCM|WAV|SILENCE") << std::endl;
                 exit(1);
             }
 
-            // If we have a local input, we can not be a remote receiver
-            _isRemoteHead = false;
+            // If we have an input, we can not be the receiver for a remote receiver
+            _useRemoteHead = false;
 
             i += 2;
             continue;
         }
 
+        // Input data type (if different than the default)
+        if( strcmp(argv[i], "-it") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "IQ") == 0 ) {
+                _inputSourceDataType = IQ;
+                HLog("Setting input data type to IQ");
+            }
+            else if( strcmp(argv[i + 1], "I") == 0 ) {
+                _inputSourceDataType = I;
+                HLog("Setting input data type to I");
+            }
+            else if( strcmp(argv[i + 1], "Q") == 0 ) {
+                _inputSourceDataType = Q;
+                HLog("Setting input data type to Q");
+            }
+            if( strcmp(argv[i + 1], "REAL") == 0 ) {
+                _inputSourceDataType = REAL;
+                HLog("Setting input data type to REAL");
+            }
+
+            i++;
+            continue;
+        }
+
         // Volume
-        if( strcmp(argv[i], "-l") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-l") == 0 && i < argc - 1) {
             _volume = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         // Select receiver mode ...
-        if( strcmp(argv[i], "-m") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-m") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "CW") == 0 ) {
                 _receiverModeType = CW;
             }
-            if( strcmp(argv[i + 1], "CW2") == 0 ) {
-                _receiverModeType = CW2;
+            else if( strcmp(argv[i + 1], "AM") == 0 ) {
+                _receiverModeType = AM;
             }
-            if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
+            else if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
                 _receiverModeType = AURORAL;
+            }
+            else {
+                std::cout << "Unknown receiver type " << argv[i + 1] << std::endl;
+                exit(1);
             }
             i++;
             continue;
         }
 
         // Disable file buffers
-        if( strcmp(argv[i], "-n") == 0 && i < argc + 1 ) {
+        if( strcmp(argv[i], "-n") == 0 && i < argc - 1 ) {
             _reservedBuffers = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         // Select output device
-        if( strcmp(argv[i], "-o") == 0 && i < argc + 1) {
+        if( strcmp(argv[i], "-o") == 0 && i < argc - 1) {
             _outputAudioDevice = atoi(argv[i + 1]);
             i++;
             continue;
@@ -241,13 +356,20 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Samplerate
-        if( strcmp(argv[i], "-q") == 0 && argc < argc + 1) {
-            _sampleRate = atoi(argv[i + 1]);
+        if( strcmp(argv[i], "-dr") == 0 && i < argc - 1) {
+            _inputSampleRate = atoi(argv[i + 1]);
+            HLog("Input samplerate set to %d", _inputSampleRate);
+            i++;
+            continue;
+        }
+        if( strcmp(argv[i], "-or") == 0 && i < argc - 1) {
+            _outputSampleRate = atoi(argv[i + 1]);
+            HLog("Output samplerate set to %d", _outputSampleRate);
             i++;
             continue;
         }
 
-        if( strcmp(argv[i], "-ro") == 0 && argc < argc + 2) {
+        if( strcmp(argv[i], "-ro") == 0 && i < argc - 2) {
             std::string s(argv[i + 1]);
             int pos = s.find("=");
             if( pos < 0 ) {
@@ -267,21 +389,8 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Receiver for remote input
-        if( strcmp(argv[i], "-r") == 0 && argc < argc + 3) {
-            _remoteServer = argv[i + 1];
-            _remoteDataPort = atoi(argv[i + 2]);
-            _remoteCommandPort = atoi(argv[i + 3]);
-            _isRemoteHead = true;
-            _useRemoteHead = false;
-            _inputAudioDevice = -1;
-            _inputSourceType = NETWORK;
-            i += 3;
-            continue;
-        }
-
         // Server for remote input
-        if( strcmp(argv[i], "-s") == 0 && argc < argc + 2) {
+        if( strcmp(argv[i], "-s") == 0 && i < argc - 2) {
             _remoteDataPort = atoi(argv[i + 1]);
             _remoteCommandPort = atoi(argv[i + 2]);
             _isRemoteHead = false;
@@ -346,12 +455,21 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
     }
     if( _isRemoteHead == false ) {
-        if( _inputSourceType == NO_INPUT_TYPE ) {
-            std::cout << tr("Please select the input type with '-i [AUDIO] devicenumber'") << std::endl;
+        if( _inputSourceType == NO_INPUT_SOURCE_TYPE ) {
+            std::cout << tr("Please select the input type with '-i ...'") << std::endl;
             exit(1);
         }
-        else if( _inputSourceType == AUDIO_DEVICE && _inputAudioDevice < 0 ) {
-            std::cout << tr("Please select the input audio device with '-i [AUDIO] devicenumber'") << std::endl;
+        if( _inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ) {
+            std::cout << tr("Please select the input data type with '-i ...' or explicit with '-it ...'") << std::endl;
+            exit(1);
+        }
+        else if( _inputSourceType == AUDIO_DEVICE && _inputDevice < 0 ) {
+            std::cout << tr("Please select the input audio device with '-i AUDIO devicenumber'") << std::endl;
+            std::cout << tr("Hint: Use '-c' to get a list of audio devices on your system (Raspian may require sudo)") << std::endl;
+            exit(1);
+        }
+        else if( _inputSourceType == RTLSDR && _inputDevice < 0 ) {
+            std::cout << tr("Please select the input RTLSDR device with '-i RTLSDR devicenumber'") << std::endl;
             std::cout << tr("Hint: Use '-c' to get a list of audio devices on your system (Raspian may require sudo)") << std::endl;
             exit(1);
         }
@@ -393,6 +511,15 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 }
             }
         }
+    }
+
+    // Sanitize sample rate
+    if( _inputSampleRate == _outputSampleRate && _inputSourceType == RTLSDR ) {
+        std::cout << "Input (device) and output sample rate should not be the same for RTL-SDR devices" << std::endl;
+        exit(1);
+    }
+    if( _inputSourceType != RTLSDR ) {
+        _inputSampleRate = _outputSampleRate;
     }
 }
 
@@ -490,11 +617,14 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             std::string name = opt.substr(0, splitAt);
             std::string value = opt.substr(splitAt + 1, std::string::npos);
 
+            // Known config names
             HLog("config value (%s=%s)", name.c_str(), value.c_str());
-            if( name == "sampleRate" )              _sampleRate = atoi(value.c_str());
+            if( name == "inputSampleRate" )          _inputSampleRate = atoi(value.c_str());
+            if( name == "outputSampleRate" )         _outputSampleRate = atoi(value.c_str());
             if( name == "outputAudioDevice" )       _outputAudioDevice = atoi(value.c_str());
             if( name == "inputSourceType" )         _inputSourceType = (InputSourceType) atoi(value.c_str());
-            if( name == "inputAudioDevice" )        _inputAudioDevice = atoi(value.c_str());
+            if( name == "inputSourceDataType" )     _inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
+            if( name == "inputDevice" )             _inputDevice = atoi(value.c_str());
             if( name == "frequency" )               _frequency = atoi(value.c_str());
             if( name == "receiverModeType" )        _receiverModeType = (ReceiverModeType) atoi(value.c_str());
             if( name == "remoteServer" )            _remoteServer = value;
@@ -511,6 +641,10 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
             if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if( name == "directSampling" )          _pcmFile = value == "true";
+
+            // Historic config names
+            if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
         }
         configStream >> opt;
     }
@@ -519,18 +653,17 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
     configStream.close();
 
     // Set flags
-    if( _inputAudioDevice > -1 ) {
+    if( _inputDevice > -1 ) {
         _isRemoteHead = false;
         _useRemoteHead = false;
-        _inputSourceType = AUDIO_DEVICE;
-        HLog("Has input audio device from stored config, use local input");
+        HLog("Has input device from stored config, use local input");
     }
-    if( _inputAudioDevice == -1 && _remoteServer.empty() && _remoteDataPort > 0 ) {
+    else if( _inputDevice == -1 && _remoteServer.empty() && _remoteDataPort > 0 ) {
         _useRemoteHead = true;
         _isRemoteHead = false;
         HLog("Has remote port but no remote server, use remote head");
     }
-    if( _inputAudioDevice == -1 && !_remoteServer.empty() && _remoteDataPort > 0 ) {
+    else if( _inputDevice == -1 && !_remoteServer.empty() && _remoteDataPort > 0 ) {
         _useRemoteHead = false;
         _isRemoteHead = true;
         _inputSourceType = NETWORK;
@@ -587,10 +720,12 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     }
 
     // Write config settings
-    configStream << "sampleRate=" << _sampleRate << std::endl;
+    configStream << "inputSampleRate=" << _inputSampleRate << std::endl;
+    configStream << "outputSampleRate=" << _outputSampleRate << std::endl;
     configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
     configStream << "inputSourceType=" << _inputSourceType << std::endl;
-    configStream << "inputAudioDevice=" << _inputAudioDevice << std::endl;
+    configStream << "inputSourceDataType=" << _inputSourceDataType << std::endl;
+    configStream << "inputDevice=" << _inputDevice << std::endl;
     configStream << "frequency=" << _frequency << std::endl;
     configStream << "receiverModeType=" << _receiverModeType << std::endl;
     configStream << "remoteServer=" << _remoteServer << std::endl;
@@ -600,13 +735,14 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "volume=" << _volume << std::endl;
     configStream << "dumpRf=" << _dumpRf << std::endl;
     configStream << "dumpAudio=" << _dumpAudio << std::endl;
-    configStream << "dumpRfFileFormat" << _dumpRfFileFormat << std::endl;
-    configStream << "dumpAudioFileFormat" << _dumpAudioFileFormat << std::endl;
+    configStream << "dumpRfFileFormat=" << _dumpRfFileFormat << std::endl;
+    configStream << "dumpAudioFileFormat=" << _dumpAudioFileFormat << std::endl;
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
     configStream << "pcmFile=" << _pcmFile << std::endl;
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
+    configStream << "directSampling=" << (_directSampling ? "true" : "false") << std::endl;
 
     // Done writing the config file
     configStream.close();

@@ -9,10 +9,17 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfBreaker(NULL),
     _rfBuffer(NULL) {
 
+    // Set default frequencies
+    HLog("Calculating initial internal frequencies");
+    if( !SetReaderFrequencies(opts, opts->GetFrequency()) )
+    {
+        throw new BoomaInputException("Unable to configure initial frequencies");
+    }
+
     // If we are a server for a remote head, then initialize the input and a network processor
     if( opts->GetUseRemoteHead()) {
 
-        HLog("Creating input reader");
+        HLog("Creating input reader for remote head");
         if( !SetInputReader(opts) ) {
             throw new BoomaInputException("Unable to create input reader");
         }
@@ -28,7 +35,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteServer().c_str(), opts->GetRemoteDataPort(), opts->GetRemoteCommandPort(), BLOCKSIZE, isTerminated);
     }
     else {
-        HLog("Creating input reader");
+        HLog("Creating input reader for local hardware device");
         if( !SetInputReader(opts) ) {
             throw new BoomaInputException("Unable to create input reader");
         }
@@ -46,7 +53,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
     if( opts->GetDumpRfFileFormat() == WAV ) {
-        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetSampleRate(), _rfBuffer->Consumer());
+        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetInputSampleRate(), _rfBuffer->Consumer());
     } else {
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
@@ -73,14 +80,14 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
     // Select input reader
     switch( opts->GetInputSourceType() ) {
         case AUDIO_DEVICE:
-            HLog("Initializing audio input device %d", opts->GetInputAudioDevice());
-            _inputReader = new HSoundcardReader<int16_t>(opts->GetInputAudioDevice(), opts->GetSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+            HLog("Initializing audio input device %d", opts->GetInputDevice());
+            _inputReader = new HSoundcardReader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
             break;
         case SIGNAL_GENERATOR:
             HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
             // The generator amplitude is adjustes so that, with the scalefactor '10' for the signallevel meter,
             // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
-            _inputReader = new HSineGenerator<int16_t>(opts->GetSampleRate(), opts->GetSignalGeneratorFrequency(), 200);
+            _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(), opts->GetSignalGeneratorFrequency(), 200);
             break;
         case PCM_FILE:
             HLog("Initializing pcm file reader for input file %s", opts->GetPcmFile().c_str());
@@ -94,8 +101,29 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
             HLog("Initializing nullreader");
             _inputReader = new HNullReader<int16_t>();
             break;
+        case RTLSDR:
+            switch(opts->GetInputSourceDataType()) {
+                case InputSourceDataType::IQ:
+                    HLog("Initializing RTL-2832 device %d for IQ data", opts->GetInputDevice());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ, 0, _hardwareFrequency, BLOCKSIZE);
+                    break;
+                case InputSourceDataType::I:
+                    HLog("Initializing RTL-2832 device %d for I(nphase) data", opts->GetInputDevice());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I, 0, _hardwareFrequency, BLOCKSIZE);
+                case InputSourceDataType::Q:
+                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data", opts->GetInputDevice());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q, 0, _hardwareFrequency, BLOCKSIZE);
+                case InputSourceDataType::REAL:
+                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum)", opts->GetInputDevice());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL, 0, _hardwareFrequency, BLOCKSIZE);
+                default:
+                    HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
+                    throw new BoomaInputException("Unknown input source datatype specified");
+            }
+            break;
         default:
-            throw new BoomaInputException("No input source specified");
+            HError("Unknown input source type specified (%d)", opts->GetInputSourceType());
+            throw new BoomaInputException("Unknown input source type specified");
     }
     return true;
 }
@@ -110,5 +138,41 @@ void BoomaInput::Run(int blocks) {
         (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Run(blocks);
     } else {
         (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Run();
+    }
+}
+
+bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
+    _virtualFrequency = frequency;
+    HLog("Input._virtualFrequency = %d", _virtualFrequency);
+
+    switch( opts->GetInputSourceType() ) {
+        case RTLSDR:
+            _hardwareFrequency = frequency;
+            _ifFrequency = 000000;
+            break;
+        default:
+            _hardwareFrequency = frequency;
+            _ifFrequency = frequency;
+    }
+
+    HLog("Input._hardwareFrequency = %d", _hardwareFrequency);
+    HLog("Input._ifFrequency = %d", _ifFrequency);
+    return true;
+}
+
+bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
+
+    if( !SetReaderFrequencies(opts, frequency) ) {
+        HError("Failed to set input reader frequency %d", frequency);
+        return false;
+    }
+
+    // Device handling
+    switch( opts->GetInputSourceType() ) {
+        case RTLSDR:
+            HLog("Setting RTL-SDR center frequency = %d", _hardwareFrequency);
+            return ((HRtl2832Reader<int16_t>*) _inputReader)->SetCenterFrequency(_hardwareFrequency);
+        default:
+            return true;
     }
 }

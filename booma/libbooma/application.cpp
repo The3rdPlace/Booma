@@ -1,6 +1,6 @@
+#include <include/amreceiver.h>
 #include "application.h"
 #include "cwreceiver.h"
-#include "cwreceiver2.h"
 #include "auroralreceiver.h"
 #include "booma.h"
 
@@ -90,13 +90,13 @@ bool BoomaApplication::InitializeReceiver() {
         // Create receiver
         switch( _opts->GetReceiverModeType() ) {
             case CW:
-                _receiver = new BoomaCwReceiver(_opts);
+                _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
                 break;
-            case CW2:
-                _receiver = new BoomaCwReceiver2(_opts);
+            case AM:
+                _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
                 break;
             case AURORAL:
-                _receiver = new BoomaAuroralReceiver(_opts);
+                _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
                 break;
             default:
                 std::cout << "Unknown receiver type defined" << std::endl;
@@ -117,7 +117,7 @@ bool BoomaApplication::InitializeReceiver() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
-    if( _receiver->SetFrequency(frequency) ) {
+    if( _input->SetFrequency(_opts, frequency) && _receiver->SetFrequency(_opts, _input->GetIfFrequency()) ) {
         _opts->SetFrequency(frequency);
         return true;
     }
@@ -129,11 +129,7 @@ long int BoomaApplication::GetFrequency() {
 }
 
 bool BoomaApplication::ChangeFrequency(int stepSize) {
-    if( _receiver->SetFrequency(_opts->GetFrequency() + stepSize) ) {
-        _opts->SetFrequency(_opts->GetFrequency() + stepSize);
-        return true;
-    }
-    return false;
+    return SetFrequency(_opts->GetFrequency() + stepSize);
 }
 
 bool BoomaApplication::SetVolume(int volume) {
@@ -169,7 +165,7 @@ bool BoomaApplication::GetDumpAudio() {
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
-    if( _receiver->SetRfGain(gain) ) {
+    if( _receiver->SetRfGain(_opts, gain) ) {
         _opts->SetRfGain(gain);
         return true;
     }
@@ -177,7 +173,7 @@ bool BoomaApplication::SetRfGain(int gain) {
 }
 
 bool BoomaApplication::ChangeRfGain(int stepSize) {
-    if( _receiver->SetRfGain(_opts->GetRfGain() + stepSize) ) {
+    if( _receiver->SetRfGain(_opts, _opts->GetRfGain() + stepSize) ) {
         _opts->SetRfGain(_opts->GetRfGain() + stepSize);
         return true;
     }
@@ -216,8 +212,16 @@ InputSourceType BoomaApplication::GetInputSourceType() {
     return _opts->GetInputSourceType();
 }
 
-int BoomaApplication::GetInputAudioDevice() {
-    return _opts->GetInputAudioDevice();
+InputSourceDataType BoomaApplication::GetInputSourceDataType() {
+    return _opts->GetInputSourceDataType();
+}
+
+int BoomaApplication::GetInputDevice() {
+    return _opts->GetInputDevice();
+}
+
+bool BoomaApplication::GetDirectSampling() {
+    return _opts->GetDirectSampling();
 }
 
 std::string BoomaApplication::GetPcmFile() {

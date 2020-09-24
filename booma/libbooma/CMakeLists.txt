@@ -16,12 +16,12 @@ target_sources(booma
     PRIVATE
         application.cpp
         cwreceiver.cpp
-        cwreceiver2.cpp
         config.cpp
         receiver.cpp
         input.cpp
         output.cpp
         auroralreceiver.cpp
+		amreceiver.cpp
 )
 
 include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")

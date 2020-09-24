@@ -14,7 +14,7 @@ void Info::GetInfo() {
     std::cout << "Input: ";
     switch( ist ) {
         case AUDIO_DEVICE:
-            std::cout << "Audio device " << _app->GetInputAudioDevice() << std::endl;
+            std::cout << "Audio device " << _app->GetInputDevice() << std::endl;
             break;
         case SIGNAL_GENERATOR:
             std::cout << "Signal generator at " << _app->GetSignalGeneratorFrequency() << "Hz" << std::endl;
@@ -31,8 +31,31 @@ void Info::GetInfo() {
         case NETWORK:
             std::cout << "Network " << _app->GetRemoteServer() << ":" << _app->GetRemoteDataPort() << " (commands at :" << _app->GetRemoteCommandPort() << ")" <<  std::endl;
             break;
+        case RTLSDR: {
+            std::string mode = "(unknown)";
+            switch (_app->GetInputSourceDataType()) {
+                case IQ:
+                    mode = "IQ";
+                    break;
+                case I:
+                    mode = "I";
+                    break;
+                case Q:
+                    mode = "Q";
+                    break;
+                case REAL:
+                    mode = "REAL";
+                    break;
+                default:
+                    std::cout << "Unknown input source data type" << std::endl;
+                    break;
+            }
+            std::cout << "RTLSDR device " << _app->GetInputDevice() << " in " << mode << " mode"
+                      << (_app->GetDirectSampling() ? " with direct sampling" : "") << std::endl;
+            break;
+        }
         default:
-            std::cout << "Unknown input source" << std::endl;
+            std::cout << "Unknown input source type" << std::endl;
             break;
     }
 

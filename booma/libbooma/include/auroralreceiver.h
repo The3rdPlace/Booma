@@ -6,7 +6,6 @@
 #include "booma.h"
 #include "config.h"
 #include "receiver.h"
-#include "input.h"
 
 class BoomaAuroralReceiver : public BoomaReceiver {
 
@@ -14,45 +13,47 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
         bool _enableProbes;
 
-        HProbe<int16_t>* _passthroughProbe;
-        HProbe<int16_t>* _highpassProbe;
         HProbe<int16_t>* _gainProbe;
         HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _bandpassProbe;
         HProbe<int16_t>* _agcProbe;
 
         // Preprocessing
-        HPassThrough<int16_t>* _passthrough;
-        HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
-        HGain<int16_t>* _gain;
         HCombFilter<int16_t>* _humfilter;
 
         // Receiver
-        HCascadedBiQuadFilter<int16_t>* _bandpass;
+        HGain<int16_t>* _gain;
+        HFirFilter<int16_t>* _bandpass;
         HAgc<int16_t>* _agc;
 
-        static float _bandpassCoeffs[];
+        bool IsDataTypeSupported(InputSourceDataType datatype) {
+            switch( datatype ) {
+                case InputSourceDataType::REAL: return true;
+                default: return false;
+            }
+        }
 
         HWriterConsumer<int16_t>* PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
         HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
         HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
+        void OptionChanged(std::string name, int value) {}
+
+        bool SetFrequency(int frequency);
+        bool SetRfGain(int gain);
+
     public:
 
-        void OptionChanged(ConfigOptions* opts, std::string name, int value) {}
-        std::string GetOptionInfoString() { return ""; }
-
-    public:
-
-        BoomaAuroralReceiver(ConfigOptions* opts);
+        BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain);
         ~BoomaAuroralReceiver();
 
-        bool SetFrequency(long int frequency);
-        bool SetRfGain(int gain);
 
         std::string GetName() {
             return "CW";
         }
+
+        std::string GetOptionInfoString() { return ""; }
+
 };
 
 #endif

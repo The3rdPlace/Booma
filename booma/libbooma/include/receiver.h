@@ -7,11 +7,12 @@
 #include "decoder.h"
 #include "option.h"
 
+#include "receiverexception.h"
+
 class BoomaReceiver {
 
     private:
 
-        int _sampleRate;
         HWriterConsumer<int16_t>* _preProcess;
         HWriterConsumer<int16_t>* _receive;
         HWriterConsumer<int16_t>* _postProcess;
@@ -19,6 +20,11 @@ class BoomaReceiver {
         HSplitter<int16_t>* _decoder;
 
         std::vector<Option> _options;
+
+        int _frequency;
+        int _rfGain;
+        int _inputSamplerate;
+        int _outputSamplerate;
 
         bool _hasBuilded;
 
@@ -51,7 +57,7 @@ class BoomaReceiver {
 
                             // Report the change to the receiver implementation
                             if( _hasBuilded ) {
-                                OptionChanged(opts, name, value);
+                                OptionChanged(name, value);
                             }
 
                             // Receiver option set
@@ -70,27 +76,33 @@ class BoomaReceiver {
 
         virtual std::string GetName() = 0;
 
-        int GetSampleRate() {
-            return _sampleRate;
-        }
-
         virtual HWriterConsumer<int16_t>* PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
         virtual HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
         virtual HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) = 0;
+
+        virtual bool IsDataTypeSupported(InputSourceDataType datatype) = 0;
 
         void RegisterOption(Option option) {
             HLog("Registering option %s", option.Name.c_str());
             _options.push_back(option);
         }
 
-        virtual void OptionChanged(ConfigOptions* opts, std::string name, int value) = 0;
+        virtual void OptionChanged(std::string name, int value) = 0;
+
+        virtual bool SetFrequency(int frequency) = 0;
+        virtual bool SetRfGain(int gain) = 0;
 
     public:
 
-        BoomaReceiver(ConfigOptions* opts):
-            _sampleRate(opts->GetSampleRate()),
-            _hasBuilded(false) {
-            }
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain):
+            _hasBuilded(false),
+            _frequency(initialFrequency),
+            _rfGain(initialRfGain) {
+
+            HLog("Creating BoomaReceiver with initial frequency %d and initial gain %d", _frequency, _rfGain);
+            _inputSamplerate = opts->GetInputSampleRate();
+            _outputSamplerate = opts->GetOutputSampleRate();
+        }
 
         virtual ~BoomaReceiver() {
             delete _spectrum;
@@ -130,6 +142,13 @@ class BoomaReceiver {
 
         void Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* decoder = NULL) {
 
+            // Can we build a receiver for the given input data type ?
+            if( !IsDataTypeSupported(opts->GetInputSourceDataType()) ) {
+                HError("Attempt to build receiver for unsupported input data type");
+                _hasBuilded = false;
+                throw new ReceiverException("Attempt to build receiver for unsupported input data type");
+            }
+
             // Set options from saved configuration
             std::map<std::string, std::string> storedOptions = opts->GetReceiverOptionsFor(GetName());
             for( std::map<std::string, std::string>::iterator it = storedOptions.begin(); it != storedOptions.end(); it++ ) {
@@ -163,8 +182,31 @@ class BoomaReceiver {
             _hasBuilded = true;
         };
 
-        virtual bool SetFrequency(long int frequency) = 0;
-        virtual bool SetRfGain(int gain) = 0;
+        bool SetFrequency(ConfigOptions* opts, int frequency) {
+            _frequency = frequency;
+            return SetFrequency(_frequency);
+        }
+
+        bool SetRfGain(ConfigOptions* opts, int rfGain) {
+            _rfGain = rfGain;
+            return SetRfGain(_rfGain);
+        }
+
+        int GetFrequency() {
+            return _frequency;
+        }
+
+        int GetRfGain() {
+            return _rfGain;
+        }
+
+        int GetInputSamplerate() {
+            return _inputSamplerate;
+        }
+
+        int GetOutputSamplerate() {
+            return _outputSamplerate;
+        }
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _decoder->Consumer();

@@ -78,9 +78,18 @@ class BoomaApplication {
         bool InitializeReceiver();
         ReceiverModeType GetReceiver();
 
+        // Set and get the virtual frequency - the frequency the user inputs
+        // and what is show on a scale dial or in a display.
+        // This is the frequency in the spectrum that is actually being received
+        // but it may appear as a virtual frequency due to use of devices that translates
+        // this frequency by use of mixers into a lower frequency band.
         long int GetFrequency();
         bool SetFrequency(long int frequency);
         bool ChangeFrequency(int stepSize);
+
+        // Get the IF frequency, the frequency where the received signal is
+        // located in the frequency band provided to the receiver
+        int GetIfFrequency();
 
         int GetVolume();
         bool SetVolume(int volume);
@@ -102,7 +111,9 @@ class BoomaApplication {
 
         // Public control functions that would require a receiver restart after modifications
         InputSourceType GetInputSourceType();
-        int GetInputAudioDevice();
+        InputSourceDataType GetInputSourceDataType();
+        int GetInputDevice();
+        bool GetDirectSampling();
         std::string GetPcmFile();
         std::string GetWavFile();
         int GetSignalGeneratorFrequency();

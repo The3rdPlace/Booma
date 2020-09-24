@@ -28,7 +28,7 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
     switch(type) {
         case ReceiverModeType::AURORAL: return "Auroral";
         case ReceiverModeType::CW: return "CW";
-        case ReceiverModeType::CW2: return "CW2";
+        case ReceiverModeType::AM: return "AM";
         default: return "UNKNOWN_RECEIVER";
     }
 }
@@ -36,7 +36,7 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
 std::string ComposeInfoPrompt(BoomaApplication* app) {
     return "Booma [ " +
     TranslateReceiverModeType(app->GetReceiver()) +
-    " f=" + std::to_string(app->GetFrequency()) + "[" + app->GetOptionInfoString() + "]" +
+    " f=" + std::to_string(app->GetFrequency()) + ( app->GetOptionInfoString() != "" ? "[" + app->GetOptionInfoString() + "]" : "") +
     " v=" + std::to_string(app->GetVolume()) +
     " gain=" + std::to_string(app->GetRfGain()) +
     (app->GetDumpRf() ? " " : "") +

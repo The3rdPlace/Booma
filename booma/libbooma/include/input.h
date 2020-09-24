@@ -8,6 +8,8 @@
 
 class BoomaInput {
 
+public:
+
     private:
 
         HStreamProcessor<int16_t>* _streamProcessor;
@@ -19,7 +21,12 @@ class BoomaInput {
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
 
+        int _virtualFrequency;
+        int _hardwareFrequency;
+        int _ifFrequency;
+
         bool SetInputReader(ConfigOptions* opts);
+        bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
 
     public:
 
@@ -41,6 +48,12 @@ class BoomaInput {
         void Run(int blocks = 0);
 
         bool SetDumpRf(bool enabled);
+
+        bool SetFrequency(ConfigOptions* opts, int frequency);
+
+        int GetIfFrequency() {
+            return _ifFrequency;
+        }
 };
 
 #endif
