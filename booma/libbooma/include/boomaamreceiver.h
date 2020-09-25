@@ -16,10 +16,12 @@ private:
     HProbe<int16_t>* _humfilterProbe;
 
     // Preprocessing
-    HIq2AbsConverter<int16_t>* _conv;
-    HCollector<int16_t>* _coll;
-    HIqFirDecimator<int16_t>* _fdec;
-    HIqDecimator<int16_t>* _dec;
+    HIqFirDecimator<int16_t>* _firDecimator;
+    HIqFirFilter<int16_t>* _firFilter;
+    HIqDecimator<int16_t>* _decimator;
+
+    HIq2AbsConverter<int16_t>* _absConverter;
+    HCollector<int16_t>* _collector;
 
     // Receiver
     // ...(empty)...
