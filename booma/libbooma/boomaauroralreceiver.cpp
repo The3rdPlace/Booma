@@ -21,7 +21,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::Receive(ConfigOptions* opts, HWr
 
     // Narrow butterworth bandpass filter, bandwidth 100Hz around 1000-1100. 4th. order, 4 biquads cascaded
     HLog("- Bandpass");
-    _bandpassProbe = new HProbe<int16_t>("auroralreceiver_03_bandpass", _enableProbes);
+    _bandpassProbe = new HProbe<int16_t>("auroralreceiver_02_bandpass", _enableProbes);
     _bandpass = new HFirFilter<int16_t>(previous, HBandpassKaiserBessel<int16_t>(500, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE, _bandpassProbe);
 
     // End of receiver
