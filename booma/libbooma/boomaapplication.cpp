@@ -90,13 +90,13 @@ bool BoomaApplication::InitializeReceiver() {
         // Create receiver
         switch( _opts->GetReceiverModeType() ) {
             case CW:
-                _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
+                _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AM:
-                _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
+                _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AURORAL:
-                _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency(), _opts->GetRfGain());
+                _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency());
                 break;
             default:
                 std::cout << "Unknown receiver type defined" << std::endl;
@@ -165,7 +165,7 @@ bool BoomaApplication::GetDumpAudio() {
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
-    if( _receiver->SetRfGain(_opts, gain) ) {
+    if( _input->SetRfGain(gain) == gain ) {
         _opts->SetRfGain(gain);
         return true;
     }
@@ -173,11 +173,7 @@ bool BoomaApplication::SetRfGain(int gain) {
 }
 
 bool BoomaApplication::ChangeRfGain(int stepSize) {
-    if( _receiver->SetRfGain(_opts, _opts->GetRfGain() + stepSize) ) {
-        _opts->SetRfGain(_opts->GetRfGain() + stepSize);
-        return true;
-    }
-    return false;
+    return SetRfGain(_opts->GetRfGain() + stepSize);
 }
 
 int BoomaApplication::GetRfGain() {

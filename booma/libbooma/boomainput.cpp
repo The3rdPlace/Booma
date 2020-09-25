@@ -49,6 +49,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
 
     // Add a filewriter so that we can dump pcm data on request
+    HLog("Adding RF output filewriter");
     _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
@@ -57,6 +58,11 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     } else {
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
+
+    // Add RF gain
+    HLog("Setting up RF gain");
+    _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain(), BLOCKSIZE);
+
 }
 
 BoomaInput::~BoomaInput() {
@@ -110,12 +116,15 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
                 case InputSourceDataType::I:
                     HLog("Initializing RTL-2832 device %d for I(nphase) data", opts->GetInputDevice());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I, 0, _hardwareFrequency, BLOCKSIZE);
+                    break;
                 case InputSourceDataType::Q:
                     HLog("Initializing RTL-2832 device %d for Q(uadrature) data", opts->GetInputDevice());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q, 0, _hardwareFrequency, BLOCKSIZE);
+                    break;
                 case InputSourceDataType::REAL:
                     HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum)", opts->GetInputDevice());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL, 0, _hardwareFrequency, BLOCKSIZE);
+                    break;
                 default:
                     HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
                     throw new BoomaInputException("Unknown input source datatype specified");
@@ -175,4 +184,15 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
         default:
             return true;
     }
+}
+
+int BoomaInput::SetRfGain(int gain) {
+
+    if( gain > 10 || gain < 1 ) {
+        return _rfGain->GetGain();
+    } else {
+        _rfGain->SetGain(gain);
+    }
+
+    return _rfGain->GetGain();
 }

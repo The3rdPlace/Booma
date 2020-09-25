@@ -14,31 +14,26 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         bool _enableProbes;
 
-        HProbe<int16_t>* _passthroughProbe;
-        HProbe<int16_t>* _highpassProbe;
-        HProbe<int16_t>* _gainProbe;
         HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _preselectProbe;
-        HProbe<int16_t>* _agcProbe;
         HProbe<int16_t>* _ifMixerProbe;
         HProbe<int16_t>* _ifFilterProbe;
         HProbe<int16_t>* _beatToneMixerProbe;
         HProbe<int16_t>* _postSelectProbe;
 
         // Preprocessing
-        HPassThrough<int16_t>* _passthrough;
-        HBiQuadFilter<HHighpassBiQuad<int16_t>, int16_t>* _highpass;
-        HGain<int16_t>* _gain;
         HHumFilter<int16_t>* _humfilter;
 
         // Receiver
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
-        HAgc<int16_t>* _agc;
         HMultiplier<int16_t>* _ifMixer;
         HCascadedBiQuadFilter<int16_t>* _ifFilter;
         HMultiplier<int16_t>* _beatToneMixer;
         HCascadedBiQuadFilter<int16_t>* _postSelect;
-        
+
+        // Postprocessing
+        // ...(empty)...
+
         static float _bandpassCoeffs[3][20];
         static int _bandpassWidths[];
         static float _cwCoeffs[];
@@ -61,7 +56,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaCwReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain);
+        BoomaCwReceiver(ConfigOptions* opts, int initialFrequency);
         ~BoomaCwReceiver();
 
         std::string GetName() {

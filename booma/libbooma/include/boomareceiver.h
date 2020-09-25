@@ -22,7 +22,6 @@ class BoomaReceiver {
         std::vector<Option> _options;
 
         int _frequency;
-        int _rfGain;
         int _inputSamplerate;
         int _outputSamplerate;
 
@@ -90,16 +89,14 @@ class BoomaReceiver {
         virtual void OptionChanged(std::string name, int value) = 0;
 
         virtual bool SetFrequency(int frequency) = 0;
-        virtual bool SetRfGain(int gain) = 0;
 
     public:
 
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain):
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency):
             _hasBuilded(false),
-            _frequency(initialFrequency),
-            _rfGain(initialRfGain) {
+            _frequency(initialFrequency) {
 
-            HLog("Creating BoomaReceiver with initial frequency %d and initial gain %d", _frequency, _rfGain);
+            HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
             _inputSamplerate = opts->GetInputSampleRate();
             _outputSamplerate = opts->GetOutputSampleRate();
         }
@@ -187,17 +184,8 @@ class BoomaReceiver {
             return SetFrequency(_frequency);
         }
 
-        bool SetRfGain(ConfigOptions* opts, int rfGain) {
-            _rfGain = rfGain;
-            return SetRfGain(_rfGain);
-        }
-
         int GetFrequency() {
             return _frequency;
-        }
-
-        int GetRfGain() {
-            return _rfGain;
         }
 
         int GetInputSamplerate() {

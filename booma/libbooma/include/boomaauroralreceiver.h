@@ -13,18 +13,17 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
         bool _enableProbes;
 
-        HProbe<int16_t>* _gainProbe;
         HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _bandpassProbe;
-        HProbe<int16_t>* _agcProbe;
 
         // Preprocessing
         HCombFilter<int16_t>* _humfilter;
 
         // Receiver
-        HGain<int16_t>* _gain;
         HFirFilter<int16_t>* _bandpass;
-        HAgc<int16_t>* _agc;
+
+        // Postprocessing
+        // ...(empty)...
 
         bool IsDataTypeSupported(InputSourceDataType datatype) {
             switch( datatype ) {
@@ -44,7 +43,7 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
     public:
 
-        BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency, int initialRfGain);
+        BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency);
         ~BoomaAuroralReceiver();
 
 

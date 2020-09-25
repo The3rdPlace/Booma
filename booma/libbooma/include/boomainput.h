@@ -20,6 +20,7 @@ public:
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
+        HGain<int16_t>* _rfGain;
 
         int _virtualFrequency;
         int _hardwareFrequency;
@@ -42,7 +43,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _rfSplitter->Consumer();
+            return _rfGain->Consumer();
         }
 
         void Run(int blocks = 0);
@@ -50,6 +51,8 @@ public:
         bool SetDumpRf(bool enabled);
 
         bool SetFrequency(ConfigOptions* opts, int frequency);
+
+        int SetRfGain(int gain);
 
         int GetIfFrequency() {
             return _ifFrequency;

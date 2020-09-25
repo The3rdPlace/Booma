@@ -9,9 +9,10 @@ class BoomaOutput {
 
     private:
 
-        HGain<int16_t>* _outputWriter;
+        //HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
+        HAgc<int16_t>* _outputWriter;
 
         // Splitting audio and RF
         HWriter<int16_t>* _audioWriter;

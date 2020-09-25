@@ -40,16 +40,18 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 10);
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
-    // Add RF spectrum calculation
+    // Add audio spectrum calculation
     _audioFftWindow = new HRectangularWindow<int16_t>();
     _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, _audioSplitter->Consumer(), _audioFftWindow);
     _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
     _audioSpectrum = new double[_audioFftSize / 2];
     memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
 
-    // Initialize the audio output and the output gain control (volume)
-    HLog("Initializing audio output");
-    _outputWriter = new HGain<int16_t>(_audioSplitter->Consumer(), (float) opts->GetVolume() / 10, BLOCKSIZE);
+    // Add combined AGC and volume control
+    HLog("- AGC + Volume");
+    _outputWriter = new HAgc<int16_t>(_audioSplitter->Consumer(), 2000 * opts->GetVolume() / 10, 2500 * opts->GetVolume() / 10, 2, 2, BLOCKSIZE);
+
+    // Select output device
     if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
         _soundcardWriter = NULL;
@@ -155,9 +157,10 @@ bool BoomaOutput::SetDumpAudio(bool enabled) {
 }
 
 int BoomaOutput::SetVolume(int volume) {
-    if( volume >= 300 || volume <= 0 ) {
+    if( volume >= 100 || volume <= 0 ) {
         return false;
     }
-    _outputWriter->SetGain((float) volume/10);
-    return _outputWriter->GetGain() * 10;
+    _outputWriter->SetBounds(2000 * volume / 10, 2500 * volume / 10);
+    return volume;
 }
+
