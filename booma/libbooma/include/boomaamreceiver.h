@@ -13,22 +13,15 @@ private:
 
     bool _enableProbes;
 
-    HProbe<int16_t>* _firDecimatorProbe;
-    HProbe<int16_t>* _firFilterProbe;
-    HProbe<int16_t>* _decimatorProbe;
     HProbe<int16_t>* _absConverterProbe;
     HProbe<int16_t>* _collectorProbe;
 
     // Preprocessing
-    HIqFirDecimator<int16_t>* _firDecimator;
-    HIqFirFilter<int16_t>* _firFilter;
-    HIqDecimator<int16_t>* _decimator;
-
-    HIq2AbsConverter<int16_t>* _absConverter;
-    HCollector<int16_t>* _collector;
+    // ...(empty)...
 
     // Receiver
-    // ...(empty)...
+    HIq2AbsConverter<int16_t>* _absConverter;
+    HCollector<int16_t>* _collector;
 
     // Postprocessing
     // ...(empty)...

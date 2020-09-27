@@ -21,6 +21,12 @@ class BoomaReceiver {
 
         std::vector<Option> _options;
 
+        bool _decimate;
+        int _cutOff;
+        HIqFirDecimator<int16_t>* _firDecimator;
+        HIqFirFilter<int16_t>* _firFilter;
+        HIqDecimator<int16_t>* _decimator;
+
         int _frequency;
         int _inputSamplerate;
         int _outputSamplerate;
@@ -71,6 +77,8 @@ class BoomaReceiver {
             return false;
         };
 
+        HWriterConsumer<int16_t>* Decimate(HWriterConsumer<int16_t>* previous);
+
     protected:
 
         virtual std::string GetName() = 0;
@@ -92,9 +100,26 @@ class BoomaReceiver {
 
     public:
 
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency):
+        /**
+         * Base class for all Booma receivers
+         *
+         * @param opts Receiver options
+         * @param initialFrequency The initial frequency being received on
+         * @param decimate If true then the incomming samples will be decimated
+         *                 from the 'device rate to 'output rate.
+         * @param cutOff If decimating and if cutOff is not 0 (zero), then this is used
+         *               as the upper cutoff frequency in the lowpass filter being applied
+         *               by the FIR decimator, otherwise the highest frequency supported by
+         *               the output samplerate will be used as cutoff frequency.
+         */
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency, bool decimate = false, int cutOff = 0):
             _hasBuilded(false),
-            _frequency(initialFrequency) {
+            _frequency(initialFrequency),
+            _firDecimator(nullptr),
+            _firFilter(nullptr),
+            _decimator(nullptr),
+            _decimate(decimate),
+            _cutOff(cutOff) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
             _inputSamplerate = opts->GetInputSampleRate();
@@ -103,6 +128,16 @@ class BoomaReceiver {
 
         virtual ~BoomaReceiver() {
             delete _spectrum;
+
+            if( _firDecimator != nullptr ) {
+                delete _firDecimator;
+            }
+            if( _firFilter != nullptr ) {
+                delete _firFilter;
+            }
+            if( _decimator != nullptr ) {
+                delete _decimator;
+            }
         }
 
         std::vector<Option>* GetOptions() {
@@ -157,8 +192,11 @@ class BoomaReceiver {
                 SetOption(opts, (*it).first, (*it).second);
             }
 
+            // Apply decimation - if requested
+            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(input->GetLastWriterConsumer());
+
             // Add preprocessing part of the receiver
-            _preProcess = PreProcess(opts, input->GetLastWriterConsumer());
+            _preProcess = PreProcess(opts, decimatedConsumer);
 
             // Add a splitter so that we can take the full spectrum out before running through the receiver filters
             _spectrum = new HSplitter<int16_t>(_preProcess);
