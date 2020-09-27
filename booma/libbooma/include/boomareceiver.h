@@ -23,9 +23,12 @@ class BoomaReceiver {
 
         bool _decimate;
         int _cutOff;
-        HIqFirDecimator<int16_t>* _firDecimator;
-        HIqFirFilter<int16_t>* _firFilter;
-        HIqDecimator<int16_t>* _decimator;
+        HIqFirDecimator<int16_t>* _iqFirDecimator;
+        HIqFirFilter<int16_t>* _iqFirFilter;
+        HIqDecimator<int16_t>* _iqDecimator;
+        HFirDecimator<int16_t>* _firDecimator;
+        HFirFilter<int16_t>* _firFilter;
+        HDecimator<int16_t>* _decimator;
 
         int _frequency;
         int _inputSamplerate;
@@ -77,7 +80,7 @@ class BoomaReceiver {
             return false;
         };
 
-        HWriterConsumer<int16_t>* Decimate(HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* Decimate(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
     protected:
 
@@ -115,6 +118,9 @@ class BoomaReceiver {
         BoomaReceiver(ConfigOptions* opts, int initialFrequency, bool decimate = false, int cutOff = 0):
             _hasBuilded(false),
             _frequency(initialFrequency),
+            _iqFirDecimator(nullptr),
+            _iqFirFilter(nullptr),
+            _iqDecimator(nullptr),
             _firDecimator(nullptr),
             _firFilter(nullptr),
             _decimator(nullptr),
@@ -128,6 +134,16 @@ class BoomaReceiver {
 
         virtual ~BoomaReceiver() {
             delete _spectrum;
+
+            if( _iqFirDecimator != nullptr ) {
+                delete _iqFirDecimator;
+            }
+            if( _iqFirFilter != nullptr ) {
+                delete _iqFirFilter;
+            }
+            if( _iqDecimator != nullptr ) {
+                delete _iqDecimator;
+            }
 
             if( _firDecimator != nullptr ) {
                 delete _firDecimator;
@@ -193,7 +209,7 @@ class BoomaReceiver {
             }
 
             // Apply decimation - if requested
-            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(input->GetLastWriterConsumer());
+            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(opts, input->GetLastWriterConsumer());
 
             // Add preprocessing part of the receiver
             _preProcess = PreProcess(opts, decimatedConsumer);
