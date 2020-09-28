@@ -28,12 +28,19 @@ class BoomaApplication {
             }
 	        HLog("Run receiver chain");
             _isTerminated = false;
-            _current = new std::thread( [this]()  {
-                _input->Run( _opts->GetEnableProbes() ? 100 : 0);
+            if( _opts->GetEnableProbes() ) {
+                _input->Run( 1000 );
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
-            } );
+            } else {
+                _current = new std::thread( [this]()  {
+                    _input->Run( _opts->GetEnableProbes() ? 100 : 0);
+                    _isTerminated = true;
+                    _isRunning = false;
+                    _current = NULL;
+                } );
+            }
             _isRunning = true;
             HLog("Receiver chain is running");
         }
@@ -107,6 +114,10 @@ class BoomaApplication {
 
         int GetSampleRate() {
             return SAMPLERATE;
+        }
+
+        bool GetEnableProbes() {
+            return _opts->GetEnableProbes();
         }
 
         // Public control functions that would require a receiver restart after modifications

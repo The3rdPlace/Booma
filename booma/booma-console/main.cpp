@@ -67,7 +67,16 @@ int main(int argc, char** argv) {
     }
 
     // Run initial receiver (if any configured)
+    if( app.GetEnableProbes() ) {
+        HLog("Probe run is starting");
+        std::cout << "Probe run is starting" << std::endl;
+    }
     app.Run();
+    if( app.GetEnableProbes() ) {
+        HLog("Probe run has been completed. Will exit now");
+        std::cout << "Probe run has been completed. Will exit now" << std::endl;
+        return 0;
+    }
 
 	// Create an Info object to report various informations from the receiver
 	Info info(&app);
