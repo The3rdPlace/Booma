@@ -3,6 +3,8 @@
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
         BoomaReceiver(opts, initialFrequency, true, 3000),
         _enableProbes(opts->GetEnableProbes()),
+        _absConverter(nullptr),
+        _collector(nullptr),
         _absConverterProbe(nullptr),
         _collectorProbe(nullptr) {}
 
