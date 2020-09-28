@@ -15,7 +15,7 @@ class BoomaCwReceiver : public BoomaReceiver {
         bool _enableProbes;
 
         HProbe<int16_t>* _humfilterProbe;
-        HProbe<int16_t>* _iqDecimatorProbe;
+        HProbe<int16_t>* _iq2IConverterProbe;
         HProbe<int16_t>* _iqMultiplierProbe;
         HProbe<int16_t>* _preselectProbe;
         HProbe<int16_t>* _ifMixerProbe;
@@ -25,7 +25,7 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         // Preprocessing
         HHumFilter<int16_t>* _humfilter;
-        HDecimator<int16_t>* _iqDecimator; // Todo: use better component
+        HIq2IConverter<int16_t>* _iq2IConverter;
         HIqMultiplier<int16_t>* _iqMultiplier;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HMultiplier<int16_t>* _ifMixer;

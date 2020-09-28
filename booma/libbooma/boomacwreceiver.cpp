@@ -74,7 +74,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
     BoomaReceiver(opts, initialFrequency, true, 3000),
     _enableProbes(opts->GetEnableProbes()),
     _humfilterProbe(nullptr),
-    _iqDecimatorProbe(nullptr),
+    _iq2IConverterProbe(nullptr),
     _iqMultiplierProbe(nullptr),
     _preselectProbe(nullptr),
     _ifMixerProbe(nullptr),
@@ -82,7 +82,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
     _beatToneMixerProbe(nullptr),
     _postSelectProbe(nullptr),
     _humfilter(nullptr),
-    _iqDecimator(nullptr),
+    _iq2IConverter(nullptr),
     _iqMultiplier(nullptr),
     _preselect(nullptr),
     _ifMixer(nullptr),
@@ -182,11 +182,12 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 6000, 1, BLOCKSIZE, _iqMultiplierProbe);
 
         // Get the I branch ==> convert to realvalued samples
-        _iqDecimatorProbe = new HProbe<int16_t>("cwreceiver_02_iqdecimator", _enableProbes);
-        _iqDecimator = new HDecimator<int16_t>(_iqMultiplier->Consumer(), 2, BLOCKSIZE, true, _iqDecimatorProbe);
+        _iq2IConverterProbe = new HProbe<int16_t>("cwreceiver_02_iq2iconverter", _enableProbes);
+        _iq2IConverter = new HIq2IConverter<int16_t>(_iqMultiplier->Consumer(), BLOCKSIZE, _iq2IConverterProbe);
+
 
         // Return signal at IF = 6KHz
-        return _iqDecimator->Consumer();
+        return _iq2IConverter->Consumer();
     }
 
     // Unhandled data type - that should not happen!
@@ -232,14 +233,14 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     SAFE_DELETE(_preselect);
     SAFE_DELETE(_ifMixer);
     SAFE_DELETE(_iqMultiplier);
-    SAFE_DELETE(_iqDecimator);
+    SAFE_DELETE(_iq2IConverter);
     SAFE_DELETE(_ifFilter);
     SAFE_DELETE(_beatToneMixer);
     SAFE_DELETE(_postSelect);
 
     SAFE_DELETE(_humfilterProbe);
     SAFE_DELETE(_iqMultiplierProbe);
-    SAFE_DELETE(_iqDecimatorProbe);
+    SAFE_DELETE(_iq2IConverterProbe);
     SAFE_DELETE(_preselectProbe);
     SAFE_DELETE(_ifMixerProbe);
     SAFE_DELETE(_ifFilterProbe);
