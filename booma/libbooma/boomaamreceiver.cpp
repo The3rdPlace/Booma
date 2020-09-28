@@ -49,6 +49,12 @@ BoomaAmReceiver::~BoomaAmReceiver() {
 
 bool BoomaAmReceiver::SetFrequency(int frequency) {
 
+    // This receiver only operates from 0 to samplerate/2.
+    if( frequency >= GetOutputSamplerate() / 2  ) {
+        HError("Unsupported frequency %ld, must be less than %d", frequency, GetOutputSamplerate() / 2);
+        return false;
+    }
+
     // This receiver only operates from 0 - 10KHz
     if( frequency >= 10000 || frequency <= 0 ) {
         HError("Unsupported frequency %ld, must be greater than  %d and less than %d", frequency, 0, 10000);
