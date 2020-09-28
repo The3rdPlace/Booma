@@ -32,7 +32,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
-    std::cout << tr("Select receiver (CW2 default)                          -m CW|CW2|AURORAL|AM") << std::endl;
+    std::cout << tr("Select receiver (CW2 default)                          -m CW|CW2|AURORAL|AM|SSB") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                     -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 30)                                   -g gain") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)                  -ro NAME=VALUE") << std::endl;
@@ -321,6 +321,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             }
             else if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
                 _receiverModeType = AURORAL;
+            }
+            else if( strcmp(argv[i + 1], "SSB") == 0 ) {
+                _receiverModeType = SSB;
             }
             else {
                 std::cout << "Unknown receiver type " << argv[i + 1] << std::endl;

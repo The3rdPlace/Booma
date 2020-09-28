@@ -49,7 +49,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Add combined AGC and volume control
     HLog("- AGC + Volume");
-    _outputWriter = new HAgc<int16_t>(_audioSplitter->Consumer(), 2000 * opts->GetVolume() / 10, 2500 * opts->GetVolume() / 10, 2, 2, BLOCKSIZE);
+    _outputWriter = new HAgc<int16_t>(_audioSplitter->Consumer(), 1000 * opts->GetVolume() / 10, 1500 * opts->GetVolume() / 10, 3, 3, BLOCKSIZE);
 
     // Select output device
     if( opts->GetOutputAudioDevice() == -1 ) {

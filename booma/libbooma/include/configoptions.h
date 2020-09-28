@@ -29,7 +29,8 @@ enum ReceiverModeType {
     NO_RECEIVE_MODE = 0,
     CW = 1,
     AURORAL = 2,
-    AM = 3
+    AM = 3,
+    SSB = 4
 };
 
 /** Format of the dump file */

@@ -29,6 +29,7 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
         case ReceiverModeType::AURORAL: return "Auroral";
         case ReceiverModeType::CW: return "CW";
         case ReceiverModeType::AM: return "AM";
+        case ReceiverModeType::SSB: return "SSB";
         default: return "UNKNOWN_RECEIVER";
     }
 }
