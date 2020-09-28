@@ -35,11 +35,11 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PostProcess(ConfigOptions* opts,
 }
 
 BoomaAuroralReceiver::~BoomaAuroralReceiver() {
-    delete _bandpass;
-    delete _humfilter;
+    SAFE_DELETE(_bandpass);
+    SAFE_DELETE(_humfilter);
 
-    delete _bandpassProbe;
-    delete _humfilterProbe;
+    SAFE_DELETE(_bandpassProbe);
+    SAFE_DELETE(_humfilterProbe);
 }
 
 bool BoomaAuroralReceiver::SetFrequency(int frequency) {

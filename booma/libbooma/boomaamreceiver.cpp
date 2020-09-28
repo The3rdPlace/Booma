@@ -40,11 +40,11 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWri
 
 BoomaAmReceiver::~BoomaAmReceiver() {
 
-    delete _absConverterProbe;
-    delete _collectorProbe;
+    SAFE_DELETE(_absConverterProbe);
+    SAFE_DELETE(_collectorProbe);
 
-    delete _absConverter;
-    delete _collector;
+    SAFE_DELETE(_absConverter);
+    SAFE_DELETE(_collector);
 }
 
 bool BoomaAmReceiver::SetFrequency(int frequency) {
