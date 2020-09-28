@@ -188,7 +188,7 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 
 int BoomaInput::SetRfGain(int gain) {
 
-    if( gain > 10 || gain < 1 ) {
+    if( gain > 30 || gain < 1 ) {
         return _rfGain->GetGain();
     } else {
         _rfGain->SetGain(gain);
