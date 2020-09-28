@@ -26,6 +26,8 @@ public:
         int _hardwareFrequency;
         int _ifFrequency;
 
+        int _preGain;
+
         bool SetInputReader(ConfigOptions* opts);
         bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
 

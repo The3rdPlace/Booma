@@ -15,6 +15,8 @@ class BoomaCwReceiver : public BoomaReceiver {
         bool _enableProbes;
 
         HProbe<int16_t>* _humfilterProbe;
+        HProbe<int16_t>* _iqDecimatorProbe;
+        HProbe<int16_t>* _iqMultiplierProbe;
         HProbe<int16_t>* _preselectProbe;
         HProbe<int16_t>* _ifMixerProbe;
         HProbe<int16_t>* _ifFilterProbe;
@@ -23,10 +25,12 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         // Preprocessing
         HHumFilter<int16_t>* _humfilter;
-
-        // Receiver
+        HDecimator<int16_t>* _iqDecimator; // Todo: use better component
+        HIqMultiplier<int16_t>* _iqMultiplier;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
         HMultiplier<int16_t>* _ifMixer;
+
+        // Receiver
         HCascadedBiQuadFilter<int16_t>* _ifFilter;
         HMultiplier<int16_t>* _beatToneMixer;
         HCascadedBiQuadFilter<int16_t>* _postSelect;
@@ -34,13 +38,14 @@ class BoomaCwReceiver : public BoomaReceiver {
         // Postprocessing
         // ...(empty)...
 
-        static float _bandpassCoeffs[3][20];
+        static float _bandpassCoeffs[6][20];
         static int _bandpassWidths[];
         static float _cwCoeffs[];
 
         bool IsDataTypeSupported(InputSourceDataType datatype) {
             switch( datatype ) {
                 case InputSourceDataType::REAL: return true;
+                case InputSourceDataType::IQ: return true;
                 default: return false;
             }
         }
@@ -53,6 +58,11 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         bool SetFrequency(int frequency);
         bool SetRfGain(int gain);
+
+        int GetIfOffset() {
+            // Calculate mixer offsets due to if filter shifting
+            return GetOption("Ifshift") * (_bandpassWidths[GetOption("Bandwidth")] / 4);
+        }
 
     public:
 

@@ -7,7 +7,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfWriter(NULL),
     _rfSplitter(NULL),
     _rfBreaker(NULL),
-    _rfBuffer(NULL) {
+    _rfBuffer(NULL),
+    _preGain(1) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -61,7 +62,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain(), BLOCKSIZE);
+    _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain() * _preGain, BLOCKSIZE);
 
 }
 
@@ -108,6 +109,7 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
             _inputReader = new HNullReader<int16_t>();
             break;
         case RTLSDR:
+            _preGain = 2;
             switch(opts->GetInputSourceDataType()) {
                 case InputSourceDataType::IQ:
                     HLog("Initializing RTL-2832 device %d for IQ data", opts->GetInputDevice());
@@ -188,11 +190,11 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 
 int BoomaInput::SetRfGain(int gain) {
 
-    if( gain > 30 || gain < 1 ) {
+    if( gain > 10 || gain < 1 ) {
         return _rfGain->GetGain();
     } else {
-        _rfGain->SetGain(gain);
+        _rfGain->SetGain(gain * _preGain);
     }
 
-    return _rfGain->GetGain();
+    return _rfGain->GetGain() / _preGain;
 }
