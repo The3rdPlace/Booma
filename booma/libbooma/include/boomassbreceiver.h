@@ -18,16 +18,17 @@ private:
 
     HProbe<int16_t>* _iqMultiplierProbe;
     HProbe<int16_t>* _iqFirFilterProbe;
-    HProbe<int16_t>* _iq2IConverterProbe;
     HProbe<int16_t>* _translateByFourProbe;
     HProbe<int16_t>* _lowpassFilterProbe;
+    HProbe<int16_t>* _iqAdderProbe;
 
     // Preprocessing
     HIqMultiplier<int16_t>* _iqMultiplier;
     HIqFirFilter<int16_t>* _iqFirFilter;
-    HIq2IConverter<int16_t>* _iq2IConverter;
     HTranslateByFour<int16_t>* _translateByFour;
     HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpassFilter;
+    HIqAddOrSubtractConverter<int16_t>* _iqAdder;
+    HCollector<int16_t>* _collector;
 
     // Receiver
     // ...(empty)...

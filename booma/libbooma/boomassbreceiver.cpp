@@ -5,12 +5,13 @@ BoomaSsbReceiver::BoomaSsbReceiver(ConfigOptions* opts, int initialFrequency):
         _enableProbes(opts->GetEnableProbes()),
         _iqMultiplier(nullptr),
         _iqFirFilter(nullptr),
-        _iq2IConverter(nullptr),
+        _iqAdder(nullptr),
+        _collector(nullptr),
         _translateByFour(nullptr),
         _lowpassFilter(nullptr),
         _iqMultiplierProbe(nullptr),
         _iqFirFilterProbe(nullptr),
-        _iq2IConverterProbe(nullptr),
+        _iqAdderProbe(nullptr),
         _translateByFourProbe(nullptr),
         _lowpassFilterProbe(nullptr) {}
 
@@ -30,13 +31,18 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
     _iqFirFilterProbe = new HProbe<int16_t>("ssbreceiver_02_iqfirfilter", _enableProbes);
     _iqFirFilter = new HIqFirFilter<int16_t>(_iqMultiplier->Consumer(), HBandpassKaiserBessel<int16_t>(12000, 15000, GetOutputSamplerate(), 15, 50).Calculate(), 15, BLOCKSIZE, _iqFirFilterProbe);
 
-    // Get the I branch ==> convert to realvalued samples
-    _iq2IConverterProbe = new HProbe<int16_t>("ssbreceiver_03_iq2iconverter", _enableProbes);
-    _iq2IConverter = new HIq2IConverter<int16_t>(_iqFirFilter->Consumer(), BLOCKSIZE, _iq2IConverterProbe);
+    // Demodulate usb or lsb by use of the Weaver or "3rd." method.
+    // Todo: fixed on USB for now. Handle switch between LSB and USB
+    _iqAdderProbe = new HProbe<int16_t>("ssbreceiver_03_iqadder", _enableProbes);
+    _iqAdder = new HIqAddOrSubtractConverter<int16_t>(_iqFirFilter->Consumer(), false, BLOCKSIZE, _iqAdderProbe);
+
+    // The iq-adder returns half the amount of incomming samples which equals BLOCKSIZE/2
+    // Get back to the global BLOCKSIZE by collecting two blocks before writing further downstream
+    _collector = new HCollector<int16_t>(_iqAdder->Consumer(), BLOCKSIZE / 2, BLOCKSIZE);
 
     // Get back to baseband by multiplying with fs/4
     _translateByFourProbe = new HProbe<int16_t>("ssbreceiver_04_translatebyfour", _enableProbes);
-    _translateByFour = new HTranslateByFour<int16_t>(_iq2IConverter->Consumer(), BLOCKSIZE, true, _translateByFourProbe);
+    _translateByFour = new HTranslateByFour<int16_t>(_collector->Consumer(), BLOCKSIZE, true, _translateByFourProbe);
 
     // And finally, filter out the high copy of the spectrum that is created by the translation
     _lowpassFilterProbe = new HProbe<int16_t>("ssbreceiver_05_lowpassfilter", _enableProbes);
@@ -62,13 +68,14 @@ BoomaSsbReceiver::~BoomaSsbReceiver() {
 
     SAFE_DELETE(_iqMultiplierProbe);
     SAFE_DELETE(_iqFirFilterProbe);
-    SAFE_DELETE(_iq2IConverterProbe);
+    SAFE_DELETE(_iqAdderProbe);
     SAFE_DELETE(_translateByFourProbe);
     SAFE_DELETE(_lowpassFilterProbe);
 
     SAFE_DELETE(_iqMultiplier);
     SAFE_DELETE(_iqFirFilter);
-    SAFE_DELETE(_iq2IConverter);
+    SAFE_DELETE(_iqAdder);
+    SAFE_DELETE(_collector);
     SAFE_DELETE(_translateByFour);
     SAFE_DELETE(_lowpassFilter);
 }
