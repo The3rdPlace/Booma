@@ -21,6 +21,7 @@ public:
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
         HGain<int16_t>* _rfGain;
+        HIqTranslateByFour<int16_t>* _ifshift;
 
         int _virtualFrequency;
         int _hardwareFrequency;
@@ -45,7 +46,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _rfGain->Consumer();
+            return _ifshift->Consumer();
         }
 
         void Run(int blocks = 0);

@@ -1,7 +1,7 @@
 #include "boomaamreceiver.h"
 
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
-        BoomaReceiver(opts, initialFrequency, true, 3000),
+        BoomaReceiver(opts, initialFrequency, 3000, true),
         _enableProbes(opts->GetEnableProbes()),
         _absConverter(nullptr),
         _collector(nullptr),
@@ -37,6 +37,7 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
 HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver postprocessing chain");
 
+    //return _audioHighpass->Consumer();
     return previous;
 }
 
@@ -54,12 +55,6 @@ bool BoomaAmReceiver::SetFrequency(int frequency) {
     // This receiver only operates from 0 to samplerate/2.
     if( frequency >= GetOutputSamplerate() / 2  ) {
         HError("Unsupported frequency %ld, must be less than %d", frequency, GetOutputSamplerate() / 2);
-        return false;
-    }
-
-    // This receiver only operates from 0 - 10KHz
-    if( frequency >= 10000 || frequency <= 0 ) {
-        HError("Unsupported frequency %ld, must be greater than  %d and less than %d", frequency, 0, 10000);
         return false;
     }
 

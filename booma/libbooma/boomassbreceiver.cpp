@@ -1,7 +1,7 @@
 #include "boomassbreceiver.h"
 
 BoomaSsbReceiver::BoomaSsbReceiver(ConfigOptions* opts, int initialFrequency):
-        BoomaReceiver(opts, initialFrequency, true, 3000),
+        BoomaReceiver(opts, initialFrequency, 3000, true),
         _enableProbes(opts->GetEnableProbes()),
         _iqMultiplier(nullptr),
         _iqFirFilter(nullptr),
@@ -25,7 +25,7 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
     // Move the center frequency up to 12KHz, but subtract 1.7KHz to adjust for USB modulation
     // Todo: switch between LSB and USB
     _iqMultiplierProbe = new HProbe<int16_t>("ssbreceiver_01_iqmultiplier", _enableProbes);
-    _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 12000 + 1700, 10, BLOCKSIZE, _iqMultiplierProbe);
+    _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 12000 + 850, 10, BLOCKSIZE, _iqMultiplierProbe);
 
     // Remove (formerly) negative frequencies by passband filtering
     _iqFirFilterProbe = new HProbe<int16_t>("ssbreceiver_02_iqfirfilter", _enableProbes);

@@ -1,13 +1,15 @@
 #include "boomainput.h"
 
 BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
-    _streamProcessor(NULL),
-    _networkProcessor(NULL),
-    _inputReader(NULL),
-    _rfWriter(NULL),
-    _rfSplitter(NULL),
-    _rfBreaker(NULL),
-    _rfBuffer(NULL),
+    _streamProcessor(nullptr),
+    _networkProcessor(nullptr),
+    _inputReader(nullptr),
+    _rfWriter(nullptr),
+    _rfSplitter(nullptr),
+    _rfBreaker(nullptr),
+    _rfBuffer(nullptr),
+    _rfGain(nullptr),
+    _ifshift(nullptr),
     _preGain(1) {
 
     // Set default frequencies
@@ -64,22 +66,30 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     HLog("Setting up RF gain");
     _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain() * _preGain, BLOCKSIZE);
 
+    // IQ data is captured with the device center frequency set FS/4 below the physical center frequency
+    // to be received. This is to combat the LO leak that is found in most RTL-SDR devices.
+    //
+    // This operation will shift the physical frequency down to 0 (zero) so that each sideband
+    // is located above and below zero in the spectrum handled by an IQ-aware receiver.
+    //
+    // Shifting has no meaning for audiodata, which is always captured at the output samplerate
+    if( opts->GetInputSourceDataType() == IQ ) {
+        _ifshift = new HIqTranslateByFour<int16_t>(_rfGain->Consumer(), BLOCKSIZE, true);
+    }
 }
 
 BoomaInput::~BoomaInput() {
 
-    if( _networkProcessor != NULL ) {
-        delete _networkProcessor;
-    }
-    if( _streamProcessor != NULL ) {
-        delete _streamProcessor;
-    }
+    SAFE_DELETE(_networkProcessor);
+    SAFE_DELETE(_streamProcessor);
 
-    delete _inputReader;
-    delete _rfWriter;
-    delete _rfSplitter;
-    delete _rfBreaker;
-    delete _rfBuffer;
+    SAFE_DELETE(_inputReader);
+    SAFE_DELETE(_rfWriter);
+    SAFE_DELETE(_rfSplitter);
+    SAFE_DELETE(_rfBreaker);
+    SAFE_DELETE(_rfBuffer);
+    SAFE_DELETE(_rfGain);
+    SAFE_DELETE(_ifshift);
 }
 
 bool BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -158,8 +168,8 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
 
     switch( opts->GetInputSourceType() ) {
         case RTLSDR:
-            _hardwareFrequency = frequency;
-            _ifFrequency = 000000;
+            _hardwareFrequency = frequency - (1152000 / 4);
+            _ifFrequency = 0;
             break;
         default:
             _hardwareFrequency = frequency;
