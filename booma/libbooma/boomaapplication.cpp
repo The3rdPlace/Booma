@@ -23,7 +23,9 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
     _opts = new ConfigOptions(appName, appVersion, argc, argv);
 
     // Initialize receiver
-    InitializeReceiver();
+    if( !InitializeReceiver() ) {
+        throw new BoomaReceiverException("Failed to create receiver, check the log");
+    }
 }
 
 BoomaApplication::~BoomaApplication() {

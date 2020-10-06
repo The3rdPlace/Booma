@@ -9,7 +9,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfBreaker(nullptr),
     _rfBuffer(nullptr),
     _rfGain(nullptr),
-    _ifshift(nullptr),
+    _rfGainProbe(nullptr),
+    _ifMultiplier(nullptr),
+    _ifMultiplierProbe(nullptr),
     _preGain(1) {
 
     // Set default frequencies
@@ -62,19 +64,25 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
 
+    // Add probe on input since it may be interesting what the raw input looks like
+    _passthroughProbe = new HProbe<int16_t>("input_00_input", opts->GetEnableProbes());
+    _passthrough = new HPassThrough<int16_t>(_rfSplitter->Consumer(), BLOCKSIZE, _passthroughProbe);
+
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain() * _preGain, BLOCKSIZE);
+    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
+    _rfGain = new HGain<int16_t>(_passthrough->Consumer(), opts->GetRfGain() * _preGain, BLOCKSIZE, _rfGainProbe);
 
-    // IQ data is captured with the device center frequency set FS/4 below the physical center frequency
-    // to be received. This is to combat the LO leak that is found in most RTL-SDR devices.
-    //
-    // This operation will shift the physical frequency down to 0 (zero) so that each sideband
-    // is located above and below zero in the spectrum handled by an IQ-aware receiver.
-    //
-    // Shifting has no meaning for audiodata, which is always captured at the output samplerate
-    if( opts->GetInputSourceDataType() == IQ ) {
-        _ifshift = new HIqTranslateByFour<int16_t>(_rfGain->Consumer(), BLOCKSIZE, true);
+    // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
+    // tuned frequency to avoid LO leaks
+    if( opts->GetInputSourceType() == InputSourceType::RTLSDR ) {
+
+        // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
+        // physical frequency that we want to capture. This avoids the LO injections that can be found many places
+        // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
+        HLog("Setting up IF multiplier for RTL-SDR device");
+        _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset(), 10, BLOCKSIZE, _ifMultiplierProbe);
     }
 }
 
@@ -88,8 +96,14 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfSplitter);
     SAFE_DELETE(_rfBreaker);
     SAFE_DELETE(_rfBuffer);
+
+    SAFE_DELETE(_passthrough);
     SAFE_DELETE(_rfGain);
-    SAFE_DELETE(_ifshift);
+    SAFE_DELETE(_ifMultiplier);
+
+    SAFE_DELETE(_passthroughProbe);
+    SAFE_DELETE(_rfGainProbe);
+    SAFE_DELETE(_ifMultiplierProbe);
 }
 
 bool BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -119,23 +133,27 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
             _inputReader = new HNullReader<int16_t>();
             break;
         case RTLSDR:
-            _preGain = 2;
             switch(opts->GetInputSourceDataType()) {
                 case InputSourceDataType::IQ:
                     HLog("Initializing RTL-2832 device %d for IQ data", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ, 0, _hardwareFrequency, BLOCKSIZE);
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _preGain = 1;
                     break;
                 case InputSourceDataType::I:
                     HLog("Initializing RTL-2832 device %d for I(nphase) data", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I, 0, _hardwareFrequency, BLOCKSIZE);
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _preGain = 1;
                     break;
                 case InputSourceDataType::Q:
                     HLog("Initializing RTL-2832 device %d for Q(uadrature) data", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q, 0, _hardwareFrequency, BLOCKSIZE);
+                    HLog("Offset %d Correction %d hardware %d", opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), _hardwareFrequency);
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _preGain = 1;
                     break;
                 case InputSourceDataType::REAL:
                     HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum)", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL, 0, _hardwareFrequency, BLOCKSIZE);
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _preGain = 1 ;
                     break;
                 default:
                     HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
@@ -164,11 +182,11 @@ void BoomaInput::Run(int blocks) {
 
 bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
-    HLog("Input._virtualFrequency = %d", _virtualFrequency);
+    HLog("Input virtual frequency = %d", _virtualFrequency);
 
     switch( opts->GetInputSourceType() ) {
         case RTLSDR:
-            _hardwareFrequency = frequency - (1152000 / 4);
+            _hardwareFrequency = frequency - opts->GetRtlsdrOffset();
             _ifFrequency = 0;
             break;
         default:
@@ -176,8 +194,8 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
             _ifFrequency = frequency;
     }
 
-    HLog("Input._hardwareFrequency = %d", _hardwareFrequency);
-    HLog("Input._ifFrequency = %d", _ifFrequency);
+    HLog("Input hardware frequency = %d", _hardwareFrequency);
+    HLog("Input IF frequency = %d", _ifFrequency);
     return true;
 }
 
@@ -203,8 +221,7 @@ int BoomaInput::SetRfGain(int gain) {
     if( gain > 10 || gain < 1 ) {
         return _rfGain->GetGain();
     } else {
-        _rfGain->SetGain(gain * _preGain);
+        _rfGain->SetGain(gain);
+        return _rfGain->GetGain();
     }
-
-    return _rfGain->GetGain() / _preGain;
 }

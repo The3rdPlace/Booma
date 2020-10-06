@@ -60,6 +60,10 @@ class ConfigOptions {
         // Input device
         int _inputDevice = -1;
 
+        // RTL-SDR specific settings
+        int _rtlsdrCorrection = 0;
+        int _rtlsdrOffset = 10000;
+
         // Initial or last used frequency
         long int _frequency = 17200;
 
@@ -265,6 +269,14 @@ class ConfigOptions {
 
         bool GetDirectSampling() {
             return _directSampling;
+        }
+
+        int GetRtlsdrCorrection() {
+            return _rtlsdrCorrection;
+        }
+
+        int GetRtlsdrOffset() {
+            return _rtlsdrOffset;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

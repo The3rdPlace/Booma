@@ -20,8 +20,13 @@ public:
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
+        HPassThrough<int16_t>* _passthrough;
         HGain<int16_t>* _rfGain;
-        HIqTranslateByFour<int16_t>* _ifshift;
+        HIqMultiplier<int16_t>* _ifMultiplier;
+
+        HProbe<int16_t>* _passthroughProbe;
+        HProbe<int16_t>* _rfGainProbe;
+        HProbe<int16_t>* _ifMultiplierProbe;
 
         int _virtualFrequency;
         int _hardwareFrequency;
@@ -46,7 +51,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _ifshift->Consumer();
+            return _ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer();
         }
 
         void Run(int blocks = 0);

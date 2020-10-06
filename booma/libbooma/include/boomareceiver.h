@@ -32,6 +32,13 @@ class BoomaReceiver {
         HFirFilter<int16_t>* _firFilter;
         HDecimator<int16_t>* _decimator;
 
+        HProbe<int16_t>* _iqFirDecimatorProbe;
+        HProbe<int16_t>* _iqFirFilterProbe;
+        HProbe<int16_t>* _iqDecimatorProbe;
+        HProbe<int16_t>* _firDecimatorProbe;
+        HProbe<int16_t>* _firFilterProbe;
+        HProbe<int16_t>* _decimatorProbe;
+
         int _frequency;
         int _inputSamplerate;
         int _outputSamplerate;
@@ -128,6 +135,12 @@ class BoomaReceiver {
             _firDecimator(nullptr),
             _firFilter(nullptr),
             _decimator(nullptr),
+            _iqFirDecimatorProbe(nullptr),
+            _iqFirFilterProbe(nullptr),
+            _iqDecimatorProbe(nullptr),
+            _firDecimatorProbe(nullptr),
+            _firFilterProbe(nullptr),
+            _decimatorProbe(nullptr),
             _decimate(decimate) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
@@ -146,6 +159,13 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimator);
             SAFE_DELETE(_firFilter);
             SAFE_DELETE(_decimator);
+
+            SAFE_DELETE(_iqFirDecimatorProbe);
+            SAFE_DELETE(_iqFirFilterProbe);
+            SAFE_DELETE(_iqDecimatorProbe);
+            SAFE_DELETE(_firDecimatorProbe);
+            SAFE_DELETE(_firFilterProbe);
+            SAFE_DELETE(_decimatorProbe);
         }
 
         std::vector<Option>* GetOptions() {
@@ -200,17 +220,17 @@ class BoomaReceiver {
                 SetOption(opts, (*it).first, (*it).second);
             }
 
+            // Add a splitter so that we can take the full spectrum out before running through the receiver filters
+            _spectrum = new HSplitter<int16_t>(input->GetLastWriterConsumer());
+
             // Apply decimation - if requested
-            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(opts, input->GetLastWriterConsumer());
+            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(opts, _spectrum);
 
             // Add preprocessing part of the receiver
             _preProcess = PreProcess(opts, decimatedConsumer);
 
-            // Add a splitter so that we can take the full spectrum out before running through the receiver filters
-            _spectrum = new HSplitter<int16_t>(_preProcess);
-
             // Add the receiver chain
-            _receive = Receive(opts, _spectrum->Consumer());
+            _receive = Receive(opts, _preProcess);
 
             // Add postprocessing part of the receiver
             _postProcess = PostProcess(opts, _receive);

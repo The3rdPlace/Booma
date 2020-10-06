@@ -1,7 +1,7 @@
 #include "boomaamreceiver.h"
 
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
-        BoomaReceiver(opts, initialFrequency, 3000, true),
+        BoomaReceiver(opts, initialFrequency, 5000, true),
         _enableProbes(opts->GetEnableProbes()),
         _absConverter(nullptr),
         _collector(nullptr),
@@ -21,13 +21,13 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
     // frequency equal to the received center frequency, so demodulate AM from an IQ signal by
     // taking the absolute amplitude
     HLog("Demodulating AM by way of absolute value of IQ signal at time 't'");
-    _absConverterProbe = new HProbe<int16_t>("amreceiver_04_abs_converter", _enableProbes);
+    _absConverterProbe = new HProbe<int16_t>("amreceiver_01_abs_converter", _enableProbes);
     _absConverter = new HIq2AbsConverter<int16_t>(previous, BLOCKSIZE, _absConverterProbe);
 
     // Since the absolute-converter above returns only half the samples (takes a complex sample, returns
     // the magniture) we need to collect two blocks to get back to the original block size
     HLog("Collecting two blocks to reconstruct blocksize %d", BLOCKSIZE);
-    _collectorProbe = new HProbe<int16_t>("amreceiver_05_collector", _enableProbes);
+    _collectorProbe = new HProbe<int16_t>("amreceiver_02_collector", _enableProbes);
     _collector = new HCollector<int16_t>(_absConverter->Consumer(), BLOCKSIZE / 2, BLOCKSIZE, _collectorProbe);
 
     // End of receiving
@@ -37,7 +37,6 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
 HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver postprocessing chain");
 
-    //return _audioHighpass->Consumer();
     return previous;
 }
 

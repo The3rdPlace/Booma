@@ -29,6 +29,8 @@ private:
     bool IsDataTypeSupported(InputSourceDataType datatype) {
         switch( datatype ) {
             case InputSourceDataType::IQ: return true;
+            case InputSourceDataType::I: return true;
+            case InputSourceDataType::Q: return true;
             default: return false;
         }
     }

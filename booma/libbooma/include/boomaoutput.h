@@ -9,10 +9,12 @@ class BoomaOutput {
 
     private:
 
-        //HGain<int16_t>* _outputWriter;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
-        HAgc<int16_t>* _outputWriter;
+        HAgc<int16_t>* _outputAgc;
+        HGain<int16_t>* _outputVolume;
+        HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _loFilter1;
+        HBiQuadFilter<HNotchBiQuad<int16_t>, int16_t>* _loFilter2;
 
         // Splitting audio and RF
         HWriter<int16_t>* _audioWriter;
@@ -42,6 +44,13 @@ class BoomaOutput {
         HRectangularWindow<int16_t>* _audioFftWindow;
         double* _audioSpectrum;
         int _audioFftSize;
+
+        // Probes
+        HProbe<int16_t>* _outputAgcProbe;
+        HProbe<int16_t>* _outputVolumeProbe;
+        HProbe<int16_t>* _loFilterProbe1;
+        HProbe<int16_t>* _loFilterProbe2;
+        HProbe<int16_t>* _loFilterProbe;
 
     public:
 

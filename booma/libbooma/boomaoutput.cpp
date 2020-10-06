@@ -1,26 +1,33 @@
 #include "boomaoutput.h"
 
 BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
-     _outputWriter(NULL),
-     _soundcardWriter(NULL),
-     _nullWriter(NULL),
-     _audioWriter(NULL),
-     _audioSplitter(NULL),
-     _audioBreaker(NULL),
-     _audioBuffer(NULL),
-     _signalLevel(NULL),
-     _signalLevelWriter(NULL),
-     _rfFft(NULL),
-     _rfFftWindow(NULL),
-     _rfFftWriter(NULL),
-     _rfSpectrum(NULL),
-     _rfFftSize(256),
-     _audioFft(NULL),
-     _audioFftWindow(NULL),
-     _audioFftWriter(NULL),
-     _audioSpectrum(NULL),
-     _audioFftSize(256)
-{
+        _outputAgc(nullptr),
+        _outputVolume(nullptr),
+        _loFilter1(nullptr),
+        _loFilter2(nullptr),
+        _soundcardWriter(nullptr),
+        _nullWriter(nullptr),
+        _audioWriter(nullptr),
+        _audioSplitter(nullptr),
+        _audioBreaker(nullptr),
+        _audioBuffer(nullptr),
+        _signalLevel(nullptr),
+        _signalLevelWriter(nullptr),
+        _rfFft(nullptr),
+        _rfFftWindow(nullptr),
+        _rfFftWriter(nullptr),
+        _rfSpectrum(nullptr),
+        _rfFftSize(256),
+        _audioFft(nullptr),
+        _audioFftWindow(nullptr),
+        _audioFftWriter(nullptr),
+        _audioSpectrum(nullptr),
+        _audioFftSize(256),
+        _outputAgcProbe(nullptr),
+        _outputVolumeProbe(nullptr),
+        _loFilterProbe1(nullptr),
+        _loFilterProbe2(nullptr),
+        _loFilterProbe(nullptr) {
 
     // Setup a splitter to split off audio dump and signal level metering
     HLog("Setting up output audio splitter");
@@ -47,20 +54,27 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _audioSpectrum = new double[_audioFftSize / 2];
     memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
 
-    // Add combined AGC and volume control
+    // Add AGC and volume control
     HLog("- AGC + Volume");
-    _outputWriter = new HAgc<int16_t>(_audioSplitter->Consumer(), 1000 * opts->GetVolume() / 10, 1500 * opts->GetVolume() / 10, 3, 3, BLOCKSIZE);
+    _outputAgcProbe = new HProbe<int16_t>("output_01_output_agc", opts->GetEnableProbes());
+    _outputAgc = new HAgc<int16_t>(_audioSplitter->Consumer(), 150, 200, 10, 5, BLOCKSIZE, _outputAgcProbe);
+    _outputVolumeProbe = new HProbe<int16_t>("output_02_output_volume", opts->GetEnableProbes());
+    _outputVolume = new HGain<int16_t>(_outputAgc->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
+    _loFilterProbe1 = new HProbe<int16_t>("output_03_lo_filter_1", opts->GetEnableProbes());
+    _loFilter1 = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_outputVolume->Consumer(), 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _loFilterProbe1);
+    _loFilterProbe2 = new HProbe<int16_t>("output_04_lo_filter_2", opts->GetEnableProbes());
+    _loFilter2 = new HBiQuadFilter<HNotchBiQuad<int16_t>, int16_t>(_loFilter1->Consumer(), opts->GetRtlsdrOffset(), opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _loFilterProbe2);
 
     // Select output device
     if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
         _soundcardWriter = NULL;
-        _nullWriter = new HNullWriter<int16_t>(_outputWriter->Consumer());
+        _nullWriter = new HNullWriter<int16_t>(_loFilter2->Consumer());
     }
     else
     {
         HLog("Initializing audio output device %d", opts->GetOutputAudioDevice());
-        _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _outputWriter->Consumer());
+        _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _loFilter2->Consumer());
         _nullWriter = NULL;
     }
 
@@ -74,31 +88,34 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
 BoomaOutput::~BoomaOutput() {
 
-    delete _outputWriter;
+    SAFE_DELETE(_outputAgc);
+    SAFE_DELETE(_outputVolume);
+    SAFE_DELETE(_loFilter1);
+    SAFE_DELETE(_loFilter2);
 
-    if( _soundcardWriter != NULL ) {
-        delete _soundcardWriter;
-        _soundcardWriter = NULL;
-    }
-    if( _nullWriter != NULL ) {
-        delete _nullWriter;
-        _nullWriter = NULL;
-    }
+    SAFE_DELETE(_soundcardWriter);
+    SAFE_DELETE(_nullWriter);
 
-    delete _audioWriter;
-    delete _audioSplitter;
-    delete _audioBreaker;
-    delete _audioBuffer;
-    delete _signalLevel;
-    delete _signalLevelWriter;
-    delete _rfFft;
-    delete _rfFftWriter;
-    delete _rfFftWindow;
-    delete _rfSpectrum;
-    delete _audioFft;
-    delete _audioFftWriter;
-    delete _audioFftWindow;
-    delete _audioSpectrum;
+    SAFE_DELETE(_audioWriter);
+    SAFE_DELETE(_audioSplitter);
+    SAFE_DELETE(_audioBreaker);
+    SAFE_DELETE(_audioBuffer);
+    SAFE_DELETE(_signalLevel);
+    SAFE_DELETE(_signalLevelWriter);
+    SAFE_DELETE(_rfFft);
+    SAFE_DELETE(_rfFftWriter);
+    SAFE_DELETE(_rfFftWindow);
+    SAFE_DELETE(_rfSpectrum);
+    SAFE_DELETE(_audioFft);
+    SAFE_DELETE(_audioFftWriter);
+    SAFE_DELETE(_audioFftWindow);
+    SAFE_DELETE(_audioSpectrum);
+
+    SAFE_DELETE(_outputAgcProbe);
+    SAFE_DELETE(_outputVolumeProbe);
+    SAFE_DELETE(_loFilterProbe1);
+    SAFE_DELETE(_loFilterProbe2);
+    SAFE_DELETE(_loFilterProbe);
 }
 
 int BoomaOutput::SignalLevelCallback(HSignalLevelResult* result, size_t length) {
@@ -157,10 +174,10 @@ bool BoomaOutput::SetDumpAudio(bool enabled) {
 }
 
 int BoomaOutput::SetVolume(int volume) {
-    if( volume >= 100 || volume <= 0 ) {
+    if( volume > 100 || volume < 0 ) {
         return false;
     }
-    _outputWriter->SetBounds(2000 * volume / 10, 2500 * volume / 10);
-    return volume;
+    _outputVolume->SetGain(volume);
+    return _outputVolume->GetGain();
 }
 

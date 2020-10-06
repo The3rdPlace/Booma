@@ -24,7 +24,7 @@ void ConfigOptions::PrintUsage() {
 
     std::cout << tr("==[Input, data type and samplerate(s)]==") << std::endl;
     std::cout << tr("Use audio input source                                 -i AUDIO devicenumber") << std::endl;
-    std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)     -i RTLSDR devicenumber [directsampling]]") << std::endl;
+    std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)     -i RTLSDR devicenumber") << std::endl;
     std::cout << tr("Use network input                                      -i NETWORK address dataport commandport") << std::endl;
     std::cout << tr("Set input datatype (required for NETWORK input)        -it REAl|IQ|I|Q") << std::endl;
     std::cout << tr("Device (input) samplerate (default 48KHz)              -dr rate") << std::endl;
@@ -54,6 +54,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Options]==") << std::endl;
     std::cout << tr("Wait untill scheduled time                             -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)      -n reserved-block") << std::endl;
+    std::cout << tr("RTL-SDR frequency correction                           -rtlc correction") << std::endl;
+    std::cout << tr("RTL-SDR tuning offset                                  -rtlo offset") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
@@ -230,15 +232,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input RTL-SDR device %d", _inputDevice);
-
-                // Check for explicit reader mode for RTL-2832 device
-                if( i < argc - 3 && argv[i + 3][0] != '-' ) {
-                    if( strcmp(argv[i + 3], "directsampling") == 0 ) {
-                        _directSampling = true;
-                        HLog("RTL-2832 uses direct sampling");
-                        i++;
-                    }
-                }
             }
             else if( strcmp(argv[i + 1], "NETWORK") == 0 ) {
                 _inputDevice = -1;
@@ -362,7 +355,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Samplerate
+        // Samplerates
         if( strcmp(argv[i], "-dr") == 0 && i < argc - 1) {
             _inputSampleRate = atoi(argv[i + 1]);
             HLog("Input samplerate set to %d", _inputSampleRate);
@@ -392,6 +385,20 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 exit(1);
             }
             _receiverOptions[s.substr(0, pos)] = s.substr(pos + 1);
+            i++;
+            continue;
+        }
+
+        // RTL-SDR options
+        if( strcmp(argv[i], "-rtlc") == 0 && i < argc - 1) {
+            _rtlsdrCorrection = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency correction set to %d", _rtlsdrCorrection);
+            i++;
+            continue;
+        }
+        if( strcmp(argv[i], "-rtlo") == 0 && i < argc - 1) {
+            _rtlsdrOffset = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency offset set to %d", _rtlsdrOffset);
             i++;
             continue;
         }
