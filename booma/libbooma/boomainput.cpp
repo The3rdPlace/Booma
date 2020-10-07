@@ -75,14 +75,14 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
-    if( opts->GetInputSourceType() == InputSourceType::RTLSDR ) {
+    if( opts->GetInputSourceType() == InputSourceType::RTLSDR && opts->GetRtlsdrOffset() != 0 ) {
 
         // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device");
         _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset(), 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 10, BLOCKSIZE, _ifMultiplierProbe);
     }
 }
 

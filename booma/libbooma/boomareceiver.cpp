@@ -75,4 +75,36 @@ HWriterConsumer<int16_t>* BoomaReceiver::Decimate(ConfigOptions* opts, HWriterCo
     }
 }
 
+int BoomaReceiver::RfFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
+    return length;
+}
+
+int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
+    return length;
+}
+
+int BoomaReceiver::GetRfSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
+    return _rfFftSize / 2;
+}
+
+int BoomaReceiver::GetRfFftSize() {
+    return _rfFftSize / 2;
+}
+
+int BoomaReceiver::GetAudioFftSize() {
+    return _audioFftSize / 2;
+}
+
+int BoomaReceiver::GetAudioSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioFftSize / 2);
+    return _audioFftSize / 2;
+}
+
 #endif

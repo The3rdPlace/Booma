@@ -13,15 +13,28 @@ class BoomaReceiver {
 
     private:
 
+        // Major receiver hooks
         HWriterConsumer<int16_t>* _preProcess;
         HWriterConsumer<int16_t>* _receive;
         HWriterConsumer<int16_t>* _postProcess;
         HSplitter<int16_t>* _spectrum;
         HSplitter<int16_t>* _decoder;
 
-        std::vector<Option> _options;
+        // RF spectrum reporting
+        HFftOutput<int16_t>* _rfFft;
+        HCustomWriter<HFftResults>* _rfFftWriter;
+        int RfFftCallback(HFftResults* result, size_t length);
+        HRectangularWindow<int16_t>* _rfFftWindow;
+        double* _rfSpectrum;
+        int _rfFftSize;
 
-        int _cutOff;
+        // Audio spectrum reporting
+        HFftOutput<int16_t>* _audioFft;
+        HCustomWriter<HFftResults>* _audioFftWriter;
+        int AudioFftCallback(HFftResults* result, size_t length);
+        HRectangularWindow<int16_t>* _audioFftWindow;
+        double* _audioSpectrum;
+        int _audioFftSize;
 
         // Decimation
         bool _decimate;
@@ -32,6 +45,7 @@ class BoomaReceiver {
         HFirFilter<int16_t>* _firFilter;
         HDecimator<int16_t>* _decimator;
 
+        // Probes
         HProbe<int16_t>* _iqFirDecimatorProbe;
         HProbe<int16_t>* _iqFirFilterProbe;
         HProbe<int16_t>* _iqDecimatorProbe;
@@ -39,6 +53,9 @@ class BoomaReceiver {
         HProbe<int16_t>* _firFilterProbe;
         HProbe<int16_t>* _decimatorProbe;
 
+        std::vector<Option> _options;
+
+        int _cutOff;
         int _frequency;
         int _inputSamplerate;
         int _outputSamplerate;
@@ -141,7 +158,17 @@ class BoomaReceiver {
             _firDecimatorProbe(nullptr),
             _firFilterProbe(nullptr),
             _decimatorProbe(nullptr),
-            _decimate(decimate) {
+            _decimate(decimate),
+            _rfFft(nullptr),
+            _rfFftWindow(nullptr),
+            _rfFftWriter(nullptr),
+            _rfSpectrum(nullptr),
+            _rfFftSize(256),
+            _audioFft(nullptr),
+            _audioFftWindow(nullptr),
+            _audioFftWriter(nullptr),
+            _audioSpectrum(nullptr),
+            _audioFftSize(256) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
             _inputSamplerate = opts->GetInputSampleRate();
@@ -166,6 +193,16 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimatorProbe);
             SAFE_DELETE(_firFilterProbe);
             SAFE_DELETE(_decimatorProbe);
+
+            SAFE_DELETE(_rfFft);
+            SAFE_DELETE(_rfFftWriter);
+            SAFE_DELETE(_rfFftWindow);
+            SAFE_DELETE(_rfSpectrum);
+
+            SAFE_DELETE(_audioFft);
+            SAFE_DELETE(_audioFftWriter);
+            SAFE_DELETE(_audioFftWindow);
+            SAFE_DELETE(_audioSpectrum);
         }
 
         std::vector<Option>* GetOptions() {
@@ -223,6 +260,13 @@ class BoomaReceiver {
             // Add a splitter so that we can take the full spectrum out before running through the receiver filters
             _spectrum = new HSplitter<int16_t>(input->GetLastWriterConsumer());
 
+            // Add RF spectrum calculation
+            _rfFftWindow = new HRectangularWindow<int16_t>();
+            _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow);
+            _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
+            _rfSpectrum = new double[_rfFftSize / 2];
+            memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
+
             // Apply decimation - if requested
             HWriterConsumer<int16_t>* decimatedConsumer = Decimate(opts, _spectrum);
 
@@ -240,6 +284,13 @@ class BoomaReceiver {
             if( decoder != NULL ) {
                 _decoder->SetWriter(decoder->Writer());
             }
+
+            // Add audio spectrum calculation
+            _audioFftWindow = new HRectangularWindow<int16_t>();
+            _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow);
+            _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::AudioFftCallback, _audioFft->Consumer());
+            _audioSpectrum = new double[_audioFftSize / 2];
+            memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
 
             // Receiver has been build and all components is initialized (or so they should be!)
             _hasBuilded = true;
@@ -269,6 +320,11 @@ class BoomaReceiver {
         HWriterConsumer<int16_t>* GetSpectrumConsumer() {
             return _spectrum->Consumer();
         }
+
+        int GetRfSpectrum(double* spectrum);
+        int GetRfFftSize();
+        int GetAudioFftSize();
+        int GetAudioSpectrum(double* spectrum);
 };
 
 #endif

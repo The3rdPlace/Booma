@@ -195,19 +195,19 @@ double BoomaApplication::GetSignalSum() {
 }
 
 int BoomaApplication::GetRfFftSize() {
-    return _output->GetRfFftSize();
+    return _receiver->GetRfFftSize();
 }
 
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
-    return _output->GetRfSpectrum(spectrum);
+    return _receiver->GetRfSpectrum(spectrum);
 }
 
 int BoomaApplication::GetAudioFftSize() {
-    return _output->GetAudioFftSize();
+    return _receiver->GetAudioFftSize();
 }
 
 int BoomaApplication::GetAudioSpectrum(double* spectrum) {
-    return _output->GetAudioSpectrum(spectrum);
+    return _receiver->GetAudioSpectrum(spectrum);
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {

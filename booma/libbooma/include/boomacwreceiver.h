@@ -46,6 +46,8 @@ class BoomaCwReceiver : public BoomaReceiver {
             switch( datatype ) {
                 case InputSourceDataType::REAL: return true;
                 case InputSourceDataType::IQ: return true;
+                case InputSourceDataType::I: return true;
+                case InputSourceDataType::Q: return true;
                 default: return false;
             }
         }
