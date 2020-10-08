@@ -75,7 +75,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
-    if( opts->GetInputSourceType() == InputSourceType::RTLSDR && opts->GetRtlsdrOffset() != 0 ) {
+    if( opts->GetInputSourceType() == InputSourceType::RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
 
         // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places

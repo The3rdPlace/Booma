@@ -26,12 +26,12 @@ HWriterConsumer<int16_t>* BoomaReceiver::Decimate(ConfigOptions* opts, HWriterCo
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, _inputSamplerate, _inputSamplerate / firstFactor);
         _iqFirDecimatorProbe = new HProbe<int16_t>("receiver_01_iq_fir_decimator", opts->GetEnableProbes());
-        _iqFirDecimator = new HIqFirDecimator<int16_t>(previous, firstFactor, HLowpassKaiserBessel<int16_t>(_cutOff, _inputSamplerate, 51,50).Calculate(), 51, BLOCKSIZE, true, _iqFirDecimatorProbe);
+        _iqFirDecimator = new HIqFirDecimator<int16_t>(previous, firstFactor, HLowpassKaiserBessel<int16_t>(_cutOff, _inputSamplerate, 15,120).Calculate(), 15, BLOCKSIZE, true, _iqFirDecimatorProbe);
 
         // Extra Fir filter to remove signals outside of the passband
         HLog("Creating lowpass FIR filter");
         _iqFirFilterProbe = new HProbe<int16_t>("receiver_02_iq_fir_filter", opts->GetEnableProbes());
-        _iqFirFilter = new HIqFirFilter<int16_t>(_iqFirDecimator->Consumer(),HLowpassKaiserBessel<int16_t>(_cutOff, _inputSamplerate / firstFactor,51, 50).Calculate(), 51, BLOCKSIZE, _iqFirFilterProbe);
+        _iqFirFilter = new HIqFirFilter<int16_t>(_iqFirDecimator->Consumer(),HLowpassKaiserBessel<int16_t>(_cutOff, _inputSamplerate / firstFactor,25, 120).Calculate(), 25, BLOCKSIZE, _iqFirFilterProbe);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {

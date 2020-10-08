@@ -37,7 +37,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     // Add AGC and volume control
     HLog("- AGC + Volume");
     _outputAgcProbe = new HProbe<int16_t>("output_01_output_agc", opts->GetEnableProbes());
-    _outputAgc = new HAgc<int16_t>(_audioSplitter->Consumer(), 150, 250, 10, 5, BLOCKSIZE, _outputAgcProbe);
+    _outputAgc = new HAgc<int16_t>(_audioSplitter->Consumer(), 100, 200, 20, 3, BLOCKSIZE, _outputAgcProbe);
     _outputVolumeProbe = new HProbe<int16_t>("output_02_output_volume", opts->GetEnableProbes());
     _outputVolume = new HGain<int16_t>(_outputAgc->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
 

@@ -179,7 +179,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
 
         // Move the center frequency up to 6KHz which is the IF frequency
         _iqMultiplierProbe = new HProbe<int16_t>("cwreceiver_01_iqmultiplier", _enableProbes);
-        _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 6000, 1, BLOCKSIZE, _iqMultiplierProbe);
+        _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 6000, 10, BLOCKSIZE, _iqMultiplierProbe);
 
         // Get the I branch ==> convert to realvalued samples
         _iq2IConverterProbe = new HProbe<int16_t>("cwreceiver_02_iq2iconverter", _enableProbes);
@@ -210,7 +210,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::Receive(ConfigOptions* opts, HWriterC
     // 6000Hz - 5160Hz = 840Hz
     HLog("- Beat tone mixer");
     _beatToneMixerProbe = new HProbe<int16_t>("cwreceiver_05_beat_tone_mixer", _enableProbes);
-    _beatToneMixer = new HMultiplier<int16_t>(_ifFilter->Consumer(), opts->GetOutputSampleRate(), 6000 - GetOption("Beattone") - offset, 1, BLOCKSIZE, _beatToneMixerProbe);
+    _beatToneMixer = new HMultiplier<int16_t>(_ifFilter->Consumer(), opts->GetOutputSampleRate(), 6000 - GetOption("Beattone") - offset, 10, BLOCKSIZE, _beatToneMixerProbe);
 
     // Smoother bandpass filter (2 stacked biquads) to remove artifacts from the very narrow detector
     // filter above
