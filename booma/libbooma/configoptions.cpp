@@ -263,9 +263,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 exit(1);
             }
 
-            // If we have an input, we can not be the receiver for a remote receiver
-            _isRemoteHead = false;
-
             i += 2;
             continue;
         }
