@@ -136,23 +136,23 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
             switch(opts->GetInputSourceDataType()) {
                 case InputSourceDataType::IQ_INPUT_SOURCE_DATA_TYPE:
                     HLog("Initializing RTL-2832 device %d for IQ data", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     _preGain = 1;
                     break;
                 case InputSourceDataType::I_INPUT_SOURCE_DATA_TYPE:
                     HLog("Initializing RTL-2832 device %d for I(nphase) data", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     _preGain = 1;
                     break;
                 case InputSourceDataType::Q_INPUT_SOURCE_DATA_TYPE:
                     HLog("Initializing RTL-2832 device %d for Q(uadrature) data", opts->GetInputDevice());
                     HLog("Offset %d Correction %d hardware %d", opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), _hardwareFrequency);
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     _preGain = 1;
                     break;
                 case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE:
                     HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum)", opts->GetInputDevice());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     _preGain = 1 ;
                     break;
                 default:
