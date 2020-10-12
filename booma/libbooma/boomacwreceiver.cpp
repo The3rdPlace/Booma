@@ -144,7 +144,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
 
     // If we get real-valued data, then most likely the source is an audio device
     // or at least, the samplerate will be low and may contain hum
-    if( opts->GetInputSourceDataType() == REAL ) {
+    if(opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
 
         // Calculate mixer offsets due to if filter shifting
         int offset = GetIfOffset();
@@ -175,7 +175,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
     // We do not need to filter away other frequencies, that is handled by the receivers IF filter.
     // Also, since we are decimating IQ samples, there will be nothing outside +- 3KHz, so by
     // moving the center to 6KHz, we translate all negative frequencies to positive.
-    if( opts->GetInputSourceDataType() == IQ ) {
+    if(opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE ) {
 
         // Move the center frequency up to 6KHz which is the IF frequency
         _iqMultiplierProbe = new HProbe<int16_t>("cwreceiver_01_iqmultiplier", _enableProbes);

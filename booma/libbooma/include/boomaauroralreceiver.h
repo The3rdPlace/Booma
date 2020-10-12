@@ -27,7 +27,7 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
         bool IsDataTypeSupported(InputSourceDataType datatype) {
             switch( datatype ) {
-                case InputSourceDataType::REAL: return true;
+                case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE: return true;
                 default: return false;
             }
         }

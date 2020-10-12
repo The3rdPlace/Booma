@@ -193,7 +193,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-i") == 0 && i < argc - 2) {
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
                 _inputSourceType = AUDIO_DEVICE;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _inputDevice = atoi(argv[i + 2]);
                 _isRemoteHead = false;
                 HLog("Input audio device %d", _inputDevice);
@@ -201,27 +201,27 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             else if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
             }
             else if( strcmp(argv[i + 1], "PCM") == 0 ) {
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input file %s", _pcmFile.c_str());
             }
             else if( strcmp(argv[i + 1], "WAV") == 0 ) {
                 _inputSourceType = WAV_FILE;
                 _wavFile = argv[i + 2];
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input file %s", _wavFile.c_str());
             }
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
                 _inputSourceType = SILENCE;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 i -= 1;
                 HLog("input silence");
@@ -229,14 +229,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             else if( strcmp(argv[i + 1], "RTLSDR") == 0 ) {
                 _inputDevice = atoi(argv[i + 2]);
                 _inputSourceType = RTLSDR;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input RTL-SDR device %d", _inputDevice);
             }
             else if( strcmp(argv[i + 1], "NETWORK") == 0 ) {
                 _inputDevice = -1;
                 _inputSourceType = NETWORK;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL : _inputSourceDataType);
+                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _remoteServer = argv[i + 2];
                 _isRemoteHead = true;
 
@@ -273,19 +273,19 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Input data type (if different than the default)
         if( strcmp(argv[i], "-it") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "IQ") == 0 ) {
-                _inputSourceDataType = IQ;
+                _inputSourceDataType = IQ_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to IQ");
             }
             else if( strcmp(argv[i + 1], "I") == 0 ) {
-                _inputSourceDataType = I;
+                _inputSourceDataType = I_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to I");
             }
             else if( strcmp(argv[i + 1], "Q") == 0 ) {
-                _inputSourceDataType = Q;
+                _inputSourceDataType = Q_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to Q");
             }
             else if( strcmp(argv[i + 1], "REAL") == 0 ) {
-                _inputSourceDataType = REAL;
+                _inputSourceDataType = REAL_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to REAL");
             }
             else {

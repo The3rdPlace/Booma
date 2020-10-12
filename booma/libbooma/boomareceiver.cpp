@@ -21,7 +21,7 @@ HWriterConsumer<int16_t>* BoomaReceiver::Decimate(ConfigOptions* opts, HWriterCo
     int secondFactor = 3;
 
     // Decimation for IQ signals
-    if( opts->GetInputSourceDataType() == IQ || opts->GetInputSourceDataType() == I || opts->GetInputSourceDataType() == Q ) {
+    if(opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == I_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == Q_INPUT_SOURCE_DATA_TYPE ) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, _inputSamplerate, _inputSamplerate / firstFactor);
@@ -45,7 +45,7 @@ HWriterConsumer<int16_t>* BoomaReceiver::Decimate(ConfigOptions* opts, HWriterCo
     }
 
     // Decimation for REAL signals
-    else if( opts->GetInputSourceDataType() == REAL ) {
+    else if(opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, _inputSamplerate, _inputSamplerate / firstFactor);

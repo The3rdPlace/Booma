@@ -34,16 +34,16 @@ void Info::GetInfo() {
         case RTLSDR: {
             std::string mode = "(unknown)";
             switch (_app->GetInputSourceDataType()) {
-                case IQ:
+                case IQ_INPUT_SOURCE_DATA_TYPE:
                     mode = "IQ";
                     break;
-                case I:
+                case I_INPUT_SOURCE_DATA_TYPE:
                     mode = "I";
                     break;
-                case Q:
+                case Q_INPUT_SOURCE_DATA_TYPE:
                     mode = "Q";
                     break;
-                case REAL:
+                case REAL_INPUT_SOURCE_DATA_TYPE:
                     mode = "REAL";
                     break;
                 default:

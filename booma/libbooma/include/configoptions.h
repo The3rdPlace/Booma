@@ -18,10 +18,10 @@ enum InputSourceType {
 /** Type of input data received from the input device */
 enum InputSourceDataType {
     NO_INPUT_SOURCE_DATA_TYPE = 0,
-    REAL = 1,
-    IQ = 2,
-    I = 3,
-    Q = 4
+    REAL_INPUT_SOURCE_DATA_TYPE = 1,
+    IQ_INPUT_SOURCE_DATA_TYPE = 2,
+    I_INPUT_SOURCE_DATA_TYPE = 3,
+    Q_INPUT_SOURCE_DATA_TYPE = 4
 };
 
 /** Type of receiver */
