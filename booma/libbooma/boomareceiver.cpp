@@ -41,7 +41,7 @@ HWriterConsumer<int16_t>* BoomaReceiver::Decimate(ConfigOptions* opts, HWriterCo
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
             _iqDecimatorProbe = new HProbe<int16_t>("receiver_03_iq_decimator", opts->GetEnableProbes());
-            _iqDecimator = new HIqDecimator<int16_t>(_iqFirFilter->Consumer(), 3, BLOCKSIZE, true, _iqDecimatorProbe);
+            _iqDecimator = new HIqDecimator<int16_t>(_iqFirFilter->Consumer(), secondFactor, BLOCKSIZE, true, _iqDecimatorProbe);
             return _iqDecimator->Consumer();
         } else {
             return _iqFirFilter->Consumer();
@@ -140,6 +140,7 @@ bool BoomaReceiver::GetDecimationRate(int inputRate, int outputRate, int* first,
                     // This decimator supports asymmetric decimation factors, so factors
                     // that do not divide cleanly up into BLOCKSIZE is also valid
                     for( int j = 1; j < BLOCKSIZE; j++ ) {
+
                         if( intermediate / j == outputRate ) {
                             *first = i;
                             *second = j;
