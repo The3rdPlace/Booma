@@ -77,11 +77,11 @@ class ConfigOptions {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
 
-        // First stage gain
-        int _rfGain = 5;
+        // First stage gain (default 10 = 1)
+        int _rfGain = 10;
 
         // Output volume
-        int _volume = 50;
+        int _volume = 5;
 
         // Dump pcm and audio
         bool _dumpRf = false;

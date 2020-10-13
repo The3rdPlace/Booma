@@ -11,7 +11,6 @@ class BoomaOutput {
 
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
-        HAgc<int16_t>* _outputAgc;
         HGain<int16_t>* _outputVolume;
         HFirFilter<int16_t>* _outputFilter;
 
@@ -29,7 +28,6 @@ class BoomaOutput {
         double _signalSum;
 
         // Probes
-        HProbe<int16_t>* _outputAgcProbe;
         HProbe<int16_t>* _outputVolumeProbe;
         HProbe<int16_t>* _outputFilterProbe;
 

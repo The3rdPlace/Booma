@@ -1,7 +1,6 @@
 #include "boomaoutput.h"
 
 BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
-        _outputAgc(nullptr),
         _outputVolume(nullptr),
         _outputFilter(nullptr),
         _soundcardWriter(nullptr),
@@ -12,7 +11,6 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _audioBuffer(nullptr),
         _signalLevel(nullptr),
         _signalLevelWriter(nullptr),
-        _outputAgcProbe(nullptr),
         _outputVolumeProbe(nullptr),
         _outputFilterProbe(nullptr) {
 
@@ -35,14 +33,12 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
     // Add AGC and volume control
-    HLog("- AGC + Volume");
-    _outputAgcProbe = new HProbe<int16_t>("output_01_output_agc", opts->GetEnableProbes());
-    _outputAgc = new HAgc<int16_t>(_audioSplitter->Consumer(), 100, 200, 20, 3, BLOCKSIZE, _outputAgcProbe);
-    _outputVolumeProbe = new HProbe<int16_t>("output_02_output_volume", opts->GetEnableProbes());
-    _outputVolume = new HGain<int16_t>(_outputAgc->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
+    HLog("- Output volume");
+    _outputVolumeProbe = new HProbe<int16_t>("output_01_output_volume", opts->GetEnableProbes());
+    _outputVolume = new HGain<int16_t>(_audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
 
     // Final output filter to remove high frequencies
-    _outputFilterProbe = new HProbe<int16_t>("output_03_output_filter", opts->GetEnableProbes());
+    _outputFilterProbe = new HProbe<int16_t>("output_02_output_filter", opts->GetEnableProbes());
     _outputFilter = new HFirFilter<int16_t>(_outputVolume->Consumer(), HLowpassKaiserBessel<int16_t>(4000, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
 
     // Select output device
@@ -61,7 +57,6 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
 BoomaOutput::~BoomaOutput() {
 
-    SAFE_DELETE(_outputAgc);
     SAFE_DELETE(_outputVolume);
     SAFE_DELETE(_outputFilter);
 
@@ -75,7 +70,6 @@ BoomaOutput::~BoomaOutput() {
     SAFE_DELETE(_signalLevel);
     SAFE_DELETE(_signalLevelWriter);
 
-    SAFE_DELETE(_outputAgcProbe);
     SAFE_DELETE(_outputVolumeProbe);
     SAFE_DELETE(_outputFilterProbe);
 }
@@ -104,7 +98,7 @@ bool BoomaOutput::SetDumpAudio(bool enabled) {
 }
 
 int BoomaOutput::SetVolume(int volume) {
-    if( volume > 100 || volume < 0 ) {
+    if( volume > 10 || volume < 0 ) {
         return false;
     }
     _outputVolume->SetGain(volume);
