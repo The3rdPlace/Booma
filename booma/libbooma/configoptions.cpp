@@ -32,9 +32,9 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
-    std::cout << tr("Select receiver (CW2 default)                          -m CW|AURORAL|AM|SSB") << std::endl;
+    std::cout << tr("Select receiver (CW default)                           -m CW|AURORAL|AM|SSB") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                     -f frequecy") << std::endl;
-    std::cout << tr("Rf gain (default 30)                                   -g gain") << std::endl;
+    std::cout << tr("Rf gain (default 10)                                   -g gain") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)                  -ro NAME=VALUE") << std::endl;
     std::cout << std::endl;
 
