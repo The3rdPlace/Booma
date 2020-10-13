@@ -29,7 +29,7 @@ class BoomaApplication {
 	        HLog("Run receiver chain");
             _isTerminated = false;
             if( _opts->GetEnableProbes() ) {
-                _input->Run( 2000 );
+                _input->Run( 200 );
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
