@@ -25,11 +25,11 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
     // Move the center frequency up to 12KHz, but subtract 1.7KHz to adjust for USB modulation
     // Todo: switch between LSB and USB
     _iqMultiplierProbe = new HProbe<int16_t>("ssbreceiver_01_iqmultiplier", _enableProbes);
-    _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 12000 + 850, 10, BLOCKSIZE, _iqMultiplierProbe);
+    _iqMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 12000 + 850, 10, BLOCKSIZE, _iqMultiplierProbe);
 
     // Remove (formerly) negative frequencies by passband filtering
     _iqFirFilterProbe = new HProbe<int16_t>("ssbreceiver_02_iqfirfilter", _enableProbes);
-    _iqFirFilter = new HIqFirFilter<int16_t>(_iqMultiplier->Consumer(), HBandpassKaiserBessel<int16_t>(12000, 15000, GetOutputSamplerate(), 15, 50).Calculate(), 15, BLOCKSIZE, _iqFirFilterProbe);
+    _iqFirFilter = new HIqFirFilter<int16_t>(_iqMultiplier->Consumer(), HBandpassKaiserBessel<int16_t>(12000, 15000, opts->GetOutputSampleRate(), 15, 50).Calculate(), 15, BLOCKSIZE, _iqFirFilterProbe);
 
     // Demodulate usb or lsb by use of the Weaver or "3rd." method.
     // Todo: fixed on USB for now. Handle switch between LSB and USB
@@ -46,7 +46,7 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
 
     // And finally, filter out the high copy of the spectrum that is created by the translation
     _lowpassFilterProbe = new HProbe<int16_t>("ssbreceiver_05_lowpassfilter", _enableProbes);
-    _lowpassFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_translateByFour->Consumer(), 3000, GetOutputSamplerate(), 0.707, 1, BLOCKSIZE, _lowpassFilterProbe);
+    _lowpassFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(_translateByFour->Consumer(), 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _lowpassFilterProbe);
 
     // Return signal at IF = 6KHz
     return _lowpassFilter->Consumer();
@@ -80,8 +80,13 @@ BoomaSsbReceiver::~BoomaSsbReceiver() {
     SAFE_DELETE(_lowpassFilter);
 }
 
-bool BoomaSsbReceiver::SetFrequency(int frequency) {
+bool BoomaSsbReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
-    // This receiver operates on all frequencies that can be tuned by the IQ sampler
+    // This receiver only operates from 0 to samplerate/2.
+    if( frequency >= opts->GetOutputSampleRate() / 2  ) {
+        HError("Unsupported frequency %ld, must be less than %d", frequency, opts->GetOutputSampleRate() / 2);
+        return false;
+    }
+
     return true;
 }

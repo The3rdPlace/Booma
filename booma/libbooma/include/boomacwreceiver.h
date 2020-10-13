@@ -56,9 +56,9 @@ class BoomaCwReceiver : public BoomaReceiver {
         HWriterConsumer<int16_t>* Receive(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
         HWriterConsumer<int16_t>* PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
-        void OptionChanged(std::string name, int value);
+        void OptionChanged(ConfigOptions* opts, std::string name, int value);
 
-        bool SetFrequency(int frequency);
+        bool SetInternalFrequency(ConfigOptions* opts, int frequency);
         bool SetRfGain(int gain);
 
         int GetIfOffset() {

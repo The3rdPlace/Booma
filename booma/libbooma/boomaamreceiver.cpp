@@ -49,11 +49,11 @@ BoomaAmReceiver::~BoomaAmReceiver() {
     SAFE_DELETE(_collector);
 }
 
-bool BoomaAmReceiver::SetFrequency(int frequency) {
+bool BoomaAmReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
     // This receiver only operates from 0 to samplerate/2.
-    if( frequency >= GetOutputSamplerate() / 2  ) {
-        HError("Unsupported frequency %ld, must be less than %d", frequency, GetOutputSamplerate() / 2);
+    if( frequency >= opts->GetOutputSampleRate() / 2  ) {
+        HError("Unsupported frequency %ld, must be less than %d", frequency, opts->GetOutputSampleRate() / 2);
         return false;
     }
 

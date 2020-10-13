@@ -168,7 +168,6 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         // Return signal at IF = 6KHz
         return _ifMixer->Consumer();
     }
-
     // If we get iq data, then the input spectrum is centered with the tuned frequency at 0
     // so we need to move the (positive) frequency of interest to the IF frequency = 6KHz and
     // convert to realvalued samples at the output samplerate.
@@ -179,7 +178,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
 
         // Move the center frequency up to 6KHz which is the IF frequency
         _iqMultiplierProbe = new HProbe<int16_t>("cwreceiver_01_iqmultiplier", _enableProbes);
-        _iqMultiplier = new HIqMultiplier<int16_t>(previous, GetOutputSamplerate(), 6000, 10, BLOCKSIZE, _iqMultiplierProbe);
+        _iqMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 6000, 10, BLOCKSIZE, _iqMultiplierProbe);
 
         // Get the I branch ==> convert to realvalued samples
         _iq2IConverterProbe = new HProbe<int16_t>("cwreceiver_02_iq2iconverter", _enableProbes);
@@ -248,11 +247,11 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     SAFE_DELETE(_postSelectProbe);
 }
 
-bool BoomaCwReceiver::SetFrequency(int frequency) {
+bool BoomaCwReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
     // This receiver only operates from 6000 - samplerate/2. Or exactly on o (zero, IQ devices)
-    if( frequency >= GetOutputSamplerate() / 2 || (frequency <= 6000 && frequency != 0) ) {
-        HError("Unsupported frequency %ld, must be greater than  %d and less than %d or zero", frequency, 6000, GetOutputSamplerate() / 2);
+    if( frequency >= opts->GetOutputSampleRate() / 2 || (frequency <= 6000 && frequency != 0) ) {
+        HError("Unsupported frequency %ld, must be greater than  %d and less than %d or zero", frequency, 6000, opts->GetOutputSampleRate() / 2);
         return false;
     }
 
@@ -262,7 +261,7 @@ bool BoomaCwReceiver::SetFrequency(int frequency) {
 
     // Set new multiplier frequency and adjust the preselect bandpass filter
     if( _preselect != nullptr ) {
-        _preselect->SetCoefficients(frequency + offset, GetOutputSamplerate(), 1.0f, 1, BLOCKSIZE);
+        _preselect->SetCoefficients(frequency + offset, opts->GetOutputSampleRate(), 1.0f, 1, BLOCKSIZE);
     }
     if( _ifMixer != nullptr ) {
         _ifMixer->SetFrequency(frequency - 6000);
@@ -272,7 +271,7 @@ bool BoomaCwReceiver::SetFrequency(int frequency) {
     return true;
 }
 
-void BoomaCwReceiver::OptionChanged(std::string name, int value) {
+void BoomaCwReceiver::OptionChanged(ConfigOptions* opts, std::string name, int value) {
     HLog("Option %s has changed to value %d", name.c_str(), value);
 
     // Calculate mixer offsets due to if filter shifting
@@ -281,7 +280,7 @@ void BoomaCwReceiver::OptionChanged(std::string name, int value) {
 
     // Reconfigure receiver
     if( _preselect != nullptr) {
-        _preselect->SetCoefficients(GetFrequency() + offset, GetOutputSamplerate(), 1.0f, 1, BLOCKSIZE);
+        _preselect->SetCoefficients(GetFrequency() + offset, opts->GetOutputSampleRate(), 1.0f, 1, BLOCKSIZE);
     }
     if( _ifMixer != nullptr ) {
         _ifMixer->SetFrequency(GetFrequency() - 6000 + offset);

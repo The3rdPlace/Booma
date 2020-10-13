@@ -42,7 +42,7 @@ BoomaAuroralReceiver::~BoomaAuroralReceiver() {
     SAFE_DELETE(_humfilterProbe);
 }
 
-bool BoomaAuroralReceiver::SetFrequency(int frequency) {
+bool BoomaAuroralReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
     // This receiver only operates from 0 - 10KHz
     if( frequency >= 10000 || frequency < 500 ) {

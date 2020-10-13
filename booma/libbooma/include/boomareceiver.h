@@ -57,8 +57,6 @@ class BoomaReceiver {
 
         int _cutOff;
         int _frequency;
-        int _inputSamplerate;
-        int _outputSamplerate;
 
         bool _hasBuilded;
 
@@ -91,7 +89,7 @@ class BoomaReceiver {
 
                             // Report the change to the receiver implementation
                             if( _hasBuilded ) {
-                                OptionChanged(name, value);
+                                OptionChanged(opts, name, value);
                             }
 
                             // Receiver option set
@@ -123,9 +121,9 @@ class BoomaReceiver {
             _options.push_back(option);
         }
 
-        virtual void OptionChanged(std::string name, int value) = 0;
+        virtual void OptionChanged(ConfigOptions* opts, std::string name, int value) = 0;
 
-        virtual bool SetFrequency(int frequency) = 0;
+        virtual bool SetInternalFrequency(ConfigOptions* opts, int frequency) = 0;
 
         /**
          * Base class for all Booma receivers
@@ -171,9 +169,11 @@ class BoomaReceiver {
             _audioFftSize(256) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
-            _inputSamplerate = opts->GetInputSampleRate();
-            _outputSamplerate = opts->GetOutputSampleRate();
+            //_inputSamplerate = opts->GetInputSampleRate();
+            //_outputSamplerate = opts->GetOutputSampleRate();
         }
+
+        bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
 
     public:
 
@@ -298,19 +298,11 @@ class BoomaReceiver {
 
         bool SetFrequency(ConfigOptions* opts, int frequency) {
             _frequency = frequency;
-            return SetFrequency(_frequency);
+            return SetInternalFrequency(opts, _frequency);
         }
 
         int GetFrequency() {
             return _frequency;
-        }
-
-        int GetInputSamplerate() {
-            return _inputSamplerate;
-        }
-
-        int GetOutputSamplerate() {
-            return _outputSamplerate;
         }
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
