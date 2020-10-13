@@ -82,7 +82,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device");
         _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 100, BLOCKSIZE, _ifMultiplierProbe);
     }
 }
 
@@ -155,7 +155,7 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
                     HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
                     throw new BoomaInputException("Unknown input source datatype specified");
             }
-            _preGain = 128;
+            _preGain = 8;
             break;
         default:
             HError("Unknown input source type specified (%d)", opts->GetInputSourceType());
@@ -216,7 +216,7 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 int BoomaInput::SetRfGain(int gain) {
 
     if( gain <= 100 && gain > 0 ) {
-        _rfGain->SetGain((float) gain / (float) 10);
+        _rfGain->SetGain((float) (gain * _preGain) / (float) 10);
     }
 
     return _rfGain->GetGain() * 10;
