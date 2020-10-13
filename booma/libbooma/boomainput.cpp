@@ -49,6 +49,13 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, isTerminated);
     }
 
+    // Set a pregain when using devices that delivers smaller datatypes
+    if( opts->GetOriginalInputSourceType() == RTLSDR ) {
+
+        // RTL-SDR dongles delivers 8 bit data, which is converted without scaling to 16 bit
+        _preGain = 8;
+    }
+
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter");
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
@@ -75,7 +82,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
-    if( opts->GetInputSourceType() == InputSourceType::RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
+    if( opts->GetOriginalInputSourceType() == RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
 
         // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
@@ -155,7 +162,6 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
                     HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
                     throw new BoomaInputException("Unknown input source datatype specified");
             }
-            _preGain = 8;
             break;
         default:
             HError("Unknown input source type specified (%d)", opts->GetInputSourceType());
@@ -181,14 +187,12 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
     HLog("Input virtual frequency = %d", _virtualFrequency);
 
-    switch( opts->GetInputSourceType() ) {
-        case RTLSDR:
-            _hardwareFrequency = frequency - opts->GetRtlsdrOffset();
-            _ifFrequency = 0;
-            break;
-        default:
-            _hardwareFrequency = frequency;
-            _ifFrequency = frequency;
+    if( opts->GetOriginalInputSourceType() == RTLSDR ) {
+        _hardwareFrequency = frequency - opts->GetRtlsdrOffset();
+        _ifFrequency = 0;
+    } else {
+        _hardwareFrequency = frequency;
+        _ifFrequency = frequency;
     }
 
     HLog("Input hardware frequency = %d", _hardwareFrequency);

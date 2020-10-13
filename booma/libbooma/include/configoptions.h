@@ -55,6 +55,7 @@ class ConfigOptions {
 
         // Input device- and datatype
         InputSourceType _inputSourceType = NO_INPUT_SOURCE_TYPE;
+        InputSourceType _originalInputSourceType = NO_INPUT_SOURCE_TYPE;
         InputSourceDataType _inputSourceDataType = NO_INPUT_SOURCE_DATA_TYPE;
 
         // Input device
@@ -133,6 +134,12 @@ class ConfigOptions {
 
         InputSourceType GetInputSourceType() {
             return _inputSourceType;
+        }
+
+        InputSourceType GetOriginalInputSourceType() {
+            return _originalInputSourceType == NO_INPUT_SOURCE_TYPE
+            ? _inputSourceType
+            : _originalInputSourceType;
         }
 
         InputSourceDataType GetInputSourceDataType() {

@@ -16,57 +16,59 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
-    std::cout << tr("Show a list of audio devices                           -c --cards") << std::endl;
-    std::cout << tr("Show a list of RTL-SDR devices                         -r --rtlsdrs") << std::endl;
-    std::cout << tr("Show this help and exit                                -h --help") << std::endl;
-    std::cout << tr("Show version and exit                                  -v --version") << std::endl;
+    std::cout << tr("Show a list of audio devices                             -c --cards") << std::endl;
+    std::cout << tr("Show a list of RTL-SDR devices                           -r --rtlsdrs") << std::endl;
+    std::cout << tr("Show this help and exit                                  -h --help") << std::endl;
+    std::cout << tr("Show version and exit                                    -v --version") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Input, data type and samplerate(s)]==") << std::endl;
-    std::cout << tr("Use audio input source                                 -i AUDIO devicenumber") << std::endl;
-    std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)     -i RTLSDR devicenumber") << std::endl;
-    std::cout << tr("Use network input                                      -i NETWORK address dataport commandport") << std::endl;
-    std::cout << tr("Set input datatype (required for NETWORK input)        -it REAl|IQ|I|Q") << std::endl;
-    std::cout << tr("Device (input) samplerate (default 48KHz)              -dr rate") << std::endl;
-    std::cout << tr("Output samplerate (default 48KHz)                      -or rate") << std::endl;
+    std::cout << tr("Use audio input source                                   -i AUDIO devicenumber") << std::endl;
+    std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)       -i RTLSDR devicenumber") << std::endl;
+    std::cout << tr("Use network input                                        -i NETWORK address dataport commandport") << std::endl;
+    std::cout << tr("Set input datatype (required for NETWORK and PCM input)  -it REAl|IQ|I|Q") << std::endl;
+    std::cout << tr("Set input type (required for NETWORK and PCM input)      -is AUDIO|RTLSDR") << std::endl;
+
+    std::cout << tr("Device (input) samplerate (default 48KHz)                -dr rate") << std::endl;
+    std::cout << tr("Output samplerate (default 48KHz)                        -or rate") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
-    std::cout << tr("Select receiver (CW default)                           -m CW|AURORAL|AM|SSB") << std::endl;
-    std::cout << tr("Select frequency (default 17.2KHz)                     -f frequecy") << std::endl;
-    std::cout << tr("Rf gain (default 10)                                   -g gain") << std::endl;
-    std::cout << tr("Set receiver option (can be repeated)                  -ro NAME=VALUE") << std::endl;
+    std::cout << tr("Select receiver (CW default)                             -m CW|AURORAL|AM|SSB") << std::endl;
+    std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
+    std::cout << tr("Rf gain (default 10)                                     -g gain") << std::endl;
+    std::cout << tr("Set receiver option (can be repeated)                    -ro NAME=VALUE") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Output, recordings]==") << std::endl;
-    std::cout << tr("Select output (audio) device                           -o devicenumber") << std::endl;
-    std::cout << tr("Output volume (default 200)                            -l volume") << std::endl;
-    std::cout << tr("Dump rf input as pcm to file                           -p PCM (enable) | -p OFF (disable)") << std::endl;
-    std::cout << tr("Dump rf input as wav to file (default)                 -p WAV (enable) | -p OFF (disable)") << std::endl;
-    std::cout << tr("Dump output audio as pcm to file                       -a PCM (enable) | -a OFF (disable)") << std::endl;
-    std::cout << tr("Dump output audio as wav to file                       -a WAV (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Select output (audio) device                             -o devicenumber") << std::endl;
+    std::cout << tr("Output volume (default 200)                              -l volume") << std::endl;
+    std::cout << tr("Dump rf input as pcm to file                             -p PCM (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump rf input as wav to file (default)                   -p WAV (enable) | -p OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as pcm to file                         -a PCM (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Dump output audio as wav to file                         -a WAV (enable) | -a OFF (disable)") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Use remote head]==") << std::endl;
-    std::cout << tr("Server for remote input                                -s dataport commandport") << std::endl;
+    std::cout << tr("Server for remote input                                  -s dataport commandport") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Options]==") << std::endl;
-    std::cout << tr("Wait untill scheduled time                             -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
-    std::cout << tr("Set initial buffersize for file IO (0 to disable)      -n reserved-block") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction                           -rtlc correction") << std::endl;
-    std::cout << tr("RTL-SDR tuning offset                                  -rtlo offset") << std::endl;
+    std::cout << tr("Wait untill scheduled time                               -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
+    std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
+    std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
+    std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
-    std::cout << tr("Verbose debug output                                   -d --debug") << std::endl;
-    std::cout << tr("Use sine generator as input                            -i GENERATOR frequency") << std::endl;
-    std::cout << tr("Use pcm file as input                                  -i PCM filename") << std::endl;
-    std::cout << tr("Use wav file as input                                  -i WAV filename") << std::endl;
-    std::cout << tr("Use silence as input                                   -i SILENCE") << std::endl;
-    std::cout << tr("Select /dev/null as output device                      -o -1") << std::endl;
-    std::cout << tr("Enable probes and halt after 100 blocks                -x") << std::endl;
-    std::cout << tr("Reset cached configuration                             -z") << std::endl;
+    std::cout << tr("Verbose debug output                                     -d --debug") << std::endl;
+    std::cout << tr("Use sine generator as input                              -i GENERATOR frequency") << std::endl;
+    std::cout << tr("Use pcm file as input                                    -i PCM filename") << std::endl;
+    std::cout << tr("Use wav file as input                                    -i WAV filename") << std::endl;
+    std::cout << tr("Use silence as input                                     -i SILENCE") << std::endl;
+    std::cout << tr("Select /dev/null as output device                        -o -1") << std::endl;
+    std::cout << tr("Enable probes and halt after 100 blocks                  -x") << std::endl;
+    std::cout << tr("Reset cached configuration                               -z") << std::endl;
 }
 
 void ConfigOptions::PrintAudioDevices() {
@@ -286,7 +288,26 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 HLog("Setting input data type to REAL");
             }
             else {
-                std::cout << "Unknown input data type '" << argv[i + 1] << std::endl;
+                std::cout << "Unknown or invalid input data type '" << argv[i + 1] << std::endl;
+                exit(1);
+            }
+
+            i++;
+            continue;
+        }
+
+        // Input type (if different than the default)
+        if( strcmp(argv[i], "-is") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
+                _originalInputSourceType = AUDIO_DEVICE;
+                HLog("Setting input type to AUDIO_DEVICE");
+            }
+            else if( strcmp(argv[i + 1], "RTLSDR") == 0 ) {
+                _originalInputSourceType = RTLSDR;
+                HLog("Setting input type to RTLSDR");
+            }
+            else {
+                std::cout << "Invalid or unknown input type '" << argv[i + 1] << std::endl;
                 exit(1);
             }
 
@@ -525,11 +546,11 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Sanitize sample rate
-    if( _inputSampleRate == _outputSampleRate && _inputSourceType == RTLSDR ) {
+    if( _inputSampleRate == _outputSampleRate && (_inputSourceType == RTLSDR || _originalInputSourceType == RTLSDR) ) {
         std::cout << "Input (device) and output sample rate should not be the same for RTL-SDR devices" << std::endl;
         exit(1);
     }
-    if( _inputSourceType != RTLSDR ) {
+    if( _inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR ) {
         _inputSampleRate = _outputSampleRate;
     }
 }
