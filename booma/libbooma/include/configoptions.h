@@ -52,6 +52,7 @@ class ConfigOptions {
 
         // Output audio device
         int _outputAudioDevice = -1;
+        std::string _outputFilename = "";
 
         // Input device- and datatype
         InputSourceType _inputSourceType = NO_INPUT_SOURCE_TYPE;
@@ -89,6 +90,7 @@ class ConfigOptions {
         bool _dumpAudio = false;
         DumpFileFormatType _dumpRfFileFormat = PCM;
         DumpFileFormatType _dumpAudioFileFormat = WAV;
+        std::string _dumpFileSuffix = "";
 
         // Scheduled start and stop
         HTimer _schedule;
@@ -97,9 +99,6 @@ class ConfigOptions {
         int _signalGeneratorFrequency = -1;
         std::string _pcmFile = "";
         std::string _wavFile = "";
-
-        // Input options
-        bool _directSampling = false;
 
         void PrintUsage();
         void PrintAudioDevices();
@@ -274,16 +273,20 @@ class ConfigOptions {
             return &_receiverOptions;
         }
 
-        bool GetDirectSampling() {
-            return _directSampling;
-        }
-
         int GetRtlsdrCorrection() {
             return _rtlsdrCorrection;
         }
 
         int GetRtlsdrOffset() {
             return _rtlsdrOffset;
+        }
+
+        std::string GetDumpFileSuffix() {
+            return _dumpFileSuffix;
+        }
+
+        std::string GetOutputFilename() {
+            return _outputFilename;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

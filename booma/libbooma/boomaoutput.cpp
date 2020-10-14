@@ -21,7 +21,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     // Add a filewriter so that we can dump audio data on request
     _audioBreaker = new HBreaker<int16_t>(_audioSplitter->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
     _audioBuffer = new HBufferedWriter<int16_t>(_audioBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
-    std::string dumpfile = "OUTPUT_" + std::to_string(std::time(nullptr));
+    std::string dumpfile = "OUTPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpAudioFileFormat() == WAV ) {
         _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _audioBuffer->Consumer());
     } else {
@@ -42,16 +42,34 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _outputFilter = new HFirFilter<int16_t>(_outputVolume->Consumer(), HLowpassKaiserBessel<int16_t>(4000, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
 
     // Select output device
-    if( opts->GetOutputAudioDevice() == -1 ) {
+    if( opts->GetOutputFilename() != "" ) {
+        HLog("Writing output audio to %s", opts->GetOutputFilename().c_str());
+        if( IsWav(opts->GetOutputFilename()) ) {
+            HLog("Creating output wav file");
+            _wavWriter = new HWavWriter<int16_t>(opts->GetOutputFilename().c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _outputFilter->Consumer());
+            _pcmWriter = nullptr;
+        } else {
+            HLog("Creating output pcm file");
+            _pcmWriter = new HFileWriter<int16_t>(opts->GetOutputFilename().c_str(), _outputFilter->Consumer());
+            _wavWriter = nullptr;
+        }
+        _soundcardWriter = nullptr;
+        _nullWriter = nullptr;
+    }
+    else if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
-        _soundcardWriter = NULL;
         _nullWriter = new HNullWriter<int16_t>(_outputFilter->Consumer());
+        _soundcardWriter = nullptr;
+        _pcmWriter = nullptr;
+        _wavWriter = nullptr;
     }
     else
     {
         HLog("Initializing audio output device %d", opts->GetOutputAudioDevice());
         _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _outputFilter->Consumer());
-        _nullWriter = NULL;
+        _nullWriter = nullptr;
+        _pcmWriter = nullptr;
+        _wavWriter = nullptr;
     }
 }
 
@@ -62,6 +80,8 @@ BoomaOutput::~BoomaOutput() {
 
     SAFE_DELETE(_soundcardWriter);
     SAFE_DELETE(_nullWriter);
+    SAFE_DELETE(_pcmWriter);
+    SAFE_DELETE(_wavWriter);
 
     SAFE_DELETE(_audioWriter);
     SAFE_DELETE(_audioSplitter);
@@ -105,3 +125,17 @@ int BoomaOutput::SetVolume(int volume) {
     return _outputVolume->GetGain();
 }
 
+bool BoomaOutput::IsWav(std::string filename) {
+
+    // Must have a name and the suffix .wav
+    if( filename.length() <= 4 ) {
+        return false;
+    }
+
+    // Get lowercase version of the filename
+    std::string lower = filename;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    // Search for (reverse) the suffix .wav
+    return lower.rfind(".wav", lower.length() - 4, 4) != std::string::npos;
+}

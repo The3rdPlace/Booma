@@ -50,8 +50,7 @@ void Info::GetInfo() {
                     std::cout << "Unknown input source data type" << std::endl;
                     break;
             }
-            std::cout << "RTLSDR device " << _app->GetInputDevice() << " in " << mode << " mode"
-                      << (_app->GetDirectSampling() ? " with direct sampling" : "") << std::endl;
+            std::cout << "RTLSDR device " << _app->GetInputDevice() << " in " << mode << " mode" << std::endl;
             break;
         }
         default:

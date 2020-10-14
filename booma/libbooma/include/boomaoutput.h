@@ -11,6 +11,8 @@ class BoomaOutput {
 
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
+        HFileWriter<int16_t>* _pcmWriter;
+        HWavWriter<int16_t>* _wavWriter;
         HGain<int16_t>* _outputVolume;
         HFirFilter<int16_t>* _outputFilter;
 
@@ -30,6 +32,8 @@ class BoomaOutput {
         // Probes
         HProbe<int16_t>* _outputVolumeProbe;
         HProbe<int16_t>* _outputFilterProbe;
+
+        bool IsWav(std::string filename);
 
     public:
 

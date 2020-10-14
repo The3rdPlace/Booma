@@ -211,7 +211,7 @@ int BoomaApplication::GetAudioSpectrum(double* spectrum) {
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {
-    return _opts->GetInputSourceType();
+    return _opts->GetOriginalInputSourceType();
 }
 
 InputSourceDataType BoomaApplication::GetInputSourceDataType() {
@@ -220,10 +220,6 @@ InputSourceDataType BoomaApplication::GetInputSourceDataType() {
 
 int BoomaApplication::GetInputDevice() {
     return _opts->GetInputDevice();
-}
-
-bool BoomaApplication::GetDirectSampling() {
-    return _opts->GetDirectSampling();
 }
 
 std::string BoomaApplication::GetPcmFile() {

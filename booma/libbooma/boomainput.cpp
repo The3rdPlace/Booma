@@ -64,7 +64,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     HLog("Adding RF output filewriter");
     _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
-    std::string dumpfile = "INPUT_" + std::to_string(std::time(nullptr));
+    std::string dumpfile = "INPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpRfFileFormat() == WAV ) {
         _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetInputSampleRate(), _rfBuffer->Consumer());
     } else {

@@ -42,11 +42,12 @@ void ConfigOptions::PrintUsage() {
 
     std::cout << tr("==[Output, recordings]==") << std::endl;
     std::cout << tr("Select output (audio) device                             -o devicenumber") << std::endl;
-    std::cout << tr("Output volume (default 200)                              -l volume") << std::endl;
+    std::cout << tr("Output volume (default 5)                                -l volume") << std::endl;
     std::cout << tr("Dump rf input as pcm to file                             -p PCM (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Dump rf input as wav to file (default)                   -p WAV (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Dump output audio as pcm to file                         -a PCM (enable) | -a OFF (disable)") << std::endl;
     std::cout << tr("Dump output audio as wav to file                         -a WAV (enable) | -a OFF (disable)") << std::endl;
+    std::cout << tr("Dump file suffix. If not set, a timestamp is used        -dfs suffix") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Use remote head]==") << std::endl;
@@ -67,6 +68,7 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Use wav file as input                                    -i WAV filename") << std::endl;
     std::cout << tr("Use silence as input                                     -i SILENCE") << std::endl;
     std::cout << tr("Select /dev/null as output device                        -o -1") << std::endl;
+    std::cout << tr("Write output to this file                                -o filename") << std::endl;
     std::cout << tr("Enable probes and halt after 100 blocks                  -x") << std::endl;
     std::cout << tr("Reset cached configuration                               -z") << std::endl;
 }
@@ -173,6 +175,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             } else {
                 _dumpAudio = false;
             }
+            i++;
+            continue;
+        }
+
+        // Dump file suffix
+        if( strcmp(argv[i], "-dfs") == 0 && i < argc - 1) {
+            _dumpFileSuffix = argv[i + 1];
             i++;
             continue;
         }
@@ -351,9 +360,21 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Select output device
+        // Select output device or file
         if( strcmp(argv[i], "-o") == 0 && i < argc - 1) {
-            _outputAudioDevice = atoi(argv[i + 1]);
+
+            for( int pos = 0; pos < strlen(argv[i + 1]); pos++ ) {
+                if( argv[i + 1][pos] < '0' || argv[i + 1][pos] > '9' ) {
+                    if( argv[i + 1][pos] != '-' || pos > 0 ) {
+                        _outputFilename = argv[i + 1];
+                        HLog("Output filename set to %s", _outputFilename.c_str());
+                        break;
+                    }
+                }
+            }
+            if( _outputFilename == "" ) {
+                _outputAudioDevice = atoi(argv[i + 1]);
+            }
             i++;
             continue;
         }
@@ -664,8 +685,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "remoteCommandPort" )       _remoteCommandPort = atoi(value.c_str());
             if( name == "rfGain" )                  _rfGain = atoi(value.c_str());
             if( name == "volume" )                  _volume = atoi(value.c_str());
-            if( name == "dumpRf" )                  _dumpRf = atoi(value.c_str());
-            if( name == "dumpAudio" )               _dumpAudio = atoi(value.c_str());
             if( name == "dumpRfFileFormat" )        _dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
             if( name == "dumpAudioFileFormat" )     _dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
             if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
@@ -673,7 +692,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
             if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
-            if( name == "directSampling" )          _pcmFile = value == "true";
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -765,8 +783,6 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "remoteCommandPort=" << _remoteCommandPort << std::endl;
     configStream << "rfGain=" << _rfGain << std::endl;
     configStream << "volume=" << _volume << std::endl;
-    configStream << "dumpRf=" << _dumpRf << std::endl;
-    configStream << "dumpAudio=" << _dumpAudio << std::endl;
     configStream << "dumpRfFileFormat=" << _dumpRfFileFormat << std::endl;
     configStream << "dumpAudioFileFormat=" << _dumpAudioFileFormat << std::endl;
     configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
@@ -774,7 +790,6 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
-    configStream << "directSampling=" << (_directSampling ? "true" : "false") << std::endl;
 
     // Done writing the config file
     configStream.close();

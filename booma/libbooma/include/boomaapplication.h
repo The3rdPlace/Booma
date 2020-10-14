@@ -124,7 +124,6 @@ class BoomaApplication {
         InputSourceType GetInputSourceType();
         InputSourceDataType GetInputSourceDataType();
         int GetInputDevice();
-        bool GetDirectSampling();
         std::string GetPcmFile();
         std::string GetWavFile();
         int GetSignalGeneratorFrequency();
