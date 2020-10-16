@@ -29,13 +29,15 @@ class BoomaApplication {
 	        HLog("Run receiver chain");
             _isTerminated = false;
             if( _opts->GetEnableProbes() ) {
+                HLog("Probes enabled, running 200 blocks");
                 _input->Run( 200 );
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
             } else {
+                HLog("Starting normal run");
                 _current = new std::thread( [this]()  {
-                    _input->Run( _opts->GetEnableProbes() ? 100 : 0);
+                    _input->Run();
                     _isTerminated = true;
                     _isRunning = false;
                     _current = NULL;

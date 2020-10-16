@@ -160,6 +160,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Enable probes
         if( strcmp(argv[i], "-x") == 0 ) {
+            HLog("Enabled probe run");
             _enableProbes = true;
             continue;
         }
