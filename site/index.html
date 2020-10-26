@@ -18,6 +18,16 @@
             text-decoration: none;
         }
 
+        table {
+            border: solid 1px #CCCCCC;
+        }
+
+        td {
+            font-family: Verdana;
+            font-size: 0.8em;
+            padding-right: 15px;
+        }
+
         .command {
             color: #888888;
         }
@@ -65,7 +75,7 @@
         .DEBHIDDEN {
             visibility: hidden;
             height: 0px;
-            width:0 px;
+            width:0px;
         }
     </style>
 </head>
@@ -87,10 +97,47 @@
         Other options for listening to SAQ Grimeton is the <a href="<https://sites.google.com/site/sm6lkm/saqrx/">SAQrx</a> program by Johan, SM6LKM., a (newer) fork
         of SAQrx <a href="https://sites.google.com/site/swljo30tb/">SAQrx_V094</a>, or a websdr receiver <a href="http://websdr.ewi.utwente.nl:8901/">like this on in Twente</a>
         SAQ
+        <br><br>
+        Listening to Grimeton with Booma: <b><code>booma -i AUDIO [input audio device] -f 17200 -o [output audio device]</code></b>
+        <br><br><br>
+        These are recordings of the radio spectrum 0-24KHz with Grimeton transmitting. The recordings contains other VLF transmissions
+        as well, so if you do not have an antenna and/or a soundcard ready for receiving yet, you can use these recordings for testing.
         <br>
+        (check 16.4KHz, 22.1KHz and 23.4KHz - all rtty transmissions)
+        <br><br>
+        The recordings are made using the equipment described in the next section. My locator: JO-65 (Denmark, greater Copenhagen area),
+        <br><br>
+        <table>
+            <tr>
+                <td><b>File</b></td>
+                <td><b>Date/time (UTC)</b></td>
+                <td><b>Content</b></td>
+                <td><b>Note</b></td>
+            </tr>
+            <tr>
+                <td><a href="http://hardttoolkit.org/booma/recordings/INPUT_SAQ_TUNE_20201024.pcm">INPUT_SAQ_TUNE_20201024.pcm</a></td>
+                <td>24. oct. 2020, 14:35 - 14:50</td>
+                <td>UN Day 2020, tuning</td>
+                <td>Be patient. Tuning starts after a little while</td>
+            </tr><tr>
+                <td><a href="http://hardttoolkit.org/booma/recordings/INPUT_SAQ_MESSAGE_20201024.pcm">INPUT_SAQ_MESSAGE_20201024.pcm</a></td>
+                <td>24. oct. 2020, 14:58 - 15:15</td>
+                <td>UN Day 2020, message</td>
+                <td>Last minutes of the tuning, a short period with silence, then the message</td>
+            </tr>
+        </table>
         <br>
+        Listening to recording Booma: <b><code>booma -i PCM [filename] -f 17200 -o [output audio device]</code></b>
+        <br><br>
+        Check which sounddevice to use for in- and output with <b><code>booma -c</code></b>.
+        <br><br>
+        If you use linux and has PulseAudio running, you may need to fiddle a little bit with the configuration for the selected audio device so that PulseAudio
+        do not block the device when you need to access it with Booma.
         <br>
+        If you experiment too much and end up with some buggy setting, just flash you local stored settings using <b>booma -z</b> and start over.
+        <br><br>
         <hr>
+        <br>
         I have been fascinated with the lower part of the frequency spectrum, ever since I entered
         a room full of the sounds of the 80m band at night at the JOTA event.
         <br>
@@ -115,25 +162,23 @@
         since I want to be able to use it for other smaller projects as well (<a href="http://hardttoolkit.org/">here</a>).
         <br>
         <br>
-        Currently, all Booma can do, is to receive on frequencies in the audio range (using a soundcard as the receiver frontend),
-        and detecting CW and RTTY signals. However, I have big plans for extending the basic receiver for use with RTL based
-        sdr dongles, at least for receiving LW, MW and shortwave bands..  But for now, its a (not very fancy) receiver
-        for the SAQ transmitter.
+        Booma supports AM, SSB and CW receive modes. It can use audiocards or RTL-2832 dongles for input. Allthough Booma now supports the range from
+        (almost) 0Hz to several GHz, the primary focus is as always - the Grimeton transmitter in Sweeden
         <br>
         <br>
-        Also, only a console application exists for controlling the receiver, but once the inner parts of the receiver has stabilized, I will
-        begin to put together a more userfriendly (modern) graphical user interface.
+        At the moment, only a console application exists for controlling the receiver, but once the inner parts of the receiver has stabilized,
+        I will begin to put together a more userfriendly (modern) graphical user interface.
         <br>
         <br>
         You can run Booma entirely from a single pc, using the soundcard and some wire as an antenne - or you can scale it up a bit.
         <br>
         <br>
-        I have a Raspberry Pi (zero) in the basement with a USB soundcard and connected to the microphone input, aprox. 50m of wire strong into a hedge.
+        I have a Raspberry Pi (zero) in the basement with a USB soundcard and connected to the microphone input, a miniwhip antenna (original PA0RDT design and construction).
         <br>
         The Raspberry Pi is run from a good linear stabilized power supply, and wired directly to an ethernet switch - and thats important since a wifi ethernet card do
         generate quite a big burst of noise when transmitting, which ruins VLF reception.
         <br>
-        In my shack elsewhere in the house, I run Booma on my mac, receiving the antenna input from the Raspberry Pi. This way, I have moved
+        In my shack elsewhere in the house, I run Booma on my pc (Ubuntu), receiving the antenna input from the Raspberry Pi. This way, I have moved
         the actual receiver as long away from in-house noise sources as possible (50Hz mains, the freezer, switched power adapters etc. etc.)
     </div>
     <br>
