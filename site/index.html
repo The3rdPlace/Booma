@@ -186,9 +186,24 @@
     <br>
 
     <div id="requirements">
-        Booma requires the Hardt toolkit (The Hamradio DSP Toolkit) found here <a href="http://hardttoolkit.org/">http://hardttoolkit.org/</a>
-        and PortAudio <a href="http://www.portaudio.com/">http://www.portaudio.com/</a>. If you want to build Booma (and Hardt), you also need
-        the CLang compiler and CMake, on the Mac CLang somehow is part of XCode so you may need to upgrade or install XCode if you dont already have it.
+        Booma requires the a few  other software libraries. Most can be installed using <i>apt</i>, but the Hardt toolkit must - for now - be
+        installed either from the prebuild deb(ian) package, or build and installed locally (which is not hardt.. got it!).
+        <ul>
+            <li>Hardt toolkit (The Hamradio DSP Toolkit) found here <a href="http://hardttoolkit.org/">http://hardttoolkit.org/</a></li>
+            <li>PortAudio <a href="http://www.portaudio.com/">http://www.portaudio.com/</a>
+                <ul>
+                    <li>sudo apt install libportaudio2</li>
+                    <li>sudo apt install libportaudio19-dev</li>
+                </ul>
+            </li>
+            <li>Librtlsdr (controlling RTL-2832 dongles)
+                <ul>
+                    <li>sudo apt install librtlsdr0</li>
+                    <li>sudo apt install librtlsd-dev</li>
+                </ul>
+            </li>
+        </ul>
+        If you want to build Booma (and Hardt), you also need the CLang compiler and CMake, on the Mac CLang somehow is part of XCode so you may need to upgrade or install XCode if you dont already have it.
         <br>
         <br>
         Hardt and Booma builds on Linux (tested on Debian, but any distro should be fine), Mac and Raspberry Pi (with the Raspian OS, others  may work too).
@@ -229,9 +244,19 @@
         <ul><li class="command">booma-console -i AUDIO (input device number) -o (output device number)</li></ul>
         If you wish to run a remote setup, then it looks like this:
         <ul>
-            <li>(on the remote system) <span class="command">booma-remote -i AUDIO (input device number) -s (tcp port)</span></li>
-            <li>(on the local system) <span class="command">booma-console -r (ip address of the server) (tcp port)</span></li>
+            <li>(on the remote system) <span class="command">booma-remote -i AUDIO (input device number) -s (dataport) (commandport)</span></li>
+            <li>(on the local system) <span class="command">booma-console -i NETWORK (host) (dataport) (commandport)</span></li>
         </ul>
+        <br>
+        If you want to use an RTL-2832 dongle, you can split the setup exactly as with a soundcard input, or run locally.
+        <br><br>
+        Check the RTL-2832 device number:
+        <ul><li class="command">booma-console -r (or booma-remote -r)</li></ul>
+        then start booma-console:
+        <ul><li class="command">booma-console -i RTLSDR (input rtl device number) -o (output audio device number)</li></ul>
+        If you run a remote setup with an RTL-2832 dongle, you must also tell the local booma-console what type of data and source
+        you are using. This will typically by <u>IQ</u> for frequencies above 28MHz and <u>Q</u> for lower frequencies:
+        <ul><li class="command">booma-console -i NETWORK (host) (dataport) (commandport) -o (output audio device number) -it IQ|Q -is RTLSDR</li></ul>
         There are other options as well, just run <span class="command">booma-console -h</span> to get help.
         <br><br>
         <b>Important note:</b> On some systems, PortAudio may not be accessible to regular users, so <span class="command">booma-console -c</span> will
