@@ -118,7 +118,7 @@ bool BoomaOutput::SetDumpAudio(bool enabled) {
 }
 
 int BoomaOutput::SetVolume(int volume) {
-    if( volume > 10 || volume < 0 ) {
+    if( volume > 100 || volume < 0 ) {
         return false;
     }
     _outputVolume->SetGain(volume);

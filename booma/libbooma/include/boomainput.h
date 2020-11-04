@@ -56,6 +56,8 @@ public:
 
         void Run(int blocks = 0);
 
+        void Halt();
+
         bool SetDumpRf(bool enabled);
 
         bool SetFrequency(ConfigOptions* opts, int frequency);

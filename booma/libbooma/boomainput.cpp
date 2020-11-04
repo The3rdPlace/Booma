@@ -183,6 +183,10 @@ void BoomaInput::Run(int blocks) {
     }
 }
 
+void BoomaInput::Halt() {
+    (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Halt();
+}
+
 bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
     HLog("Input virtual frequency = %d", _virtualFrequency);
@@ -220,8 +224,8 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 int BoomaInput::SetRfGain(int gain) {
 
     if( gain <= 100 && gain > 0 ) {
-        _rfGain->SetGain((float) (gain * _preGain) / (float) 10);
+        _rfGain->SetGain(((float) (gain) / (float) 10) * (float) _preGain);
     }
 
-    return _rfGain->GetGain() * 10;
+    return (_rfGain->GetGain() / _preGain) * 10;
 }
