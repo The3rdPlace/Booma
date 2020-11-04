@@ -13,19 +13,18 @@ private:
 
     bool _enableProbes;
 
-    HPassThrough<int16_t>* _pt;
-    HProbe<int16_t>* _ptp;
-
+    HProbe<int16_t>* _inputFirFilterProbe;
     HProbe<int16_t>* _iqMultiplierProbe;
     HProbe<int16_t>* _iqFirFilterProbe;
-    HProbe<int16_t>* _translateByFourProbe;
+    HProbe<int16_t>* _basebandMultiplierProbe;
     HProbe<int16_t>* _lowpassFilterProbe;
     HProbe<int16_t>* _iqAdderProbe;
 
     // Preprocessing
+    HIqFirFilter<int16_t>* _inputFirFilter;
     HIqMultiplier<int16_t>* _iqMultiplier;
     HIqFirFilter<int16_t>* _iqFirFilter;
-    HTranslateByFour<int16_t>* _translateByFour;
+    HIqMultiplier<int16_t>* _basebandMultiplier;
     HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _lowpassFilter;
     HIqAddOrSubtractConverter<int16_t>* _iqAdder;
     HCollector<int16_t>* _collector;
@@ -51,7 +50,7 @@ private:
 
     bool SetInternalFrequency(ConfigOptions* opts, int frequency);
 
-    void OptionChanged(ConfigOptions* opts, std::string name, int value) {}
+    void OptionChanged(ConfigOptions* opts, std::string name, int value);
 
 public:
 
@@ -62,7 +61,7 @@ public:
         return "SSB";
     }
 
-    std::string GetOptionInfoString() { return ""; }
+    std::string GetOptionInfoString();
 };
 
 #endif
