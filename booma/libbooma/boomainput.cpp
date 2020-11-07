@@ -215,7 +215,8 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
     switch( opts->GetInputSourceType() ) {
         case RTLSDR:
             HLog("Setting RTL-SDR center frequency = %d", _hardwareFrequency);
-            return ((HRtl2832Reader<int16_t>*) _inputReader)->SetCenterFrequency(_hardwareFrequency);
+            return (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)
+                    ->Command(H_COMMAND_CLASS::TUNER, H_COMMAND_OPCODE::SET_FREQUENCY, _hardwareFrequency);
         default:
             return true;
     }
