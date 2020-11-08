@@ -1,3 +1,12 @@
+booma (1.1-0) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Added AM and SSB receivers
+  * Retired the old, direct conversion, cw receiver
+  * Added support for using RTL-2832 dongles as input devices
+
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 08 Nov 2020 21:35:00 +0200
+
 booma (1.0-11) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
