@@ -15,6 +15,7 @@ private:
 
     HProbe<int16_t>* _absConverterProbe;
     HProbe<int16_t>* _collectorProbe;
+    HProbe<int16_t>* _gainProbe;
 
     // Preprocessing
     // ...(empty)...
@@ -22,6 +23,7 @@ private:
     // Receiver
     HIq2AbsConverter<int16_t>* _absConverter;
     HCollector<int16_t>* _collector;
+    HGain<int16_t>* _gain;
 
     // Postprocessing
     // ...(empty)...

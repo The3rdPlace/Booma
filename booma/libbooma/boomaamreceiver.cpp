@@ -5,8 +5,10 @@ BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
         _enableProbes(opts->GetEnableProbes()),
         _absConverter(nullptr),
         _collector(nullptr),
+        _gain(nullptr),
         _absConverterProbe(nullptr),
-        _collectorProbe(nullptr) {}
+        _collectorProbe(nullptr),
+        _gainProbe(nullptr) {}
 
 HWriterConsumer<int16_t>* BoomaAmReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver preprocessing chain");
@@ -37,16 +39,24 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
 HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver postprocessing chain");
 
-    return previous;
+    // Add gain to adjust for the sidebands being received only having a quarter of the energy
+    // as the carrier.
+    HLog("Adding gain to adjust for lower signal level in the sidebands");
+    _gainProbe = new HProbe<int16_t>("amreceiver_03_gain", _enableProbes);
+    _gain = new HGain<int16_t>(previous, 4, BLOCKSIZE, _gainProbe);
+
+    return _gain->Consumer();
 }
 
 BoomaAmReceiver::~BoomaAmReceiver() {
 
     SAFE_DELETE(_absConverterProbe);
     SAFE_DELETE(_collectorProbe);
+    SAFE_DELETE(_gainProbe);
 
     SAFE_DELETE(_absConverter);
     SAFE_DELETE(_collector);
+    SAFE_DELETE(_gain);
 }
 
 bool BoomaAmReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
