@@ -1,7 +1,7 @@
 #include "boomaauroralreceiver.h"
 
 BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency):
-    BoomaReceiver(opts, initialFrequency, 10000),
+    BoomaReceiver(opts, initialFrequency, 10000, 1),
     _enableProbes(opts->GetEnableProbes()),
     _humfilterProbe(nullptr),
     _humfilter(nullptr) {}

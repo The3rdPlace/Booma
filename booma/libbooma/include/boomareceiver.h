@@ -28,6 +28,9 @@ class BoomaReceiver {
         double* _rfSpectrum;
         int _rfFftSize;
 
+        // Receiver outputlevel adjustment
+        HGain<int16_t>* _receiverLevel;
+
         // Audio spectrum reporting
         HFftOutput<int16_t>* _audioFft;
         HCustomWriter<HFftResults>* _audioFftWriter;
@@ -52,57 +55,17 @@ class BoomaReceiver {
         HProbe<int16_t>* _firDecimatorProbe;
         HProbe<int16_t>* _firFilterProbe;
         HProbe<int16_t>* _decimatorProbe;
+        HProbe<int16_t>* _receiverLevelProbe;
 
         std::vector<Option> _options;
 
         int _cutOff;
         int _frequency;
+        int _receiverGain;
 
         bool _hasBuilded;
 
-        bool SetOption(ConfigOptions* opts, std::string name, int value){
-            for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
-                if( (*it).Name == name ) {
-                    for( std::vector<OptionValue>::iterator valIt = (*it).Values.begin(); valIt != (*it).Values.end(); valIt++ ) {
-                        if( (*valIt).Value == value ) {
-
-                            // Discard repeated setting of the same value
-                            if( (*it).CurrentValue == value ) {
-                                HLog("Value is the same as the current value, discarding option set");
-                                return true;
-                            }
-
-                            // Set current value
-                            (*it).CurrentValue = value;
-
-                            // Update the stored copy of receiver options
-                            std::map<std::string, std::string> optionsMap;
-                            for( std::vector<Option>::iterator optIt = _options.begin(); optIt != _options.end(); optIt++ ) {
-                                for( std::vector<OptionValue>::iterator optValIt = (*optIt).Values.begin(); optValIt != (*optIt).Values.end(); optValIt++ ) {
-                                    if( (*optValIt).Value == (*optIt).CurrentValue ) {
-                                        optionsMap[(*optIt).Name] = (*optValIt).Name;
-                                        continue;
-                                    }
-                                }
-                            }
-                            opts->SetReceiverOptionsFor(GetName(), optionsMap);
-
-                            // Report the change to the receiver implementation
-                            if( _hasBuilded ) {
-                                OptionChanged(opts, name, value);
-                            }
-
-                            // Receiver option set
-                            return true;
-                        }
-                    }
-                    HError("Attempt to internal set receiver option '%s' to non-existing value %d", name.c_str(), value);
-                    return false;
-                }
-            }
-            HError("Attempt to internal set non-existing receiver option '%s' to value '%d'", name.c_str(), value);
-            return false;
-        };
+        bool SetOption(ConfigOptions* opts, std::string name, int value);
 
         HWriterConsumer<int16_t>* Decimate(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
@@ -134,12 +97,13 @@ class BoomaReceiver {
          *               as the upper cutoff frequency in the lowpass filter being applied
          *               by the FIR decimator, otherwise the highest frequency supported by
          *               the output samplerate will be used as cutoff frequency.
+         * @param receiverGain Gain provided by the receiver chain
          * @param decimate If true then the incomming samples will be decimated
          *                 from the 'device rate to 'output rate. The samples will be filtered
          *                 to the range [-cutOff; cutOff]
          *
          */
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff, bool decimate = false):
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff, int receiverGain, bool decimate = false):
             _hasBuilded(false),
             _frequency(initialFrequency),
             _cutOff(cutOff),
@@ -155,6 +119,7 @@ class BoomaReceiver {
             _iqDecimatorProbe(nullptr),
             _firDecimatorProbe(nullptr),
             _firFilterProbe(nullptr),
+            _receiverLevelProbe(nullptr),
             _decimatorProbe(nullptr),
             _decimate(decimate),
             _rfFft(nullptr),
@@ -166,11 +131,11 @@ class BoomaReceiver {
             _audioFftWindow(nullptr),
             _audioFftWriter(nullptr),
             _audioSpectrum(nullptr),
-            _audioFftSize(256) {
+            _audioFftSize(256),
+            _receiverGain(receiverGain),
+            _receiverLevel(nullptr) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
-            //_inputSamplerate = opts->GetInputSampleRate();
-            //_outputSamplerate = opts->GetOutputSampleRate();
         }
 
         bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
@@ -186,6 +151,7 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimator);
             SAFE_DELETE(_firFilter);
             SAFE_DELETE(_decimator);
+            SAFE_DELETE(_receiverLevel);
 
             SAFE_DELETE(_iqFirDecimatorProbe);
             SAFE_DELETE(_iqFirFilterProbe);
@@ -193,6 +159,7 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimatorProbe);
             SAFE_DELETE(_firFilterProbe);
             SAFE_DELETE(_decimatorProbe);
+            SAFE_DELETE(_receiverLevelProbe);
 
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
@@ -279,8 +246,13 @@ class BoomaReceiver {
             // Add postprocessing part of the receiver
             _postProcess = PostProcess(opts, _receive);
 
+            // If we have receivergain larger than 1, add damper
+            if( _receiverGain > 1 ) {
+                _receiverLevel = new HGain<int16_t>(_postProcess->Consumer(), (float) 1 / (float) _receiverGain, BLOCKSIZE, _receiverLevelProbe);
+            }
+
             // Add a splitter so that we can push fully processed samples through an optional decoder
-            _decoder = new HSplitter<int16_t>(_postProcess);
+            _decoder = new HSplitter<int16_t>(_receiverLevel != nullptr ? _receiverLevel->Consumer() : _postProcess->Consumer());
             if( decoder != NULL ) {
                 _decoder->SetWriter(decoder->Writer());
             }
