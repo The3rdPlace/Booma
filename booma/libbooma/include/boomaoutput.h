@@ -27,6 +27,7 @@ class BoomaOutput {
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
         int _signalStrength;
+        int _signalMax;
         double _signalSum;
 
         // Probes
@@ -45,6 +46,7 @@ class BoomaOutput {
 
         int GetSignalLevel();
         int GetSignalSum();
+        int GetSignalMax();
 };
 
 #endif
