@@ -15,10 +15,10 @@ void signalMeasurementWorker(std::future<void> future, BoomaApplication* app, bo
 {
     while( future.wait_for(std::chrono::milliseconds(1000)) == std::future_status::timeout ) {
         if( *shouldMark ) {
-            std::cout << "\r                     \r"  << app->GetSignalSum() << "  M" << std::endl;
+            std::cout << "\r                     \r"  << app->GetSignalSum() << " (max=" << app->GetSignalMax() << ", S=" << app->GetSignalLevel() << ") " << "  M" << std::endl;
             *shouldMark = false;
         } else {
-            std::cout << "\r                     \r"  << app->GetSignalSum();
+            std::cout << "\r                     \r"  << app->GetSignalSum() << " (max=" << app->GetSignalMax() << ", S=" << app->GetSignalLevel() << ")";
         }
         std::cout.flush();
     }

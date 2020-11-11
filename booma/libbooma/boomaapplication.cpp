@@ -194,6 +194,10 @@ double BoomaApplication::GetSignalSum() {
     return _output->GetSignalSum();
 }
 
+int BoomaApplication::GetSignalMax() {
+    return _output->GetSignalMax();
+}
+
 int BoomaApplication::GetRfFftSize() {
     return _receiver->GetRfFftSize();
 }

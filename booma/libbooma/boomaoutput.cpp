@@ -98,6 +98,7 @@ int BoomaOutput::SignalLevelCallback(HSignalLevelResult* result, size_t length) 
 
     // Store the current level
     _signalStrength = result->S;
+    _signalMax = result->Max;
 
     // Store the signal sum, scaled
     _signalSum = (int) (result->Sum / BLOCKSIZE);
@@ -110,6 +111,10 @@ int BoomaOutput::GetSignalLevel() {
 
 int BoomaOutput::GetSignalSum() {
     return _signalSum;
+}
+
+int BoomaOutput::GetSignalMax() {
+    return _signalMax;
 }
 
 bool BoomaOutput::SetDumpAudio(bool enabled) {
