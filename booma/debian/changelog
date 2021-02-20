@@ -1,3 +1,10 @@
+boo    ma (1.1-1) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Checked signallevel measurements and added more info to the measurement mode
+
+ -- Mackie <henrik@hardttoolkit.org>  Wed, 11 Nov 2020 22:35:00 +0200
+
 booma (1.1-0) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
