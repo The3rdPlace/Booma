@@ -3,6 +3,7 @@
 BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _outputVolume(nullptr),
         _outputFilter(nullptr),
+        _soundcardMultiplexer(nullptr),
         _soundcardWriter(nullptr),
         _nullWriter(nullptr),
         _audioWriter(nullptr),
@@ -32,7 +33,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 10);
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
-    // Add AGC and volume control
+    // Add volume control
     HLog("- Output volume");
     _outputVolumeProbe = new HProbe<int16_t>("output_01_output_volume", opts->GetEnableProbes());
     _outputVolume = new HGain<int16_t>(_audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
@@ -65,8 +66,13 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     }
     else
     {
+        HLog("Initializing multiplexer for 2-channel mono output");
+        std::vector<HWriterConsumer<int16_t>*> consumers;
+        consumers.push_back(_outputFilter->Consumer());
+        _soundcardMultiplexer = new HMux<int16_t>(consumers, BLOCKSIZE, true);
+
         HLog("Initializing audio output device %d", opts->GetOutputAudioDevice());
-        _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _outputFilter->Consumer());
+        _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 2, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _soundcardMultiplexer->Consumer());
         _nullWriter = nullptr;
         _pcmWriter = nullptr;
         _wavWriter = nullptr;
@@ -78,6 +84,7 @@ BoomaOutput::~BoomaOutput() {
     SAFE_DELETE(_outputVolume);
     SAFE_DELETE(_outputFilter);
 
+    SAFE_DELETE(_soundcardMultiplexer);
     SAFE_DELETE(_soundcardWriter);
     SAFE_DELETE(_nullWriter);
     SAFE_DELETE(_pcmWriter);

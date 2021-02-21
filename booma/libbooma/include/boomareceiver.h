@@ -28,9 +28,6 @@ class BoomaReceiver {
         double* _rfSpectrum;
         int _rfFftSize;
 
-        // Receiver outputlevel adjustment
-        HGain<int16_t>* _receiverLevel;
-
         // Audio spectrum reporting
         HFftOutput<int16_t>* _audioFft;
         HCustomWriter<HFftResults>* _audioFftWriter;
@@ -55,13 +52,11 @@ class BoomaReceiver {
         HProbe<int16_t>* _firDecimatorProbe;
         HProbe<int16_t>* _firFilterProbe;
         HProbe<int16_t>* _decimatorProbe;
-        HProbe<int16_t>* _receiverLevelProbe;
 
         std::vector<Option> _options;
 
         int _cutOff;
         int _frequency;
-        int _receiverGain;
 
         bool _hasBuilded;
 
@@ -103,7 +98,7 @@ class BoomaReceiver {
          *                 to the range [-cutOff; cutOff]
          *
          */
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff, int receiverGain, bool decimate = false):
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff, bool decimate = false):
             _hasBuilded(false),
             _frequency(initialFrequency),
             _cutOff(cutOff),
@@ -119,7 +114,6 @@ class BoomaReceiver {
             _iqDecimatorProbe(nullptr),
             _firDecimatorProbe(nullptr),
             _firFilterProbe(nullptr),
-            _receiverLevelProbe(nullptr),
             _decimatorProbe(nullptr),
             _decimate(decimate),
             _rfFft(nullptr),
@@ -131,9 +125,7 @@ class BoomaReceiver {
             _audioFftWindow(nullptr),
             _audioFftWriter(nullptr),
             _audioSpectrum(nullptr),
-            _audioFftSize(256),
-            _receiverGain(receiverGain),
-            _receiverLevel(nullptr) {
+            _audioFftSize(256) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
         }
@@ -151,7 +143,6 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimator);
             SAFE_DELETE(_firFilter);
             SAFE_DELETE(_decimator);
-            SAFE_DELETE(_receiverLevel);
 
             SAFE_DELETE(_iqFirDecimatorProbe);
             SAFE_DELETE(_iqFirFilterProbe);
@@ -159,7 +150,6 @@ class BoomaReceiver {
             SAFE_DELETE(_firDecimatorProbe);
             SAFE_DELETE(_firFilterProbe);
             SAFE_DELETE(_decimatorProbe);
-            SAFE_DELETE(_receiverLevelProbe);
 
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
@@ -246,13 +236,8 @@ class BoomaReceiver {
             // Add postprocessing part of the receiver
             _postProcess = PostProcess(opts, _receive);
 
-            // If we have receivergain larger than 1, add damper
-            if( _receiverGain > 1 ) {
-                _receiverLevel = new HGain<int16_t>(_postProcess->Consumer(), (float) 1 / (float) _receiverGain, BLOCKSIZE, _receiverLevelProbe);
-            }
-
             // Add a splitter so that we can push fully processed samples through an optional decoder
-            _decoder = new HSplitter<int16_t>(_receiverLevel != nullptr ? _receiverLevel->Consumer() : _postProcess->Consumer());
+            _decoder = new HSplitter<int16_t>(_postProcess->Consumer());
             if( decoder != NULL ) {
                 _decoder->SetWriter(decoder->Writer());
             }

@@ -171,11 +171,9 @@ bool BoomaApplication::GetDumpAudio() {
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
-    if( _input->SetRfGain(gain) == gain ) {
-        _opts->SetRfGain(gain);
-        return true;
-    }
-    return false;
+    _opts->SetRfGain(gain);
+    _input->SetRfGain(_opts->GetRfGain());
+    return true;
 }
 
 bool BoomaApplication::ChangeRfGain(int stepSize) {

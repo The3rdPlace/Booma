@@ -79,11 +79,11 @@ class ConfigOptions {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
 
-        // First stage gain (default 10 = 1)
-        int _rfGain = 10;
+        // First stage gain (default 100)
+        int _rfGain = 100;
 
         // Output volume
-        int _volume = 5;
+        int _volume = 20;
 
         // Dump pcm and audio
         bool _dumpRf = false;
@@ -186,11 +186,17 @@ class ConfigOptions {
         }
 
         int GetRfGain() {
-            return _rfGain;
+            if( _inputSourceType == RTLSDR && _inputSourceDataType == IQ_INPUT_SOURCE_DATA_TYPE) {
+                return 1;
+            } else {
+                return _rfGain;
+            }
         }
 
         void SetRfGain(int gain) {
-            _rfGain = gain;
+            if( _inputSourceType != RTLSDR  || _inputSourceDataType != IQ_INPUT_SOURCE_DATA_TYPE) {
+                _rfGain = gain;
+            }
         }
 
         int GetVolume() {

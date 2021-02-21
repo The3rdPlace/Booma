@@ -71,7 +71,7 @@ float BoomaCwReceiver::_cwCoeffs[] =
 };
 
 BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
-    BoomaReceiver(opts, initialFrequency, 3000, 10,true),
+    BoomaReceiver(opts, initialFrequency, 3000, true),
     _enableProbes(opts->GetEnableProbes()),
     _humfilterProbe(nullptr),
     _iq2IConverterProbe(nullptr),
@@ -183,7 +183,6 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         // Get the I branch ==> convert to realvalued samples
         _iq2IConverterProbe = new HProbe<int16_t>("cwreceiver_02_iq2iconverter", _enableProbes);
         _iq2IConverter = new HIq2IConverter<int16_t>(_iqMultiplier->Consumer(), BLOCKSIZE, _iq2IConverterProbe);
-
 
         // Return signal at IF = 6KHz
         return _iq2IConverter->Consumer();

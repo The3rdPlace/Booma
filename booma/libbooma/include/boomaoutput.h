@@ -9,6 +9,7 @@ class BoomaOutput {
 
     private:
 
+        HMux<int16_t>* _soundcardMultiplexer;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
         HFileWriter<int16_t>* _pcmWriter;

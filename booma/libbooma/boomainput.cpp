@@ -11,8 +11,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _rfGain(nullptr),
     _rfGainProbe(nullptr),
     _ifMultiplier(nullptr),
-    _ifMultiplierProbe(nullptr),
-    _preGain(1) {
+    _ifMultiplierProbe(nullptr) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -49,13 +48,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(_inputReader, BLOCKSIZE, isTerminated);
     }
 
-    // Set a pregain when using devices that delivers smaller datatypes
-    if( opts->GetOriginalInputSourceType() == RTLSDR ) {
-
-        // RTL-SDR dongles delivers 8 bit data, which is converted without scaling to 16 bit
-        _preGain = 8;
-    }
-
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter");
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
@@ -78,7 +70,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     // Add RF gain
     HLog("Setting up RF gain");
     _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
-    _rfGain = new HGain<int16_t>(_passthrough->Consumer(), ((float) opts->GetRfGain() / (float) 10) * (float) _preGain, BLOCKSIZE, _rfGainProbe);
+    _rfGain = new HGain<int16_t>(_passthrough->Consumer(), opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
@@ -89,8 +81,13 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device");
         _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 100, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 10, BLOCKSIZE, _ifMultiplierProbe);
     }
+
+    // Add agc to attempt to provide a common output to the receiver chain
+    HLog("Setting up AGC");
+    _rfAgcProbe = new HProbe<int16_t>("input_03_rf_agc", opts->GetEnableProbes());
+    _rfAgc = new HAgc<int16_t>(_ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer(),5000, 10000, 3, 3, BLOCKSIZE, _rfAgcProbe);
 }
 
 BoomaInput::~BoomaInput() {
@@ -106,10 +103,12 @@ BoomaInput::~BoomaInput() {
 
     SAFE_DELETE(_passthrough);
     SAFE_DELETE(_rfGain);
+    SAFE_DELETE(_rfAgc);
     SAFE_DELETE(_ifMultiplier);
 
     SAFE_DELETE(_passthroughProbe);
     SAFE_DELETE(_rfGainProbe);
+    SAFE_DELETE(_rfAgcProbe);
     SAFE_DELETE(_ifMultiplierProbe);
 }
 
@@ -223,10 +222,6 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 }
 
 int BoomaInput::SetRfGain(int gain) {
-
-    if( gain <= 100 && gain > 0 ) {
-        _rfGain->SetGain(((float) (gain) / (float) 10) * (float) _preGain);
-    }
-
-    return (_rfGain->GetGain() / _preGain) * 10;
+    _rfGain->SetGain(gain);
+    return _rfGain->GetGain();
 }
