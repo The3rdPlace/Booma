@@ -98,7 +98,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     // Add agc to attempt to provide a common output to the receiver chain
     HLog("Setting up AGC");
     _rfAgcProbe = new HProbe<int16_t>("input_03_rf_agc", opts->GetEnableProbes());
-    _rfAgc = new HAgc<int16_t>(_ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer(),5000, 10000, 3, 3, BLOCKSIZE, _rfAgcProbe);
+    _rfAgc = new HAgc<int16_t>(_ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer(),5000, 6000, 3, 3, BLOCKSIZE, _rfAgcProbe);
 }
 
 BoomaInput::~BoomaInput() {
