@@ -4,6 +4,8 @@
 #include <hardtapi.h>
 #include "configoptions.h"
 #include "boomaexception.h"
+#include "boomaprocessor.h"
+#include "boomainputreader.h"
 #include "booma.h"
 
 class BoomaInput {
@@ -12,27 +14,26 @@ public:
 
     private:
 
-        HStreamProcessor<int16_t>* _streamProcessor;
-        HNetworkProcessor<int16_t>* _networkProcessor;
+        BoomaProcessor* _processor;
 
-        HReader<int16_t>* _inputReader;
+        BoomaInputReader* _inputReader;
         HWriter<int16_t>* _rfWriter;
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
         HPassThrough<int16_t>* _passthrough;
         HGain<int16_t>* _rfGain;
+        HAgc<int16_t >* _rfAgc;
         HIqMultiplier<int16_t>* _ifMultiplier;
 
         HProbe<int16_t>* _passthroughProbe;
         HProbe<int16_t>* _rfGainProbe;
+        HProbe<int16_t>* _rfAgcProbe;
         HProbe<int16_t>* _ifMultiplierProbe;
 
         int _virtualFrequency;
         int _hardwareFrequency;
         int _ifFrequency;
-
-        int _preGain;
 
         bool SetInputReader(ConfigOptions* opts);
         bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
@@ -51,7 +52,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer();
+            return _rfAgc->Consumer();
         }
 
         void Run(int blocks = 0);

@@ -409,7 +409,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        if( strcmp(argv[i], "-ro") == 0 && i < argc - 2) {
+        if( strcmp(argv[i], "-ro") == 0 && i < argc - 1) {
             std::string s(argv[i + 1]);
             int pos = s.find("=");
             if( pos < 0 ) {
