@@ -186,17 +186,11 @@ class ConfigOptions {
         }
 
         int GetRfGain() {
-            if( (_inputSourceType == RTLSDR || _originalInputSourceType == RTLSDR) && _inputSourceDataType == IQ_INPUT_SOURCE_DATA_TYPE ) {
-                return 1;
-            } else {
-                return _rfGain;
-            }
+            return _rfGain;
         }
 
         void SetRfGain(int gain) {
-            if( (_inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR)  || _inputSourceDataType != IQ_INPUT_SOURCE_DATA_TYPE) {
-                _rfGain = gain;
-            }
+            _rfGain = gain;
         }
 
         int GetVolume() {

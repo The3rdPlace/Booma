@@ -1,3 +1,11 @@
+booma (1.1-2) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Adjusting levels between receivers
+  * Using unsigned 8bit reader and processor for rtlsdr
+
+ -- Mackie <henrik@hardttoolkit.org>  Thu, 25 Feb 2021 00:50:00 +0100
+
 booma (1.1-1) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

@@ -94,11 +94,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 10, BLOCKSIZE, _ifMultiplierProbe);
     }
-
-    // Add agc to attempt to provide a common output to the receiver chain
-    HLog("Setting up AGC");
-    _rfAgcProbe = new HProbe<int16_t>("input_03_rf_agc", opts->GetEnableProbes());
-    _rfAgc = new HAgc<int16_t>(_ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer(),5000, 6000, 3, 3, BLOCKSIZE, _rfAgcProbe);
 }
 
 BoomaInput::~BoomaInput() {
@@ -113,12 +108,10 @@ BoomaInput::~BoomaInput() {
 
     SAFE_DELETE(_passthrough);
     SAFE_DELETE(_rfGain);
-    SAFE_DELETE(_rfAgc);
     SAFE_DELETE(_ifMultiplier);
 
     SAFE_DELETE(_passthroughProbe);
     SAFE_DELETE(_rfGainProbe);
-    SAFE_DELETE(_rfAgcProbe);
     SAFE_DELETE(_ifMultiplierProbe);
 }
 
