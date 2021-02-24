@@ -4,6 +4,8 @@
 #include <hardtapi.h>
 #include "configoptions.h"
 #include "boomaexception.h"
+#include "boomaprocessor.h"
+#include "boomainputreader.h"
 #include "booma.h"
 
 class BoomaInput {
@@ -12,10 +14,9 @@ public:
 
     private:
 
-        HStreamProcessor<int16_t>* _streamProcessor;
-        HNetworkProcessor<int16_t>* _networkProcessor;
+        BoomaProcessor* _processor;
 
-        HReader<int16_t>* _inputReader;
+        BoomaInputReader* _inputReader;
         HWriter<int16_t>* _rfWriter;
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;

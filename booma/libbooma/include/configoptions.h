@@ -186,7 +186,7 @@ class ConfigOptions {
         }
 
         int GetRfGain() {
-            if( _inputSourceType == RTLSDR && _inputSourceDataType == IQ_INPUT_SOURCE_DATA_TYPE) {
+            if( (_inputSourceType == RTLSDR || _originalInputSourceType == RTLSDR) && _inputSourceDataType == IQ_INPUT_SOURCE_DATA_TYPE ) {
                 return 1;
             } else {
                 return _rfGain;
@@ -194,7 +194,7 @@ class ConfigOptions {
         }
 
         void SetRfGain(int gain) {
-            if( _inputSourceType != RTLSDR  || _inputSourceDataType != IQ_INPUT_SOURCE_DATA_TYPE) {
+            if( (_inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR)  || _inputSourceDataType != IQ_INPUT_SOURCE_DATA_TYPE) {
                 _rfGain = gain;
             }
         }
