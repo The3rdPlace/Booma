@@ -1,3 +1,10 @@
+booma (1.1-3) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Move decimation of IQ/I/Q signals up before the processor
+
+ -- Mackie <henrik@hardttoolkit.org>  Sat, 27 Feb 2021 16:00:00 +0100
+
 booma (1.1-2) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

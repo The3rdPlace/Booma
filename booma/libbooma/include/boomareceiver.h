@@ -36,23 +36,6 @@ class BoomaReceiver {
         double* _audioSpectrum;
         int _audioFftSize;
 
-        // Decimation
-        bool _decimate;
-        HIqFirDecimator<int16_t>* _iqFirDecimator;
-        HIqFirFilter<int16_t>* _iqFirFilter;
-        HIqDecimator<int16_t>* _iqDecimator;
-        HFirDecimator<int16_t>* _firDecimator;
-        HFirFilter<int16_t>* _firFilter;
-        HDecimator<int16_t>* _decimator;
-
-        // Probes
-        HProbe<int16_t>* _iqFirDecimatorProbe;
-        HProbe<int16_t>* _iqFirFilterProbe;
-        HProbe<int16_t>* _iqDecimatorProbe;
-        HProbe<int16_t>* _firDecimatorProbe;
-        HProbe<int16_t>* _firFilterProbe;
-        HProbe<int16_t>* _decimatorProbe;
-
         std::vector<Option> _options;
 
         int _cutOff;
@@ -61,8 +44,6 @@ class BoomaReceiver {
         bool _hasBuilded;
 
         bool SetOption(ConfigOptions* opts, std::string name, int value);
-
-        HWriterConsumer<int16_t>* Decimate(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
     protected:
 
@@ -88,34 +69,12 @@ class BoomaReceiver {
          *
          * @param opts Receiver options
          * @param initialFrequency The initial frequency being received on
-         * @param cutOff If decimating and if cutOff is not 0 (zero), then this is used
-         *               as the upper cutoff frequency in the lowpass filter being applied
-         *               by the FIR decimator, otherwise the highest frequency supported by
-         *               the output samplerate will be used as cutoff frequency.
-         * @param receiverGain Gain provided by the receiver chain
-         * @param decimate If true then the incomming samples will be decimated
-         *                 from the 'device rate to 'output rate. The samples will be filtered
-         *                 to the range [-cutOff; cutOff]
-         *
          */
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff, bool decimate = false):
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff):
             _hasBuilded(false),
             _frequency(initialFrequency),
             _cutOff(cutOff),
             _spectrum(nullptr),
-            _iqFirDecimator(nullptr),
-            _iqFirFilter(nullptr),
-            _iqDecimator(nullptr),
-            _firDecimator(nullptr),
-            _firFilter(nullptr),
-            _decimator(nullptr),
-            _iqFirDecimatorProbe(nullptr),
-            _iqFirFilterProbe(nullptr),
-            _iqDecimatorProbe(nullptr),
-            _firDecimatorProbe(nullptr),
-            _firFilterProbe(nullptr),
-            _decimatorProbe(nullptr),
-            _decimate(decimate),
             _rfFft(nullptr),
             _rfFftWindow(nullptr),
             _rfFftWriter(nullptr),
@@ -130,26 +89,10 @@ class BoomaReceiver {
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
         }
 
-        bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
-
     public:
 
         virtual ~BoomaReceiver() {
             SAFE_DELETE(_spectrum);
-
-            SAFE_DELETE(_iqFirDecimator);
-            SAFE_DELETE(_iqFirFilter);
-            SAFE_DELETE(_iqDecimator);
-            SAFE_DELETE(_firDecimator);
-            SAFE_DELETE(_firFilter);
-            SAFE_DELETE(_decimator);
-
-            SAFE_DELETE(_iqFirDecimatorProbe);
-            SAFE_DELETE(_iqFirFilterProbe);
-            SAFE_DELETE(_iqDecimatorProbe);
-            SAFE_DELETE(_firDecimatorProbe);
-            SAFE_DELETE(_firFilterProbe);
-            SAFE_DELETE(_decimatorProbe);
 
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
@@ -224,11 +167,8 @@ class BoomaReceiver {
             _rfSpectrum = new double[_rfFftSize / 2];
             memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
 
-            // Apply decimation - if requested
-            HWriterConsumer<int16_t>* decimatedConsumer = Decimate(opts, _spectrum);
-
             // Add preprocessing part of the receiver
-            _preProcess = PreProcess(opts, decimatedConsumer);
+            _preProcess = PreProcess(opts, _spectrum);
 
             // Add the receiver chain
             _receive = Receive(opts, _preProcess);
