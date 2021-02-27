@@ -75,11 +75,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     } else {
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
-
-    // Add RF gain
-    HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
-    _rfGain = new HGain<int16_t>(_rfSplitter->Consumer(), opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
 }
 
 BoomaInput::~BoomaInput() {
@@ -293,6 +288,11 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
         throw new BoomaInputException("No possible decimation factors to go from the input samplerate to the output samplerate");
     }
 
+    // Add RF gain
+    HLog("Setting up RF gain");
+    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
+    _rfGain = new HGain<int16_t>(_inputReader, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
+
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
     if( opts->GetOriginalInputSourceType() == RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
@@ -301,8 +301,8 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection());
-        _ifMultiplierProbe = new HProbe<int16_t>("input_01_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_inputReader, opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 100, 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Reader(), opts->GetInputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 150, 10, BLOCKSIZE, _ifMultiplierProbe);
     }
 
     // Decimation for IQ signals
@@ -310,9 +310,9 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
-        _iqFirDecimatorProbe = new HProbe<int16_t>("input_02_iq_fir_decimator", opts->GetEnableProbes());
+        _iqFirDecimatorProbe = new HProbe<int16_t>("input_03_iq_fir_decimator", opts->GetEnableProbes());
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
-            _ifMultiplier != nullptr ? _ifMultiplier->Reader() : _inputReader,
+            _ifMultiplier != nullptr ? _ifMultiplier->Reader() : _rfGain->Reader(),
             firstFactor,
             HLowpassKaiserBessel<int16_t>(_cutOff * 2, opts->GetInputSampleRate(), 15,120).Calculate(),
             15, BLOCKSIZE,
@@ -321,7 +321,7 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
 
         // Extra Fir filter to remove signals outside of the passband
         HLog("Creating lowpass FIR filter");
-        _iqFirFilterProbe = new HProbe<int16_t>("input_03_iq_fir_filter", opts->GetEnableProbes());
+        _iqFirFilterProbe = new HProbe<int16_t>("input_04_iq_fir_filter", opts->GetEnableProbes());
         _iqFirFilter = new HIqFirFilter<int16_t>(
             _iqFirDecimator->Reader(),
             HLowpassKaiserBessel<int16_t>(_cutOff, opts->GetInputSampleRate() / firstFactor,25, 120).Calculate(),
@@ -332,7 +332,7 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _iqDecimatorProbe = new HProbe<int16_t>("input_04_iq_decimator", opts->GetEnableProbes());
+            _iqDecimatorProbe = new HProbe<int16_t>("input_05_iq_decimator", opts->GetEnableProbes());
             _iqDecimator = new HIqDecimator<int16_t>(
                     _iqFirFilter->Reader(),
                     secondFactor,
@@ -347,18 +347,18 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
-        _firDecimatorProbe = new HProbe<int16_t>("receiver_01_fir_decimator", opts->GetEnableProbes());
+        _firDecimatorProbe = new HProbe<int16_t>("input_06_fir_decimator", opts->GetEnableProbes());
         _firDecimator = new HFirDecimator<int16_t>(_ifMultiplier != nullptr ? _ifMultiplier->Reader() : _inputReader, firstFactor, HLowpassKaiserBessel<int16_t>(_cutOff, opts->GetInputSampleRate(), 15,96).Calculate(), 15, BLOCKSIZE, _firDecimatorProbe);
 
         // Extra Fir filter to remove signals outside of the 3Khz passband
         HLog("Creating lowpass FIR filter");
-        _firFilterProbe = new HProbe<int16_t>("receiver_02_fir_filter", opts->GetEnableProbes());
+        _firFilterProbe = new HProbe<int16_t>("input_07_fir_filter", opts->GetEnableProbes());
         _firFilter = new HFirFilter<int16_t>(_firDecimator->Consumer(),HLowpassKaiserBessel<int16_t>(_cutOff, opts->GetInputSampleRate() / firstFactor,15, 96).Calculate(), 15, BLOCKSIZE, _firFilterProbe);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _decimatorProbe = new HProbe<int16_t>("receiver_03_decimator", opts->GetEnableProbes());
+            _decimatorProbe = new HProbe<int16_t>("input_07_decimator", opts->GetEnableProbes());
             _decimator = new HDecimator<int16_t>(_firFilter->Consumer(), 3, BLOCKSIZE, _decimatorProbe);
         }
     }

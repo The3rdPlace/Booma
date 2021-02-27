@@ -75,7 +75,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _rfGain->Consumer();
+            return _rfSplitter->Consumer();
         }
 
         void Run(int blocks = 0);
