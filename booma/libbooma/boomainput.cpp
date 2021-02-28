@@ -162,6 +162,11 @@ bool BoomaInput::SetInputReader(ConfigOptions* opts) {
             throw new BoomaInputException("Unknown input source type specified");
     }
 
+    // Add RF gain
+    HLog("Setting up RF gain");
+    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
+    _rfGain = new HGain<int16_t>(_inputReader, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
+
     // Setup decimation
     return SetDecimation(opts);
 }
@@ -287,11 +292,6 @@ bool BoomaInput::SetDecimation(ConfigOptions* opts) {
         HError("No possible decimation factors to go from %d to %d", opts->GetInputSampleRate(), opts->GetOutputSampleRate());
         throw new BoomaInputException("No possible decimation factors to go from the input samplerate to the output samplerate");
     }
-
-    // Add RF gain
-    HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
-    _rfGain = new HGain<int16_t>(_inputReader, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks

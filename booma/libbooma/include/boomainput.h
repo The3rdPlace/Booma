@@ -57,7 +57,7 @@ public:
             } else if( _decimator != nullptr ) {
                 return _decimator->Reader();
             } else {
-                return _inputReader;
+                return _rfGain;
             }
         }
 
