@@ -25,41 +25,30 @@ public:
         HProbe<int16_t>* _rfGainProbe;
 
         // Decimation
-        int _cutOff;
         HProbe<int16_t>* _ifMultiplierProbe;
         HProbe<int16_t>* _iqFirDecimatorProbe;
-        HProbe<int16_t>* _iqFirFilterProbe;
         HProbe<int16_t>* _iqDecimatorProbe;
         HProbe<int16_t>* _firDecimatorProbe;
-        HProbe<int16_t>* _firFilterProbe;
         HProbe<int16_t>* _decimatorProbe;
 
+        HGain<int16_t>* _decimatorGain;
         HIqMultiplier<int16_t>* _ifMultiplier;
         HIqFirDecimator<int16_t>* _iqFirDecimator;
-        HIqFirFilter<int16_t>* _iqFirFilter;
         HIqDecimator<int16_t>* _iqDecimator;
         HFirDecimator<int16_t>* _firDecimator;
-        HFirFilter<int16_t>* _firFilter;
         HDecimator<int16_t>* _decimator;
+
+        HWriterConsumer<int16_t>* _lastConsumer;
 
         int _virtualFrequency;
         int _hardwareFrequency;
         int _ifFrequency;
 
-        bool SetInputReader(ConfigOptions* opts);
+        HReader<int16_t>* SetInputReader(ConfigOptions* opts);
         bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
         bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
-        bool SetDecimation(ConfigOptions* opts);
-
-        HReader<int16_t>* GetInputReader() {
-            if( _iqDecimator != nullptr ) {
-                return _iqDecimator->Reader();
-            } else if( _decimator != nullptr ) {
-                return _decimator->Reader();
-            } else {
-                return _rfGain;
-            }
-        }
+        HReader<int16_t>* SetDecimation(ConfigOptions* opts, HReader<int16_t>* reader);
+        HWriterConsumer<int16_t>* SetGainAndShift(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
 
     public:
 
@@ -75,7 +64,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _rfSplitter->Consumer();
+            return _lastConsumer;
         }
 
         void Run(int blocks = 0);

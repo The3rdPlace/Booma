@@ -59,6 +59,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
     std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
     std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
+    std::cout << tr("Decimation gain for high rate inputs (default 4)         -dg gain") << std::endl;
+    std::cout << tr("Decimation bandwidth, positive freqs. (default 3KHz)     -dco cutoff") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
@@ -443,6 +445,22 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Decimation gain
+        if( strcmp(argv[i], "-dg") == 0 && i < argc - 1) {
+            _decimatorGain = atoi(argv[i + 1]);
+            HLog("Decimation gain set to %d", _decimatorGain);
+            i++;
+            continue;
+        }
+
+        // Decimation cutoff frequency (bandwith of positive freq band)
+        if( strcmp(argv[i], "-dco") == 0 && i < argc - 1) {
+            _decimatorCutoff = atoi(argv[i + 1]);
+            HLog("Decimation cutoff frequency set to %d", _decimatorCutoff);
+            i++;
+            continue;
+        }
+
         // Server for remote input
         if( strcmp(argv[i], "-s") == 0 && i < argc - 2) {
             _remoteDataPort = atoi(argv[i + 1]);
@@ -693,6 +711,10 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "wavFile" )                 _wavFile = value;
             if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
             if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if( name == "rtlsdrCorrection" )       _rtlsdrCorrection = atoi(value.c_str());
+            if( name == "rtlsdrOffset" )           _rtlsdrOffset = atoi(value.c_str());
+            if( name == "decimatorGain" )          _decimatorGain = atoi(value.c_str());
+            if( name == "decimatorCutoff" )        _decimatorCutoff = atoi(value.c_str());
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -791,6 +813,10 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "wavFile=" << _wavFile << std::endl;
     configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
+    configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
+    configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
+    configStream << "decimatorGain=" << _decimatorGain << std::endl;
+    configStream << "decimatorCutoff" << _decimatorCutoff;
 
     // Done writing the config file
     configStream.close();

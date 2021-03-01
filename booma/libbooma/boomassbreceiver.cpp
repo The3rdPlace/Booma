@@ -37,7 +37,7 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
     HLog("Creating SSB receiver preprocessing chain");
 
     _inputFirFilterProbe = new HProbe<int16_t>("ssbreceiver_01_inputfirfilter", _enableProbes);
-    _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(3000, opts->GetOutputSampleRate(), 15, 50).Calculate(), 15, BLOCKSIZE, _inputFirFilterProbe);
+    _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(2000, opts->GetOutputSampleRate(), 15, 50).Calculate(), 15, BLOCKSIZE, _inputFirFilterProbe);
 
     // Move the center frequency up to 3000 (place the carrier at 3KHz)
     _iqMultiplierProbe = new HProbe<int16_t>("ssbreceiver_02_iqmultiplier", _enableProbes);
@@ -54,7 +54,6 @@ HWriterConsumer<int16_t>* BoomaSsbReceiver::PreProcess(ConfigOptions* opts, HWri
     // Move the carrier back down to zero
     _basebandMultiplierProbe = new HProbe<int16_t>("ssbreceiver_04_basebandmultiplier", _enableProbes);
     _basebandMultiplier = new HIqMultiplier<int16_t>(_iqFirFilter->Consumer(), opts->GetOutputSampleRate(), -3000, 10, BLOCKSIZE, _basebandMultiplierProbe);
-
     return _basebandMultiplier->Consumer();
 }
 

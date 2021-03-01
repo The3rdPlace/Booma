@@ -62,9 +62,11 @@ class ConfigOptions {
         // Input device
         int _inputDevice = -1;
 
-        // RTL-SDR specific settings
+        // RTL-SDR and IQ/I/Q specific settings
         int _rtlsdrCorrection = 0;
         int _rtlsdrOffset = 10000;
+        int _decimatorGain = 4;
+        int _decimatorCutoff = 3000;
 
         // Initial or last used frequency
         long int _frequency = 17200;
@@ -287,6 +289,22 @@ class ConfigOptions {
 
         std::string GetOutputFilename() {
             return _outputFilename;
+        }
+
+        int GetDecimatorGain() {
+            return _decimatorGain;
+        }
+
+        void SetDecimatorGain(int gain) {
+            _decimatorGain = gain;
+        }
+
+        int GetDecimatorCutoff() {
+            return _decimatorCutoff;
+        }
+
+        void SetDecimatorCutoff(int cutoff) {
+            _decimatorCutoff = cutoff;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);
