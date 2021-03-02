@@ -13,17 +13,20 @@ private:
 
     bool _enableProbes;
 
+    HProbe<int16_t>* _inputFirFilterProbe;
     HProbe<int16_t>* _absConverterProbe;
     HProbe<int16_t>* _collectorProbe;
     HProbe<int16_t>* _gainProbe;
+    HProbe<int16_t>* _outputFilterProbe;
 
     // Preprocessing
-    // ...(empty)...
+    HGain<int16_t>* _gain;
+    HIqFirFilter<int16_t>* _inputFirFilter;
 
     // Receiver
     HIq2AbsConverter<int16_t>* _absConverter;
     HCollector<int16_t>* _collector;
-    HGain<int16_t>* _gain;
+    HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>* _outputFilter;
 
     // Postprocessing
     // ...(empty)...

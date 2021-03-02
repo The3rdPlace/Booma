@@ -62,7 +62,7 @@ class ConfigOptions {
         // Input device
         int _inputDevice = -1;
 
-        // RTL-SDR specific settings
+        // RTL-SDR and IQ/I/Q specific settings
         int _rtlsdrCorrection = 0;
         int _rtlsdrOffset = 10000;
 
@@ -118,6 +118,13 @@ class ConfigOptions {
 
         std::map<std::string, std::string> _receiverOptions;
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
+
+        // Internal values, usually left at standard values.
+        // These are not settable while running, so they must be set when starting the application
+        int _decimatorCutoff = 3000;
+        int _decimatorGain = 2;
+        int _rtlsdrCorrectionFactor = 150;
+        int _firFilterSize = 25;
 
     public:
 
@@ -287,6 +294,22 @@ class ConfigOptions {
 
         std::string GetOutputFilename() {
             return _outputFilename;
+        }
+
+        int GetDecimatorGain() {
+            return _decimatorGain;
+        }
+
+        int GetDecimatorCutoff() {
+            return _decimatorCutoff;
+        }
+
+        int GetRtlsdrCorrectionFactor() {
+            return _rtlsdrCorrectionFactor;
+        }
+
+        int GetFirFilterSize() {
+            return _firFilterSize;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

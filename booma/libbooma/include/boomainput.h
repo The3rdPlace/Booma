@@ -4,8 +4,7 @@
 #include <hardtapi.h>
 #include "configoptions.h"
 #include "boomaexception.h"
-#include "boomaprocessor.h"
-#include "boomainputreader.h"
+#include "boomainputexception.h"
 #include "booma.h"
 
 class BoomaInput {
@@ -14,27 +13,42 @@ public:
 
     private:
 
-        BoomaProcessor* _processor;
+        HStreamProcessor<int16_t>* _streamProcessor;
+        HNetworkProcessor<int16_t>* _networkProcessor;
 
-        BoomaInputReader* _inputReader;
+        HReader<int16_t>* _inputReader;
         HWriter<int16_t>* _rfWriter;
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
-        HPassThrough<int16_t>* _passthrough;
         HGain<int16_t>* _rfGain;
-        HIqMultiplier<int16_t>* _ifMultiplier;
-
-        HProbe<int16_t>* _passthroughProbe;
         HProbe<int16_t>* _rfGainProbe;
+
+        // Decimation
         HProbe<int16_t>* _ifMultiplierProbe;
+        HProbe<int16_t>* _iqFirDecimatorProbe;
+        HProbe<int16_t>* _iqDecimatorProbe;
+        HProbe<int16_t>* _firDecimatorProbe;
+        HProbe<int16_t>* _decimatorProbe;
+
+        HGain<int16_t>* _decimatorGain;
+        HIqMultiplier<int16_t>* _ifMultiplier;
+        HIqFirDecimator<int16_t>* _iqFirDecimator;
+        HIqDecimator<int16_t>* _iqDecimator;
+        HFirDecimator<int16_t>* _firDecimator;
+        HDecimator<int16_t>* _decimator;
+
+        HWriterConsumer<int16_t>* _lastConsumer;
 
         int _virtualFrequency;
         int _hardwareFrequency;
         int _ifFrequency;
 
-        bool SetInputReader(ConfigOptions* opts);
+        HReader<int16_t>* SetInputReader(ConfigOptions* opts);
         bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
+        bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
+        HReader<int16_t>* SetDecimation(ConfigOptions* opts, HReader<int16_t>* reader);
+        HWriterConsumer<int16_t>* SetGainAndShift(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
 
     public:
 
@@ -50,7 +64,7 @@ public:
         ~BoomaInput();
 
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
-            return _ifMultiplier != nullptr ? _ifMultiplier->Consumer() : _rfGain->Consumer();
+            return _lastConsumer;
         }
 
         void Run(int blocks = 0);
