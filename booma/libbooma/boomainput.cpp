@@ -134,20 +134,19 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
         case RTLSDR:
             switch(opts->GetInputSourceDataType()) {
                 case InputSourceDataType::IQ_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for IQ data", opts->GetInputDevice());
+                    HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::I_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for I(nphase) data", opts->GetInputDevice());
+                    HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::Q_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data", opts->GetInputDevice());
-                    HLog("Offset %d Correction %d hardware %d", opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), _hardwareFrequency);
+                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum)", opts->GetInputDevice());
+                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
                     _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 default:
@@ -293,7 +292,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
-        _iqFirDecimatorProbe = new HProbe<int16_t>("input_03_iq_fir_decimator", opts->GetEnableProbes());
+        _iqFirDecimatorProbe = new HProbe<int16_t>("input_01_iq_fir_decimator", opts->GetEnableProbes());
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
             _decimatorGain->Reader(),
             firstFactor,
@@ -305,7 +304,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _iqDecimatorProbe = new HProbe<int16_t>("input_05_iq_decimator", opts->GetEnableProbes());
+            _iqDecimatorProbe = new HProbe<int16_t>("input_02_iq_decimator", opts->GetEnableProbes());
             _iqDecimator = new HIqDecimator<int16_t>(
                     _iqFirDecimator->Reader(),
                     secondFactor,
@@ -323,13 +322,13 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
-        _firDecimatorProbe = new HProbe<int16_t>("input_06_fir_decimator", opts->GetEnableProbes());
+        _firDecimatorProbe = new HProbe<int16_t>("input_03_fir_decimator", opts->GetEnableProbes());
         _firDecimator = new HFirDecimator<int16_t>(_decimatorGain->Reader(), firstFactor, HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), 25,96).Calculate(), 25, BLOCKSIZE, _firDecimatorProbe);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _decimatorProbe = new HProbe<int16_t>("input_07_decimator", opts->GetEnableProbes());
+            _decimatorProbe = new HProbe<int16_t>("input_04_decimator", opts->GetEnableProbes());
             _decimator = new HDecimator<int16_t>(_firDecimator->Reader(), 3, BLOCKSIZE, _decimatorProbe);
             return _decimator->Reader();
         } else {
@@ -347,7 +346,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
 
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_01_rf_gain", opts->GetEnableProbes());
+    _rfGainProbe = new HProbe<int16_t>("input_05_rf_gain", opts->GetEnableProbes());
     _rfGain = new HGain<int16_t>(previous, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
@@ -358,7 +357,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * 150));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_02_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplierProbe = new HProbe<int16_t>("input_06_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 150, 10, BLOCKSIZE, _ifMultiplierProbe);
         return _ifMultiplier->Consumer();
     } else {
