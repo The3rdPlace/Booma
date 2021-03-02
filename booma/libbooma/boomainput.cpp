@@ -291,13 +291,14 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
     if(opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == I_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == Q_INPUT_SOURCE_DATA_TYPE ) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
-        HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
+        HLog("Creating FIR decimator with factor %d = %d -> %d with FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
         _iqFirDecimatorProbe = new HProbe<int16_t>("input_01_iq_fir_decimator", opts->GetEnableProbes());
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
             _decimatorGain->Reader(),
             firstFactor,
-            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff() * 2, opts->GetInputSampleRate(), 25,120).Calculate(),
-            25, BLOCKSIZE,
+            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff() * 2, opts->GetInputSampleRate(), opts->GetFirFilterSize(),120).Calculate(),
+            opts->GetFirFilterSize(),
+            BLOCKSIZE,
             true,
             _iqFirDecimatorProbe);
 
@@ -321,9 +322,15 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
     else if(opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
-        HLog("Creating FIR decimator with factor %d = %d -> %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor);
+        HLog("Creating FIR decimator with factor %d = %d -> %d and FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
         _firDecimatorProbe = new HProbe<int16_t>("input_03_fir_decimator", opts->GetEnableProbes());
-        _firDecimator = new HFirDecimator<int16_t>(_decimatorGain->Reader(), firstFactor, HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), 25,96).Calculate(), 25, BLOCKSIZE, _firDecimatorProbe);
+        _firDecimator = new HFirDecimator<int16_t>(
+                _decimatorGain->Reader(),
+                firstFactor,
+                HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), opts->GetFirFilterSize(),96).Calculate(),
+                opts->GetFirFilterSize(),
+                BLOCKSIZE,
+                _firDecimatorProbe);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
@@ -356,9 +363,9 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
         // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
-        HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * 150));
+        HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
         _ifMultiplierProbe = new HProbe<int16_t>("input_06_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * 150, 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
         return _ifMultiplier->Consumer();
     } else {
         return _rfGain->Consumer();

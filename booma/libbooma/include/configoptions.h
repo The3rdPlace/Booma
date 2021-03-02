@@ -65,8 +65,6 @@ class ConfigOptions {
         // RTL-SDR and IQ/I/Q specific settings
         int _rtlsdrCorrection = 0;
         int _rtlsdrOffset = 10000;
-        int _decimatorGain = 4;
-        int _decimatorCutoff = 3000;
 
         // Initial or last used frequency
         long int _frequency = 17200;
@@ -120,6 +118,13 @@ class ConfigOptions {
 
         std::map<std::string, std::string> _receiverOptions;
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
+
+        // Internal values, usually left at standard values.
+        // These are not settable while running, so they must be set when starting the application
+        int _decimatorCutoff = 3000;
+        int _decimatorGain = 2;
+        int _rtlsdrCorrectionFactor = 150;
+        int _firFilterSize = 25;
 
     public:
 
@@ -295,16 +300,16 @@ class ConfigOptions {
             return _decimatorGain;
         }
 
-        void SetDecimatorGain(int gain) {
-            _decimatorGain = gain;
-        }
-
         int GetDecimatorCutoff() {
             return _decimatorCutoff;
         }
 
-        void SetDecimatorCutoff(int cutoff) {
-            _decimatorCutoff = cutoff;
+        int GetRtlsdrCorrectionFactor() {
+            return _rtlsdrCorrectionFactor;
+        }
+
+        int GetFirFilterSize() {
+            return _firFilterSize;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);
