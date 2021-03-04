@@ -122,7 +122,8 @@ class ConfigOptions {
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
         int _decimatorCutoff = 3000;
-        int _decimatorGain = 2;
+        int _decimatorGain = 0; // = auto
+        int _decimatorAgcLevel = 2000;
         int _rtlsdrCorrectionFactor = 150;
         int _firFilterSize = 25;
 
@@ -310,6 +311,10 @@ class ConfigOptions {
 
         int GetFirFilterSize() {
             return _firFilterSize;
+        }
+
+        int GetDecimatorAgcLevel() {
+            return _decimatorAgcLevel;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

@@ -11,11 +11,14 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _networkProcessor(nullptr),
     _streamProcessor(nullptr),
     _decimatorGain(nullptr),
+    _decimatorAgc(nullptr),
     _ifMultiplierProbe(nullptr),
     _iqFirDecimatorProbe(nullptr),
     _iqDecimatorProbe(nullptr),
     _firDecimatorProbe(nullptr),
     _decimatorProbe(nullptr),
+    _decimatorGainProbe(nullptr),
+    _decimatorAgcProbe(nullptr),
     _ifMultiplier(nullptr),
     _iqFirDecimator(nullptr),
     _iqDecimator(nullptr),
@@ -84,6 +87,7 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_networkProcessor);
 
     SAFE_DELETE(_decimatorGain);
+    SAFE_DELETE(_decimatorAgc);
     SAFE_DELETE(_ifMultiplierProbe);
     SAFE_DELETE(_iqFirDecimatorProbe);
     SAFE_DELETE(_iqDecimatorProbe);
@@ -94,6 +98,8 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_iqDecimator);
     SAFE_DELETE(_firDecimator);
     SAFE_DELETE(_decimator);
+    SAFE_DELETE(_decimatorGainProbe);
+    SAFE_DELETE(_decimatorAgcProbe);
 
     SAFE_DELETE(_inputReader);
     SAFE_DELETE(_rfWriter);
@@ -285,16 +291,24 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
     }
 
     // Decimators require a tiny bit of gain to overcome the loss in the FIR filters
-    _decimatorGain = new HGain<int16_t>(previous, opts->GetDecimatorGain(), BLOCKSIZE);
+    if( opts->GetDecimatorGain() > 0 ) {
+        HLog("Using fixed gain=%d before decimator", opts->GetDecimatorGain());
+        _decimatorGainProbe = new HProbe<int16_t>("input_01_decimator_gain", opts->GetEnableProbes());
+        _decimatorGain = new HGain<int16_t>(previous, opts->GetDecimatorGain(), BLOCKSIZE, _decimatorGainProbe);
+    } else {
+        HLog("Using agc at average value=2000 before decimator");
+        _decimatorAgcProbe = new HProbe<int16_t>("input_02_decimator_agc", opts->GetEnableProbes());
+        _decimatorAgc = new HAgc<int16_t>(previous, opts->GetDecimatorAgcLevel(), 50, BLOCKSIZE, 6, true, _decimatorAgcProbe);
+    }
 
     // Decimation for IQ signals
     if(opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == I_INPUT_SOURCE_DATA_TYPE || opts->GetInputSourceDataType() == Q_INPUT_SOURCE_DATA_TYPE ) {
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d with FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
-        _iqFirDecimatorProbe = new HProbe<int16_t>("input_01_iq_fir_decimator", opts->GetEnableProbes());
+        _iqFirDecimatorProbe = new HProbe<int16_t>("input_03_iq_fir_decimator", opts->GetEnableProbes());
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
-            _decimatorGain->Reader(),
+            (_decimatorGain != nullptr ? _decimatorGain : _decimatorAgc)->Reader(),
             firstFactor,
             HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff() * 2, opts->GetInputSampleRate(), opts->GetFirFilterSize(),120).Calculate(),
             opts->GetFirFilterSize(),
@@ -305,7 +319,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _iqDecimatorProbe = new HProbe<int16_t>("input_02_iq_decimator", opts->GetEnableProbes());
+            _iqDecimatorProbe = new HProbe<int16_t>("input_04_iq_decimator", opts->GetEnableProbes());
             _iqDecimator = new HIqDecimator<int16_t>(
                     _iqFirDecimator->Reader(),
                     secondFactor,
@@ -323,9 +337,9 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d and FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
-        _firDecimatorProbe = new HProbe<int16_t>("input_03_fir_decimator", opts->GetEnableProbes());
+        _firDecimatorProbe = new HProbe<int16_t>("input_05_fir_decimator", opts->GetEnableProbes());
         _firDecimator = new HFirDecimator<int16_t>(
-                _decimatorGain->Reader(),
+                (_decimatorGain != nullptr ? _decimatorGain : _decimatorAgc)->Reader(),
                 firstFactor,
                 HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), opts->GetFirFilterSize(),96).Calculate(),
                 opts->GetFirFilterSize(),
@@ -335,7 +349,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _decimatorProbe = new HProbe<int16_t>("input_04_decimator", opts->GetEnableProbes());
+            _decimatorProbe = new HProbe<int16_t>("input_06_decimator", opts->GetEnableProbes());
             _decimator = new HDecimator<int16_t>(_firDecimator->Reader(), 3, BLOCKSIZE, _decimatorProbe);
             return _decimator->Reader();
         } else {
@@ -353,7 +367,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
 
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_05_rf_gain", opts->GetEnableProbes());
+    _rfGainProbe = new HProbe<int16_t>("input_07_rf_gain", opts->GetEnableProbes());
     _rfGain = new HGain<int16_t>(previous, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested

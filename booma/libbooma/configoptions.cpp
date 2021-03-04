@@ -62,7 +62,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Performance and quality]==") << std::endl;
-    std::cout << tr("Decimation gain for high rate inputs (default 2)         -dg gain") << std::endl;
+    std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
+    std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
     std::cout << tr("Decimation bandwidth, positive freqs. (default 3KHz)     -dco cutoff") << std::endl;
     std::cout << tr("RTL-SDR frequency correction factor (default 150)        -fcf factor") << std::endl;
     std::cout << tr("FIR filter size (default 25)                             -ffs cutoff") << std::endl;
@@ -458,6 +459,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Decimation AGC level
+        if( strcmp(argv[i], "-dal") == 0 && i < argc - 1) {
+            _decimatorAgcLevel = atoi(argv[i + 1]);
+            HLog("Decimation AGC level set to %d", _decimatorAgcLevel);
+            i++;
+            continue;
+        }
+
         // Decimation cutoff frequency (bandwith of positive freq band)
         if( strcmp(argv[i], "-dco") == 0 && i < argc - 1) {
             _decimatorCutoff = atoi(argv[i + 1]);
@@ -738,6 +747,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "decimatorCutoff" )        _decimatorCutoff = atoi(value.c_str());
             if( name == "rtlsdrCorrectionFactor" ) _rtlsdrCorrectionFactor= atoi(value.c_str());
             if( name == "firFilterSize" )          _firFilterSize =atoi(value.c_str());
+            if( name == "decimatorAgcLevel")       _decimatorAgcLevel = atoi(value.c_str());
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -842,6 +852,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "decimatorCutoff" << _decimatorCutoff << std::endl;
     configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
     configStream << "firFilterSize" << _firFilterSize << std::endl;
+    configStream << "decimatorAgcLevel=" << _decimatorAgcLevel << std::endl;
 
     // Done writing the config file
     configStream.close();
