@@ -1,3 +1,10 @@
+booma (1.1-4) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Allow using manual or automatic decimator gain
+
+ -- Mackie <henrik@hardttoolkit.org>  Thu, 04 Mar 2021 14:20:00 +0100
+
 booma (1.1-3) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

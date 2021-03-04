@@ -16,6 +16,8 @@ public:
         HStreamProcessor<int16_t>* _streamProcessor;
         HNetworkProcessor<int16_t>* _networkProcessor;
 
+        HProbe<int16_t>* _decimatorGainProbe;
+        HProbe<int16_t>* _decimatorAgcProbe;
         HReader<int16_t>* _inputReader;
         HWriter<int16_t>* _rfWriter;
         HSplitter<int16_t>* _rfSplitter;
@@ -32,6 +34,7 @@ public:
         HProbe<int16_t>* _decimatorProbe;
 
         HGain<int16_t>* _decimatorGain;
+        HAgc<int16_t>* _decimatorAgc;
         HIqMultiplier<int16_t>* _ifMultiplier;
         HIqFirDecimator<int16_t>* _iqFirDecimator;
         HIqDecimator<int16_t>* _iqDecimator;
