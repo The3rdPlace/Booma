@@ -623,6 +623,122 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     if( _inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR ) {
         _inputSampleRate = _outputSampleRate;
     }
+
+    // Dump info during startup
+    DumpConfigInfo();
+}
+
+void ConfigOptions::DumpConfigInfo() {
+    std::cout << "=====>" << std::endl;
+    std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
+
+    // Remote/local
+    if( _useRemoteHead ) {
+        std::cout << "Receiver for remote head with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
+    } else if( _isRemoteHead) {
+        std::cout << "Head for remote receiver on " << _remoteServer << " with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
+    }
+
+    // Input
+    switch( _inputSourceType ) {
+        case NO_INPUT_SOURCE_TYPE:
+            std::cout << "ERROR: No input type given!" << std::endl;
+            exit(1);
+        case AUDIO_DEVICE:
+            std::cout << "Input is audio device with id " << _inputDevice << " running with sampling rate " << _inputSampleRate << std::endl;
+            break;
+        case SIGNAL_GENERATOR:
+            std::cout << "Input is a generator running at frequency " << _signalGeneratorFrequency <<  " with sampling rate " << _inputSampleRate << std::endl;
+            break;
+        case PCM_FILE:
+            std::cout << "Input PCM is read from " << _pcmFile << " assuming 16 bit signed at sampling rate " << _inputSampleRate << std::endl;
+            break;
+        case WAV_FILE:
+            std::cout << "Input WAV is read from " << _wavFile << " assuming 16 bit signed at sampling rate " << _inputSampleRate << std::endl;
+            break;
+        case SILENCE:
+            std::cout << "Input is total silence" << std::endl;
+            break;
+        case NETWORK:
+            switch( _originalInputSourceType ) {
+                case AUDIO_DEVICE:
+                case SIGNAL_GENERATOR:
+                case PCM_FILE:
+                case WAV_FILE:
+                case SILENCE:
+                    std::cout << "Remote input is either an audio device, signalgenerator, pcm- or wavfile, or just silence." << std::endl;
+                    std::cout << "Remote input is running in REAL input mode at samplerate " << _inputSampleRate << std::endl;
+                    break;
+                case RTLSDR:
+                    std::cout << "Remote input is an RTL-SDR dongle." << std::endl;
+                    switch (_inputSourceDataType) {
+                        case IQ_INPUT_SOURCE_DATA_TYPE:
+                            std::cout << "Remote input is running in IQ mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            break;
+                        case I_INPUT_SOURCE_DATA_TYPE:
+                            std::cout << "Remote input is running in I mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            break;
+                        case Q_INPUT_SOURCE_DATA_TYPE:
+                            std::cout << "Remote input is running in Q mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            break;
+                        case REAL_INPUT_SOURCE_DATA_TYPE:
+                            std::cout << "Remote input is running in REAL mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            break;
+                        case NO_INPUT_SOURCE_DATA_TYPE:
+                            std::cout << "Remote input has  no input mode specified, assuming REAL, decimated to " << _outputSampleRate << std::endl;
+                            break;
+                    }
+                    std::cout << "Center frequency set to " << _frequency << " using offset " << _rtlsdrOffset << " and correction " << _rtlsdrCorrection << " * " << _rtlsdrCorrectionFactor << " = " << (_rtlsdrCorrection * _rtlsdrCorrectionFactor) << std::endl;
+                    break;
+                case NETWORK:
+                    std::cout << "Remote input is a remote receiver" << std::endl;
+                    break;
+                case NO_INPUT_SOURCE_TYPE:
+                    std::cout << "ERROR: No remote input type given. Receiver output will behave strangely!" << std::endl;
+                    break;
+            }
+            break;
+        case RTLSDR:
+            std::cout << "Input is an RTL-SDR dongle." << std::endl;
+            switch( _inputSourceDataType ) {
+                case IQ_INPUT_SOURCE_DATA_TYPE:
+                    std::cout << "Input is running in IQ mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    break;
+                case I_INPUT_SOURCE_DATA_TYPE:
+                    std::cout << "Input is running in I mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    break;
+                case Q_INPUT_SOURCE_DATA_TYPE:
+                    std::cout << "Input is running in Q mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    break;
+                case REAL_INPUT_SOURCE_DATA_TYPE:
+                    std::cout << "Input is running in REAL mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    break;
+                case NO_INPUT_SOURCE_DATA_TYPE:
+                    std::cout << "Input is running with no input mode specified, assuming REAL, decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    break;
+            }
+            std::cout << "Center frequency set to " << _frequency << " using offset " << _rtlsdrOffset << " and correction " << _rtlsdrCorrection << " * " << _rtlsdrCorrectionFactor << " = " << (_rtlsdrCorrection * _rtlsdrCorrectionFactor) << std::endl;
+            if( _decimatorGain == 0 ) {
+                std::cout << "Decimator gain set to auto using agc with minimum output level " << _decimatorAgcLevel << std::endl;
+            } else {
+                std::cout << "Decimator gain set to " << _decimatorGain << std::endl;
+            }
+            std::cout << "FIR Decimator running with " << _firFilterSize << " points and cutoff frequency " << _decimatorCutoff << std::endl;
+            break;
+    }
+
+    // Output
+    if( _outputFilename == "" ) {
+        if( _outputAudioDevice == -1 ) {
+            std::cout << "No output (silently discarding receiver output)" << std::endl;
+        } else {
+            std::cout << "Output to audio device with id " << _outputAudioDevice << " at samplerate " << _outputSampleRate << std::endl;
+        }
+    } else {
+        std::cout << "Output to file " << _outputFilename << std::endl;
+    }
+
+    std::cout << "<=====" << std::endl;
 }
 
 ConfigOptions::~ConfigOptions() {

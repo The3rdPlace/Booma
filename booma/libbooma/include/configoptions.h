@@ -111,6 +111,7 @@ class ConfigOptions {
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
         std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
+        void DumpConfigInfo();
 
         bool _enableProbes = false;
 
