@@ -623,6 +623,37 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     if( _inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR ) {
         _inputSampleRate = _outputSampleRate;
     }
+
+    // Dump info during startup
+    DumpConfigInfo();
+}
+
+void ConfigOptions::DumpConfigInfo() {
+    std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
+
+    // Remote/local
+    if( _useRemoteHead ) {
+        std::cout << "Receiver for remote head with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
+    } else {
+        std::cout << "Head for remote receiver on " << _remoteServer << " with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
+    }
+
+    // Input
+    switch( _inputSourceType ) {
+        case NO_INPUT_SOURCE_TYPE:
+            std::cout << "ERROR: No input type given" << std::endl;
+            exit(1);
+        case AUDIO_DEVICE:
+            std::cout << "Input is audio device " << _inputDevice << " running with sampling rate " << _inputSampleRate << std::endl;
+            break;
+        case SIGNAL_GENERATOR:
+        case PCM_FILE:
+        case WAV_FILE:
+        case SILENCE:
+        case NETWORK:
+        case RTLSDR:
+    }
+
 }
 
 ConfigOptions::~ConfigOptions() {
