@@ -1,3 +1,10 @@
+booma (1.1-5) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Output current configuration to console on startup
+
+ -- Mackie <henrik@hardttoolkit.org>  Fri, 05 Mar 2021 10:20:00 +0100
+
 booma (1.1-4) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

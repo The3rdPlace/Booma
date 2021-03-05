@@ -2,10 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <dirent.h>
-
-//#include <include/auroralreceiver.h>
 
 #include "booma.h"
 #include "configoptions.h"
@@ -100,6 +97,22 @@ void ConfigOptions::PrintAudioDevices() {
     }
 }
 
+std::string ConfigOptions::GetAudioDevice(int device) {
+
+    if( HSoundcard::AvailableDevices() == 0 )
+    {
+        return "(no devices)";
+    }
+    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
+    for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        if( (*it).Device == device ) {
+            return "\"" + (*it).Name + "\"";
+        }
+    }
+    return "(not found)";
+}
+
 void ConfigOptions::PrintRtlsdrDevices() {
     if( HRtl2832::AvailableDevices() == 0)
     {
@@ -114,6 +127,21 @@ void ConfigOptions::PrintRtlsdrDevices() {
         std::cout << "        \"" << (*it).Vendor << " " << (*it).Product << "\"" << std::endl;
         std::cout << std::endl;
     }
+}
+
+std::string ConfigOptions::GetRtlsdrDevice(int device) {
+    if( HRtl2832::AvailableDevices() == 0)
+    {
+        return "(no devices)";
+    }
+    std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
+    for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        if( (*it).Device == device ) {
+            return "\"" + (*it).Vendor + " " + (*it).Product + "\"";
+        }
+    }
+    return "(not found)";
 }
 
 bool ConfigOptions::IsVerbose(int argc, char** argv) {
@@ -645,7 +673,7 @@ void ConfigOptions::DumpConfigInfo() {
             std::cout << "ERROR: No input type given!" << std::endl;
             exit(1);
         case AUDIO_DEVICE:
-            std::cout << "Input is audio device with id " << _inputDevice << " running with sampling rate " << _inputSampleRate << std::endl;
+            std::cout << "Input is audio device " << GetAudioDevice(_inputDevice) << " running with sampling rate " << _inputSampleRate << std::endl;
             break;
         case SIGNAL_GENERATOR:
             std::cout << "Input is a generator running at frequency " << _signalGeneratorFrequency <<  " with sampling rate " << _inputSampleRate << std::endl;
@@ -699,7 +727,7 @@ void ConfigOptions::DumpConfigInfo() {
             }
             break;
         case RTLSDR:
-            std::cout << "Input is an RTL-SDR dongle." << std::endl;
+            std::cout << "Input is RTL-SDR dongle " << GetRtlsdrDevice(_inputDevice) << std::endl;
             switch( _inputSourceDataType ) {
                 case IQ_INPUT_SOURCE_DATA_TYPE:
                     std::cout << "Input is running in IQ mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
@@ -732,7 +760,7 @@ void ConfigOptions::DumpConfigInfo() {
         if( _outputAudioDevice == -1 ) {
             std::cout << "No output (silently discarding receiver output)" << std::endl;
         } else {
-            std::cout << "Output to audio device with id " << _outputAudioDevice << " at samplerate " << _outputSampleRate << std::endl;
+            std::cout << "Output to audio device " << GetAudioDevice(_outputAudioDevice) << " at samplerate " << _outputSampleRate << std::endl;
         }
     } else {
         std::cout << "Output to file " << _outputFilename << std::endl;

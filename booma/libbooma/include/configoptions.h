@@ -1,6 +1,10 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#include <stdlib.h>
+#include <iostream>
+#include <cstring>
+
 #include <hardtapi.h>
 
 /** Type of input device */
@@ -103,6 +107,8 @@ class ConfigOptions {
         void PrintUsage();
         void PrintAudioDevices();
         void PrintRtlsdrDevices();
+        std::string GetAudioDevice(int device);
+        std::string GetRtlsdrDevice(int device);
 
         bool ReadStoredConfig(std::string configname);
         void WriteStoredConfig(std::string configname);
