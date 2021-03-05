@@ -168,13 +168,16 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         // Return signal at IF = 6KHz
         return _ifMixer->Consumer();
     }
+
     // If we get iq data, then the input spectrum is centered with the tuned frequency at 0
     // so we need to move the (positive) frequency of interest to the IF frequency = 6KHz and
     // convert to realvalued samples at the output samplerate.
     // We do not need to filter away other frequencies, that is handled by the receivers IF filter.
     // Also, since we are decimating IQ samples, there will be nothing outside +- 3KHz, so by
     // moving the center to 6KHz, we translate all negative frequencies to positive.
-    if(opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE ) {
+    if( opts->GetInputSourceDataType() == IQ_INPUT_SOURCE_DATA_TYPE ||
+            opts->GetInputSourceDataType() == I_INPUT_SOURCE_DATA_TYPE ||
+            opts->GetInputSourceDataType() == Q_INPUT_SOURCE_DATA_TYPE) {
 
         // Move the center frequency up to 6KHz which is the IF frequency
         _iqMultiplierProbe = new HProbe<int16_t>("cwreceiver_01_iqmultiplier", _enableProbes);

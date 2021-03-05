@@ -112,6 +112,9 @@ bool BoomaApplication::InitializeReceiver() {
 
         // Setup output
         _output = new BoomaOutput(_opts, _receiver);
+
+        // Set frequency - important when using a remote receiver
+        SetFrequency(_opts->GetFrequency());
     }
     catch( BoomaException* e ) {
         HError("InitializeReceiver() Caught %s = %s", e->Type().c_str(), e->What().c_str() );
