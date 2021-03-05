@@ -870,6 +870,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "outputAudioDevice" )       _outputAudioDevice = atoi(value.c_str());
             if( name == "inputSourceType" )         _inputSourceType = (InputSourceType) atoi(value.c_str());
             if( name == "inputSourceDataType" )     _inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
+            if( name == "originalInputSourceType" ) _originalInputSourceType = (InputSourceType) atoi(value.c_str());
             if( name == "inputDevice" )             _inputDevice = atoi(value.c_str());
             if( name == "frequency" )               _frequency = atoi(value.c_str());
             if( name == "receiverModeType" )        _receiverModeType = (ReceiverModeType) atoi(value.c_str());
@@ -975,6 +976,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
     configStream << "inputSourceType=" << _inputSourceType << std::endl;
     configStream << "inputSourceDataType=" << _inputSourceDataType << std::endl;
+    configStream << "originalInputSourceType=" << _originalInputSourceType << std::endl;
     configStream << "inputDevice=" << _inputDevice << std::endl;
     configStream << "frequency=" << _frequency << std::endl;
     configStream << "receiverModeType=" << _receiverModeType << std::endl;
