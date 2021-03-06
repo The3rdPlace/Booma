@@ -200,6 +200,21 @@ int main(int argc, char** argv) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     app.Run();
                 }
+                if( opt == "SSB" ) {
+                    app.ChangeReceiver(ReceiverModeType::SSB);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    app.Run();
+                }
+                if( opt == "AM" ) {
+                    app.ChangeReceiver(ReceiverModeType::AM);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    app.Run();
+                }
+                if( opt == "AURORAL" ) {
+                    app.ChangeReceiver(ReceiverModeType::AURORAL);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    app.Run();
+                }
                 else
                 {
                     std::cout << "Unknown receiver type" << std::endl;
@@ -215,11 +230,11 @@ int main(int argc, char** argv) {
 
             // Get help
             else if( cmd == '?' || cmd == 'h' ) {
-                std::cout << "-------------------------------------------------------------------------------------" << std::endl;
+                std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
                 std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
                 std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
                 std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
-                std::cout << "Change receiver type:           r <CW|CW2|AURORAL> or  s (use current receiver and input)" << std::endl;
+                std::cout << "Change receiver type:           r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
                 std::cout << "Set receiver option:            o <NAME=VALUE>" << std::endl;
                 std::cout << "Toggle audio recording on/off:  a" << std::endl;
                 std::cout << "Toggle rf recording on/off:     p" << std::endl;
@@ -235,7 +250,7 @@ int main(int argc, char** argv) {
                 std::cout << "Get reception status:           i" << std::endl;
                 std::cout << "List receiver options:          l" << std::endl;
                 std::cout << "Quit:                           q" << std::endl;
-                std::cout << "-------------------------------------------------------------------------------------" << std::endl;
+                std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
             }
 
             // Get info
