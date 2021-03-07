@@ -69,9 +69,13 @@ class ConfigOptions {
         // RTL-SDR and IQ/I/Q specific settings
         int _rtlsdrCorrection = 0;
         int _rtlsdrOffset = 10000;
+        long int _rtlsdrAdjust = 0;
 
         // Initial or last used frequency
         long int _frequency = 17200;
+
+        // When used with up/down converters, shift frequencies with this amount
+        long int _shift = 0;
 
         // Receiver mode
         ReceiverModeType _receiverModeType = CW;
@@ -294,6 +298,14 @@ class ConfigOptions {
 
         int GetRtlsdrOffset() {
             return _rtlsdrOffset;
+        }
+
+        int GetRtlsdrAdjust() {
+            return _rtlsdrAdjust;
+        }
+
+        int GetShift() {
+            return _shift;
         }
 
         std::string GetDumpFileSuffix() {

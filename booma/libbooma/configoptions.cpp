@@ -56,6 +56,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
     std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
     std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
+    std::cout << tr("RTL-SDR tuning error alignment                           -rtla adjustment") << std::endl;
+    std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Performance and quality]==") << std::endl;
@@ -478,6 +480,20 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             i++;
             continue;
         }
+        if( strcmp(argv[i], "-rtla") == 0 && i < argc - 1) {
+            _rtlsdrAdjust = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency adjust set to %d", _rtlsdrAdjust);
+            i++;
+            continue;
+        }
+
+        // Frequency shift when used with converters
+        if( strcmp(argv[i], "-shift") == 0 && i < argc - 1) {
+            _shift = atoi(argv[i + 1]);
+            HLog("Frequency shift set to %d", _shift);
+            i++;
+            continue;
+        }
 
         // Decimation gain
         if( strcmp(argv[i], "-dg") == 0 && i < argc - 1) {
@@ -893,6 +909,8 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "rtlsdrCorrectionFactor" ) _rtlsdrCorrectionFactor= atoi(value.c_str());
             if( name == "firFilterSize" )          _firFilterSize =atoi(value.c_str());
             if( name == "decimatorAgcLevel")       _decimatorAgcLevel = atoi(value.c_str());
+            if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
+            if( name == "shift" )                  _shift = atoi(value.c_str());
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -999,6 +1017,8 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
     configStream << "firFilterSize" << _firFilterSize << std::endl;
     configStream << "decimatorAgcLevel=" << _decimatorAgcLevel << std::endl;
+    configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
+    configStream << "shift=" << _shift << std::endl;
 
     // Done writing the config file
     configStream.close();

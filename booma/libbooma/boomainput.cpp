@@ -190,10 +190,10 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     HLog("Input virtual frequency = %d", _virtualFrequency);
 
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
-        _hardwareFrequency = frequency - opts->GetRtlsdrOffset();
+        _hardwareFrequency = (frequency + opts->GetShift()) - opts->GetRtlsdrOffset() + opts->GetRtlsdrAdjust();
         _ifFrequency = 0;
     } else {
-        _hardwareFrequency = frequency;
+        _hardwareFrequency = frequency + opts->GetShift();
         _ifFrequency = frequency;
     }
 
