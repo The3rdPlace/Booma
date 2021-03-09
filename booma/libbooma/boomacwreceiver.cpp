@@ -71,7 +71,7 @@ float BoomaCwReceiver::_cwCoeffs[] =
 };
 
 BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
-    BoomaReceiver(opts, initialFrequency, 3000),
+    BoomaReceiver(opts, initialFrequency),
     _enableProbes(opts->GetEnableProbes()),
     _humfilterProbe(nullptr),
     _iq2IConverterProbe(nullptr),

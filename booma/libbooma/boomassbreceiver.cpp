@@ -1,7 +1,7 @@
 #include "boomassbreceiver.h"
 
 BoomaSsbReceiver::BoomaSsbReceiver(ConfigOptions* opts, int initialFrequency):
-        BoomaReceiver(opts, initialFrequency, 3000),
+        BoomaReceiver(opts, initialFrequency),
         _enableProbes(opts->GetEnableProbes()),
         _inputFirFilter(nullptr),
         _iqMultiplier(nullptr),

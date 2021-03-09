@@ -16,11 +16,9 @@ private:
     HProbe<int16_t>* _inputFirFilterProbe;
     HProbe<int16_t>* _absConverterProbe;
     HProbe<int16_t>* _collectorProbe;
-    HProbe<int16_t>* _gainProbe;
     HProbe<int16_t>* _outputFilterProbe;
 
     // Preprocessing
-    HGain<int16_t>* _gain;
     HIqFirFilter<int16_t>* _inputFirFilter;
 
     // Receiver

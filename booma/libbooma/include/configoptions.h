@@ -131,7 +131,6 @@ class ConfigOptions {
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
 
         // Decimation settings
-        int _decimatorCutoff = 3000;
         int _decimatorGain = 0; // = auto
         int _decimatorAgcLevel = 2000;
 
@@ -325,7 +324,7 @@ class ConfigOptions {
         }
 
         int GetDecimatorCutoff() {
-            return _decimatorCutoff;
+            return _rtlsdrOffset * 2;
         }
 
         int GetRtlsdrCorrectionFactor() {

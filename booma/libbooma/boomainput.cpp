@@ -310,7 +310,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
             (_decimatorGain != nullptr ? _decimatorGain : _decimatorAgc)->Reader(),
             firstFactor,
-            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff() * 2, opts->GetInputSampleRate(), opts->GetFirFilterSize(),120).Calculate(),
+            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), opts->GetFirFilterSize(),120).Calculate(),
             opts->GetFirFilterSize(),
             BLOCKSIZE,
             true,
@@ -378,8 +378,9 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_06_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplierProbe = new HProbe<int16_t>("input_08_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
+
         return _ifMultiplier->Consumer();
     } else {
         return _rfGain->Consumer();

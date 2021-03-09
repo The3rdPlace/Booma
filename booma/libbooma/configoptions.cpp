@@ -60,7 +60,6 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Performance and quality]==") << std::endl;
     std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
     std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
-    std::cout << tr("Decimation bandwidth, positive freqs. (default 3KHz)     -dco cutoff") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
@@ -516,14 +515,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Decimation cutoff frequency (bandwith of positive freq band)
-        if( strcmp(argv[i], "-dco") == 0 && i < argc - 1) {
-            _decimatorCutoff = atoi(argv[i + 1]);
-            HLog("Decimation cutoff frequency set to %d", _decimatorCutoff);
-            i++;
-            continue;
-        }
-
         // Frequency correction factor for rtl-sdr dongles
         if( strcmp(argv[i], "-fcf") == 0 && i < argc - 1) {
             _rtlsdrCorrectionFactor = atoi(argv[i + 1]);
@@ -798,7 +789,7 @@ void ConfigOptions::DumpConfigInfo() {
             } else {
                 std::cout << "Decimator gain set to " << _decimatorGain << std::endl;
             }
-            std::cout << "FIR Decimator running with " << _firFilterSize << " points and cutoff frequency " << _decimatorCutoff << std::endl;
+            std::cout << "FIR Decimator running with " << _firFilterSize << " points and cutoff frequency " << GetDecimatorCutoff() << std::endl;
             break;
     }
 
@@ -936,7 +927,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "rtlsdrCorrection" )       _rtlsdrCorrection = atoi(value.c_str());
             if( name == "rtlsdrOffset" )           _rtlsdrOffset = atoi(value.c_str());
             if( name == "decimatorGain" )          _decimatorGain = atoi(value.c_str());
-            if( name == "decimatorCutoff" )        _decimatorCutoff = atoi(value.c_str());
             if( name == "rtlsdrCorrectionFactor" ) _rtlsdrCorrectionFactor= atoi(value.c_str());
             if( name == "firFilterSize" )          _firFilterSize =atoi(value.c_str());
             if( name == "decimatorAgcLevel")       _decimatorAgcLevel = atoi(value.c_str());
@@ -1051,7 +1041,6 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
     configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
     configStream << "decimatorGain=" << _decimatorGain << std::endl;
-    configStream << "decimatorCutoff" << _decimatorCutoff << std::endl;
     configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
     configStream << "firFilterSize" << _firFilterSize << std::endl;
     configStream << "decimatorAgcLevel=" << _decimatorAgcLevel << std::endl;
