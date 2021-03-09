@@ -64,11 +64,12 @@ void ConfigOptions::PrintUsage() {
     std::cout << std::endl;
 
     std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
-    std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
-    std::cout << tr("RTL-SDR tuning error alignment                           -rtla adjustment") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction factor (default 150)        -fcf factor") << std::endl;
-    std::cout << tr("FIR filter size (default 25)                             -ffs cutoff") << std::endl;
+    std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
+    std::cout << tr("RTL-SDR tuning offset (default 5000)                     -rtlo offset") << std::endl;
+    std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
+    std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
+    std::cout << tr("FIR filter size, must be an uneven number! (default 51)  -ffs points") << std::endl;
+    std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
     std::cout << tr("Verbose debug output                                     -d --debug") << std::endl;

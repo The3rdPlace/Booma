@@ -130,15 +130,17 @@ class ConfigOptions {
         std::map<std::string, std::string> _receiverOptions;
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
 
-        // Internal values, usually left at standard values.
-        // These are not settable while running, so they must be set when starting the application
+        // Decimation settings
         int _decimatorCutoff = 3000;
         int _decimatorGain = 0; // = auto
         int _decimatorAgcLevel = 2000;
-        int _rtlsdrCorrection = 10;
+
+        // Internal values, usually left at standard values.
+        // These are not settable while running, so they must be set when starting the application
         int _rtlsdrOffset = 5000;
-        int _rtlsdrCorrectionFactor = 150;
-        int _firFilterSize = 25;
+        int _rtlsdrCorrection = 0;
+        int _rtlsdrCorrectionFactor = 0;
+        int _firFilterSize = 51;
 
     public:
 
