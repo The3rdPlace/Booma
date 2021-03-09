@@ -1,27 +1,20 @@
 #include "boomaamreceiver.h"
 
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
-        BoomaReceiver(opts, initialFrequency, 3000),
+        BoomaReceiver(opts, initialFrequency),
         _enableProbes(opts->GetEnableProbes()),
         _absConverter(nullptr),
         _collector(nullptr),
-        _gain(nullptr),
         _absConverterProbe(nullptr),
-        _collectorProbe(nullptr),
-        _gainProbe(nullptr) {}
+        _collectorProbe(nullptr) {}
 
 HWriterConsumer<int16_t>* BoomaAmReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver preprocessing chain");
 
     _inputFirFilterProbe = new HProbe<int16_t>("amreceiver_01_inputfirfilter", _enableProbes);
-    _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(3000, opts->GetOutputSampleRate(), 15, 50).Calculate(), 15, BLOCKSIZE, _inputFirFilterProbe);
+    _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(8000, opts->GetOutputSampleRate(), 25, 50).Calculate(), 25, BLOCKSIZE, _inputFirFilterProbe);
 
-    // Add gain to adjust for the sidebands being received only having a quarter of the energy
-    // as the carrier.
-    HLog("Adding gain to adjust for lower signal level in the sidebands");
-    _gainProbe = new HProbe<int16_t>("amreceiver_01_gain", _enableProbes);
-    _gain = new HGain<int16_t>(_inputFirFilter->Consumer(), 2, BLOCKSIZE, _gainProbe);
-
+    //return _gain->Consumer();
     return _inputFirFilter->Consumer();
 }
 
@@ -48,8 +41,8 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
 HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver postprocessing chain");
 
-    _outputFilterProbe = new HProbe<int16_t>("amreceiver_01_outputfilter", _enableProbes);
-    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(previous, 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE);
+    _outputFilterProbe = new HProbe<int16_t>("amreceiver_04_outputfilter", _enableProbes);
+    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(previous, 8000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _outputFilterProbe);
 
     return _outputFilter->Consumer();
 }
@@ -58,11 +51,9 @@ BoomaAmReceiver::~BoomaAmReceiver() {
 
     SAFE_DELETE(_absConverterProbe);
     SAFE_DELETE(_collectorProbe);
-    SAFE_DELETE(_gainProbe);
 
     SAFE_DELETE(_absConverter);
     SAFE_DELETE(_collector);
-    SAFE_DELETE(_gain);
 }
 
 bool BoomaAmReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {

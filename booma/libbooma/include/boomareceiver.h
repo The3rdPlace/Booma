@@ -38,7 +38,6 @@ class BoomaReceiver {
 
         std::vector<Option> _options;
 
-        int _cutOff;
         int _frequency;
 
         bool _hasBuilded;
@@ -70,10 +69,9 @@ class BoomaReceiver {
          * @param opts Receiver options
          * @param initialFrequency The initial frequency being received on
          */
-        BoomaReceiver(ConfigOptions* opts, int initialFrequency, int cutOff):
+        BoomaReceiver(ConfigOptions* opts, int initialFrequency):
             _hasBuilded(false),
             _frequency(initialFrequency),
-            _cutOff(cutOff),
             _spectrum(nullptr),
             _rfFft(nullptr),
             _rfFftWindow(nullptr),
