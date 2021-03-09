@@ -35,6 +35,15 @@ class BoomaOutput {
         HProbe<int16_t>* _outputVolumeProbe;
         HProbe<int16_t>* _outputFilterProbe;
 
+        // Frequency alignment
+        HSineGenerator<int16_t>* _frequencyAlignmentGenerator;
+        HLinearMixer<int16_t>* _frequencyAlignmentMixer;
+        HWriterConsumer<int16_t>* GetOutputFilterConsumer() {
+            return _frequencyAlignmentMixer == nullptr
+                    ? _outputFilter->Consumer()
+                    : _frequencyAlignmentMixer->Consumer();
+        }
+
         bool IsWav(std::string filename);
 
     public:

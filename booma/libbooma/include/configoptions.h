@@ -67,8 +67,6 @@ class ConfigOptions {
         int _inputDevice = -1;
 
         // RTL-SDR and IQ/I/Q specific settings
-        int _rtlsdrCorrection = 0;
-        int _rtlsdrOffset = 10000;
         long int _rtlsdrAdjust = 0;
 
         // Initial or last used frequency
@@ -107,6 +105,8 @@ class ConfigOptions {
         int _signalGeneratorFrequency = -1;
         std::string _pcmFile = "";
         std::string _wavFile = "";
+        bool _frequencyAlign = false;
+        int _frequencyAlignVolume = 500;
 
         void PrintUsage();
         void PrintAudioDevices();
@@ -135,6 +135,8 @@ class ConfigOptions {
         int _decimatorCutoff = 3000;
         int _decimatorGain = 0; // = auto
         int _decimatorAgcLevel = 2000;
+        int _rtlsdrCorrection = 10;
+        int _rtlsdrOffset = 5000;
         int _rtlsdrCorrectionFactor = 150;
         int _firFilterSize = 25;
 
@@ -334,6 +336,14 @@ class ConfigOptions {
 
         int GetDecimatorAgcLevel() {
             return _decimatorAgcLevel;
+        }
+
+        bool GetFrequencyAlign() {
+            return _frequencyAlign;
+        }
+
+        int GetFrequencyAlignVolume() {
+            return _frequencyAlignVolume;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

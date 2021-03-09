@@ -13,7 +13,9 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _signalLevel(nullptr),
         _signalLevelWriter(nullptr),
         _outputVolumeProbe(nullptr),
-        _outputFilterProbe(nullptr) {
+        _outputFilterProbe(nullptr),
+        _frequencyAlignmentGenerator(nullptr),
+        _frequencyAlignmentMixer(nullptr) {
 
     // Setup a splitter to split off audio dump and signal level metering
     HLog("Setting up output audio splitter");
@@ -34,7 +36,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
     // Add volume control
-    HLog("- Output volume");
+    HLog("Output volume");
     _outputVolumeProbe = new HProbe<int16_t>("output_01_output_volume", opts->GetEnableProbes());
     _outputVolume = new HGain<int16_t>(_audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
 
@@ -42,16 +44,23 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     _outputFilterProbe = new HProbe<int16_t>("output_02_output_filter", opts->GetEnableProbes());
     _outputFilter = new HFirFilter<int16_t>(_outputVolume->Consumer(), HLowpassKaiserBessel<int16_t>(4000, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
 
+    // Enable frequency alignment ?
+    if( opts->GetFrequencyAlign() ) {
+        HLog("Enabling ftl-sdr frequency alignment mode");
+        _frequencyAlignmentGenerator = new HSineGenerator<int16_t>(opts->GetOutputSampleRate(), 800, opts->GetFrequencyAlignVolume());
+        _frequencyAlignmentMixer = new HLinearMixer<int16_t>(_frequencyAlignmentGenerator->Reader(), _outputFilter->Consumer(), BLOCKSIZE);
+    }
+
     // Select output device
     if( opts->GetOutputFilename() != "" ) {
         HLog("Writing output audio to %s", opts->GetOutputFilename().c_str());
         if( IsWav(opts->GetOutputFilename()) ) {
             HLog("Creating output wav file");
-            _wavWriter = new HWavWriter<int16_t>(opts->GetOutputFilename().c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _outputFilter->Consumer());
+            _wavWriter = new HWavWriter<int16_t>(opts->GetOutputFilename().c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), GetOutputFilterConsumer());
             _pcmWriter = nullptr;
         } else {
             HLog("Creating output pcm file");
-            _pcmWriter = new HFileWriter<int16_t>(opts->GetOutputFilename().c_str(), _outputFilter->Consumer());
+            _pcmWriter = new HFileWriter<int16_t>(opts->GetOutputFilename().c_str(), GetOutputFilterConsumer());
             _wavWriter = nullptr;
         }
         _soundcardWriter = nullptr;
@@ -59,7 +68,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     }
     else if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
-        _nullWriter = new HNullWriter<int16_t>(_outputFilter->Consumer());
+        _nullWriter = new HNullWriter<int16_t>(GetOutputFilterConsumer());
         _soundcardWriter = nullptr;
         _pcmWriter = nullptr;
         _wavWriter = nullptr;
@@ -68,7 +77,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     {
         HLog("Initializing multiplexer for 2-channel mono output");
         std::vector<HWriterConsumer<int16_t>*> consumers;
-        consumers.push_back(_outputFilter->Consumer());
+        consumers.push_back(GetOutputFilterConsumer());
         _soundcardMultiplexer = new HMux<int16_t>(consumers, BLOCKSIZE, true);
 
         HLog("Initializing audio output device %d", opts->GetOutputAudioDevice());
@@ -99,6 +108,9 @@ BoomaOutput::~BoomaOutput() {
 
     SAFE_DELETE(_outputVolumeProbe);
     SAFE_DELETE(_outputFilterProbe);
+
+    SAFE_DELETE(_frequencyAlignmentGenerator);
+    SAFE_DELETE(_frequencyAlignmentMixer);
 }
 
 int BoomaOutput::SignalLevelCallback(HSignalLevelResult* result, size_t length) {

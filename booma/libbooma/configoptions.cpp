@@ -54,9 +54,6 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Options]==") << std::endl;
     std::cout << tr("Wait untill scheduled time                               -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
-    std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
-    std::cout << tr("RTL-SDR tuning error alignment                           -rtla adjustment") << std::endl;
     std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
     std::cout << std::endl;
 
@@ -64,9 +61,14 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
     std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
     std::cout << tr("Decimation bandwidth, positive freqs. (default 3KHz)     -dco cutoff") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
+    std::cout << tr("RTL-SDR frequency correction                             -rtlc correction") << std::endl;
+    std::cout << tr("RTL-SDR tuning offset                                    -rtlo offset") << std::endl;
+    std::cout << tr("RTL-SDR tuning error alignment                           -rtla adjustment") << std::endl;
     std::cout << tr("RTL-SDR frequency correction factor (default 150)        -fcf factor") << std::endl;
     std::cout << tr("FIR filter size (default 25)                             -ffs cutoff") << std::endl;
-    std::cout << std::endl;
 
     std::cout << tr("==[Debugging]==") << std::endl;
     std::cout << tr("Verbose debug output                                     -d --debug") << std::endl;
@@ -78,6 +80,8 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Write output to this file                                -o filename") << std::endl;
     std::cout << tr("Enable probes and halt after 100 blocks                  -x") << std::endl;
     std::cout << tr("Reset cached configuration                               -z") << std::endl;
+    std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
+    std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
 }
 
 void ConfigOptions::PrintAudioDevices() {
@@ -566,6 +570,32 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Enable frequency align mode
+        if( strcmp(argv[i], "-fa") == 0 ) {
+            _frequencyAlign = true;
+            _rtlsdrAdjust = 0;
+            std::cout << ("=====================================================") << std::endl;
+            std::cout << tr("Frequency align mode is enabled.") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("An 800Hz tone is superimposed on the output audio") << std::endl;
+            std::cout << tr("to help you find the offset error in your RTL-SDR") << std::endl;
+            std::cout << tr("dongle. Use this value with the -rtla parameter") << std::endl;
+            std::cout << tr("to enable precise tuning.") << std::endl;
+            std::cout << ("=====================================================") << std::endl;
+            HLog("Frequency alignment mode enabled");
+            continue;
+        }
+
+        // Frequency alignment volume
+        if( strcmp(argv[i], "-fav") == 0 && i < argc - 1) {
+            _frequencyAlignVolume = atoi(argv[i + 1]);
+            HLog("Frequency alignment volume set to %d", _frequencyAlignVolume);
+            i++;
+            continue;
+        }
+
         // Unknown parameter
         std::cout << tr("Unknown parameter") << " '" << argv[i] << "' (" << tr("use '-h' to show the help") << ")" << std::endl;
         exit(1);
@@ -945,6 +975,13 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
 
 
 void ConfigOptions::WriteStoredConfig(std::string configname) {
+
+    // If in frequency alignment mode, prevent writing the settings
+    if( _frequencyAlign ) {
+        std::cout << "Running in frequency alignment mode. Config changes is not saved" << std::endl;
+        HLog("Discarding config changes due to frequency alignment mode");
+        return;
+    }
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
