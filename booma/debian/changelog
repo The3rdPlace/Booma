@@ -1,3 +1,10 @@
+booma (1.1-7) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Add frequency align mode
+
+ -- Mackie <henrik@hardttoolkit.org>  Tue, 09 Mar 2021 11:10:00 +0100
+
 booma (1.1-6) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
