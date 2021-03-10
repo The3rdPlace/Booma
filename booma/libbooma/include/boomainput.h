@@ -23,8 +23,8 @@ public:
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
-        HGain<int16_t>* _rfGain;
-        HProbe<int16_t>* _rfGainProbe;
+        HAgc<int16_t>* _rfAgc;
+        HProbe<int16_t>* _rfAgcProbe;
         HIqFirFilter<int16_t>* _inputFirFilter;
         HProbe<int16_t>* _inputFirFilterProbe;
 

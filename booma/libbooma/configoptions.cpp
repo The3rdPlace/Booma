@@ -74,6 +74,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
         std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
+        std::cout << tr("Automatic RF gain level (default 10000)                  -ral level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
@@ -544,6 +545,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Automatic RF gain level
+        if( strcmp(argv[i], "-ral") == 0 && i < argc - 1) {
+            _rfAgcLevel = atoi(argv[i + 1]);
+            HLog("Automatic RF gain level set to %d", _rfAgcLevel);
+            i++;
+            continue;
+        }
+
         // Server for remote input
         if( strcmp(argv[i], "-s") == 0 && i < argc - 2) {
             _remoteDataPort = atoi(argv[i + 1]);
@@ -947,6 +956,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "decimatorAgcLevel")       _decimatorAgcLevel = atoi(value.c_str());
             if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
             if( name == "shift" )                  _shift = atoi(value.c_str());
+            if( name == "rfagclevel" )             _rfAgcLevel = atoi(value.c_str());
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -1061,6 +1071,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "decimatorAgcLevel=" << _decimatorAgcLevel << std::endl;
     configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
     configStream << "shift=" << _shift << std::endl;
+    configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
 
     // Done writing the config file
     configStream.close();

@@ -1,31 +1,31 @@
 #include "boomainput.h"
 
 BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
-    _inputReader(nullptr),
-    _rfWriter(nullptr),
-    _rfSplitter(nullptr),
-    _rfBreaker(nullptr),
-    _rfBuffer(nullptr),
-    _rfGain(nullptr),
-    _rfGainProbe(nullptr),
-    _networkProcessor(nullptr),
-    _streamProcessor(nullptr),
-    _decimatorGain(nullptr),
-    _decimatorAgc(nullptr),
-    _ifMultiplierProbe(nullptr),
-    _iqFirDecimatorProbe(nullptr),
-    _iqDecimatorProbe(nullptr),
-    _firDecimatorProbe(nullptr),
-    _decimatorProbe(nullptr),
-    _decimatorGainProbe(nullptr),
-    _decimatorAgcProbe(nullptr),
-    _ifMultiplier(nullptr),
-    _iqFirDecimator(nullptr),
-    _iqDecimator(nullptr),
-    _firDecimator(nullptr),
-    _decimator(nullptr),
-    _inputFirFilter(nullptr),
-    _inputFirFilterProbe(nullptr) {
+        _inputReader(nullptr),
+        _rfWriter(nullptr),
+        _rfSplitter(nullptr),
+        _rfBreaker(nullptr),
+        _rfBuffer(nullptr),
+        _rfAgc(nullptr),
+        _rfAgcProbe(nullptr),
+        _networkProcessor(nullptr),
+        _streamProcessor(nullptr),
+        _decimatorGain(nullptr),
+        _decimatorAgc(nullptr),
+        _ifMultiplierProbe(nullptr),
+        _iqFirDecimatorProbe(nullptr),
+        _iqDecimatorProbe(nullptr),
+        _firDecimatorProbe(nullptr),
+        _decimatorProbe(nullptr),
+        _decimatorGainProbe(nullptr),
+        _decimatorAgcProbe(nullptr),
+        _ifMultiplier(nullptr),
+        _iqFirDecimator(nullptr),
+        _iqDecimator(nullptr),
+        _firDecimator(nullptr),
+        _decimator(nullptr),
+        _inputFirFilter(nullptr),
+        _inputFirFilterProbe(nullptr) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -114,8 +114,8 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfBreaker);
     SAFE_DELETE(_rfBuffer);
 
-    SAFE_DELETE(_rfGain);
-    SAFE_DELETE(_rfGainProbe);
+    SAFE_DELETE(_rfAgc);
+    SAFE_DELETE(_rfAgcProbe);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -228,8 +228,14 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 }
 
 int BoomaInput::SetRfGain(int gain) {
-    _rfGain->SetGain(gain);
-    return _rfGain->GetGain();
+    if( gain != 0 ) {
+        float g = gain > 0 ? gain : ((float) 1 / ((float) gain * (float) -1));
+        _rfAgc->SetGain(g);
+        return _rfAgc->GetGain();
+    } else {
+        _rfAgc->SetEnabled(true);
+        return 0;
+    }
 }
 
 bool BoomaInput::GetDecimationRate(int inputRate, int outputRate, int* first, int* second) {
@@ -389,10 +395,13 @@ HWriterConsumer<int16_t>* BoomaInput::SetGain(ConfigOptions* opts, HWriterConsum
 
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_08_rf_gain", opts->GetEnableProbes());
-    _rfGain = new HGain<int16_t>(previous, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
-
-    return _rfGain->Consumer();
+    _rfAgcProbe = new HProbe<int16_t>("input_08_rf_agc", opts->GetEnableProbes());
+    _rfAgc = new HAgc<int16_t>(previous, opts->GetRfAgcLevel(), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
+    if( opts->GetRfGain() != 0 ) {
+        float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
+        _rfAgc->SetGain(g);
+    }
+    return _rfAgc->Consumer();
 }
 
 HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
@@ -406,7 +415,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
         _ifMultiplierProbe = new HProbe<int16_t>("input_09_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(_rfAgc->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
 
         return _ifMultiplier->Consumer();
     }

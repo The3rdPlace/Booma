@@ -180,11 +180,11 @@ int main(int argc, char** argv) {
 
                 if( opt.at(0) == '+' ) {
                     gain = atoi(opt.substr(1, std::string::npos).c_str());
-                    app.ChangeRfGain( gain );
+                    app.SetRfGain( gain );
                 }
                 else if( opt.at(0) == '-' ) {
                     gain = atoi(opt.substr(1, std::string::npos).c_str());
-                    app.ChangeRfGain( -1 * gain );
+                    app.SetRfGain( -1 * gain );
                 }
                 else
                 {
@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
             else if( cmd == '?' || cmd == 'h' ) {
                 std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
                 std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
-                std::cout << "Change RF gain:                 g <gain>       or  g +<amount>  or  -<amount>" << std::endl;
+                std::cout << "Change RF gain:                 g <[+|-]gain> or g 0 (enable auto RF gain)" << std::endl;
                 std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
                 std::cout << "Change receiver type:           r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
                 std::cout << "Set receiver option:            o <NAME=VALUE>" << std::endl;

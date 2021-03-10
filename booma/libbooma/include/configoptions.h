@@ -87,6 +87,7 @@ class ConfigOptions {
 
         // First stage gain (default 100)
         int _rfGain = 1;
+        int _rfAgcLevel = 10000;
 
         // Output volume
         int _volume = 20;
@@ -213,6 +214,10 @@ class ConfigOptions {
 
         void SetRfGain(int gain) {
             _rfGain = gain;
+        }
+
+        int GetRfAgcLevel() {
+            return _rfAgcLevel;
         }
 
         int GetVolume() {
