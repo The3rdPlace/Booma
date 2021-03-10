@@ -579,7 +579,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-fa") == 0 ) {
             _frequencyAlign = true;
             _rtlsdrAdjust = 0;
-            std::cout << ("=====================================================") << std::endl;
+            std::cout << tr("=====================================================") << std::endl;
             std::cout << tr("Frequency align mode is enabled.") << std::endl;
             std::cout << std::endl;
             std::cout << tr("RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
@@ -588,7 +588,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             std::cout << tr("to help you find the offset error in your RTL-SDR") << std::endl;
             std::cout << tr("dongle. Use this value with the -rtla parameter") << std::endl;
             std::cout << tr("to enable precise tuning.") << std::endl;
-            std::cout << ("=====================================================") << std::endl;
+            std::cout << tr("=====================================================") << std::endl;
             HLog("Frequency alignment mode enabled");
             continue;
         }
@@ -708,7 +708,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 void ConfigOptions::DumpConfigInfo() {
-    std::cout << "=====>" << std::endl;
+    std::cout << tr("=====================================================") << std::endl;
     std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
 
     // Remote/local
@@ -807,17 +807,19 @@ void ConfigOptions::DumpConfigInfo() {
     }
 
     // Output
-    if( _outputFilename == "" ) {
-        if( _outputAudioDevice == -1 ) {
-            std::cout << "No output (silently discarding receiver output)" << std::endl;
+    if( !_useRemoteHead ) {
+        if (_outputFilename == "") {
+            if (_outputAudioDevice == -1) {
+                std::cout << "No output (silently discarding receiver output)" << std::endl;
+            } else {
+                std::cout << "Output to audio device " << GetAudioDevice(_outputAudioDevice) << " at samplerate " << _outputSampleRate << std::endl;
+            }
         } else {
-            std::cout << "Output to audio device " << GetAudioDevice(_outputAudioDevice) << " at samplerate " << _outputSampleRate << std::endl;
+            std::cout << "Output to file " << _outputFilename << std::endl;
         }
-    } else {
-        std::cout << "Output to file " << _outputFilename << std::endl;
     }
 
-    std::cout << "<=====" << std::endl;
+    std::cout << tr("=====================================================") << std::endl;
 }
 
 ConfigOptions::~ConfigOptions() {
