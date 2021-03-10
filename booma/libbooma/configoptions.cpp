@@ -8,7 +8,7 @@
 #include "configoptions.h"
 #include "language.h"
 
-void ConfigOptions::PrintUsage() {
+void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Usage: booma-console [-option [parameter, ...]]") << std::endl;
     std::cout << std::endl;
 
@@ -22,10 +22,11 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Input, data type and samplerate(s)]==") << std::endl;
     std::cout << tr("Use audio input source                                   -i AUDIO devicenumber") << std::endl;
     std::cout << tr("Use RTL-SDR input source (datatype defaults to IQ)       -i RTLSDR devicenumber") << std::endl;
+    std::cout << tr("Use pcm file as input                                    -i PCM filename") << std::endl;
+    std::cout << tr("Use wav file as input                                    -i WAV filename") << std::endl;
     std::cout << tr("Use network input                                        -i NETWORK address dataport commandport") << std::endl;
     std::cout << tr("Set input datatype (required for NETWORK and PCM input)  -it REAl|IQ|I|Q") << std::endl;
     std::cout << tr("Set input type (required for NETWORK and PCM input)      -is AUDIO|RTLSDR") << std::endl;
-
     std::cout << tr("Device (input) samplerate (default 48KHz)                -dr rate") << std::endl;
     std::cout << tr("Output samplerate (default 48KHz)                        -or rate") << std::endl;
     std::cout << std::endl;
@@ -33,12 +34,13 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
     std::cout << tr("Select receiver (CW default)                             -m CW|AURORAL|AM|SSB") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
-    std::cout << tr("Rf gain (default 10)                                     -g gain") << std::endl;
+    std::cout << tr("Rf gain (default 1)                                      -g gain") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)                    -ro NAME=VALUE") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Output, recordings]==") << std::endl;
     std::cout << tr("Select output (audio) device                             -o devicenumber") << std::endl;
+    std::cout << tr("Write output to this file                                -o filename") << std::endl;
     std::cout << tr("Output volume (default 5)                                -l volume") << std::endl;
     std::cout << tr("Dump rf input as pcm to file                             -p PCM (enable) | -p OFF (disable)") << std::endl;
     std::cout << tr("Dump rf input as wav to file (default)                   -p WAV (enable) | -p OFF (disable)") << std::endl;
@@ -55,33 +57,37 @@ void ConfigOptions::PrintUsage() {
     std::cout << tr("Wait untill scheduled time                               -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
     std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
+    std::cout << tr("Reset cached configuration                               -z") << std::endl;
+    std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
+    std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Performance and quality]==") << std::endl;
     std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
     std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
+    std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
     std::cout << std::endl;
 
-    std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
-    std::cout << tr("RTL-SDR tuning offset (default 5000)                     -rtlo offset") << std::endl;
-    std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
-    std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
-    std::cout << tr("FIR filter size, must be an uneven number! (default 51)  -ffs points") << std::endl;
-    std::cout << std::endl;
+    if( showSecretSettings ) {
+        std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
+        std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
+        std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
+        std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
+        std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
+        std::cout << std::endl;
 
-    std::cout << tr("==[Debugging]==") << std::endl;
-    std::cout << tr("Verbose debug output                                     -d --debug") << std::endl;
-    std::cout << tr("Use sine generator as input                              -i GENERATOR frequency") << std::endl;
-    std::cout << tr("Use pcm file as input                                    -i PCM filename") << std::endl;
-    std::cout << tr("Use wav file as input                                    -i WAV filename") << std::endl;
-    std::cout << tr("Use silence as input                                     -i SILENCE") << std::endl;
-    std::cout << tr("Select /dev/null as output device                        -o -1") << std::endl;
-    std::cout << tr("Write output to this file                                -o filename") << std::endl;
-    std::cout << tr("Enable probes and halt after 100 blocks                  -x") << std::endl;
-    std::cout << tr("Reset cached configuration                               -z") << std::endl;
-    std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
-    std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
+        std::cout << tr("==[Debugging]==") << std::endl;
+        std::cout << tr("Verbose debug output                                     -d --debug") << std::endl;
+        std::cout << tr("Use sine generator as input                              -i GENERATOR frequency") << std::endl;
+        std::cout << tr("Use silence as input                                     -i SILENCE") << std::endl;
+        std::cout << tr("Select /dev/null as output device.                       -o -1") << std::endl;
+        std::cout << tr("Enable probes and halt after 100 blocks                  -x") << std::endl;
+        std::cout << std::endl;
+    } else {
+        std::cout << tr("==[Debugging and internal settings best left untouched]==") << std::endl;
+        std::cout << tr("Show options for debugging and internal settings         -hh") << std::endl;
+        std::cout << std::endl;
+    }
 }
 
 void ConfigOptions::PrintAudioDevices() {
@@ -178,6 +184,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Get helpt
+        if( strcmp(argv[i], "-hh") == 0 ) {
+            PrintUsage(true);
+            exit(0);
+        }
         if( strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 ) {
             PrintUsage();
             exit(0);
@@ -526,6 +536,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Fir filter size
         if( strcmp(argv[i], "-ffs") == 0 && i < argc - 1) {
             _firFilterSize = atoi(argv[i + 1]);
+            if( _firFilterSize % 2 > 0 ) {
+                _firFilterSize++;
+            }
             HLog("Fir filter size set to %d", _firFilterSize);
             i++;
             continue;

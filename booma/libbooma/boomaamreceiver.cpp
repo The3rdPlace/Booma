@@ -14,7 +14,6 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::PreProcess(ConfigOptions* opts, HWrit
     _inputFirFilterProbe = new HProbe<int16_t>("amreceiver_01_inputfirfilter", _enableProbes);
     _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(8000, opts->GetOutputSampleRate(), 25, 50).Calculate(), 25, BLOCKSIZE, _inputFirFilterProbe);
 
-    //return _gain->Consumer();
     return _inputFirFilter->Consumer();
 }
 
@@ -42,7 +41,7 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWri
     HLog("Creating AM receiver postprocessing chain");
 
     _outputFilterProbe = new HProbe<int16_t>("amreceiver_04_outputfilter", _enableProbes);
-    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(previous, 8000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _outputFilterProbe);
+    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(previous, 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _outputFilterProbe);
 
     return _outputFilter->Consumer();
 }

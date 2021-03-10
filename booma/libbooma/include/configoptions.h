@@ -86,7 +86,7 @@ class ConfigOptions {
         bool _useRemoteHead = false;
 
         // First stage gain (default 100)
-        int _rfGain = 100;
+        int _rfGain = 1;
 
         // Output volume
         int _volume = 20;
@@ -108,7 +108,7 @@ class ConfigOptions {
         bool _frequencyAlign = false;
         int _frequencyAlignVolume = 500;
 
-        void PrintUsage();
+        void PrintUsage(bool showSecretSettings = false);
         void PrintAudioDevices();
         void PrintRtlsdrDevices();
         std::string GetAudioDevice(int device);
@@ -136,7 +136,7 @@ class ConfigOptions {
 
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
-        int _rtlsdrOffset = 5000;
+        int _rtlsdrOffset = 6000;
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
         int _firFilterSize = 51;
