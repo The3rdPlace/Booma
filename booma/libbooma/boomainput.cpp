@@ -23,7 +23,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     _iqFirDecimator(nullptr),
     _iqDecimator(nullptr),
     _firDecimator(nullptr),
-    _decimator(nullptr) {
+    _decimator(nullptr),
+    _inputFirFilter(nullptr),
+    _inputFirFilterProbe(nullptr) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -77,8 +79,11 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
 
-    HLog("Setting rf gain and optional LO shift");
-    _lastConsumer = SetGainAndShift(opts, _rfSplitter->Consumer());
+    // Add inputfilter, gain and optional zero-shift
+    HLog("Setting input filter, rf gain and optional zero shift");
+    HWriterConsumer<int16_t>* gain = SetGain(opts, _rfSplitter->Consumer());
+    HWriterConsumer<int16_t>* shift = SetShift(opts, gain);
+    _lastConsumer = SetInputFilter(opts, shift);
 }
 
 BoomaInput::~BoomaInput() {
@@ -100,6 +105,8 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_decimator);
     SAFE_DELETE(_decimatorGainProbe);
     SAFE_DELETE(_decimatorAgcProbe);
+    SAFE_DELETE(_inputFirFilter);
+    SAFE_DELETE(_inputFirFilterProbe);
 
     SAFE_DELETE(_inputReader);
     SAFE_DELETE(_rfWriter);
@@ -363,12 +370,32 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
     }
 }
 
-HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+
+    // If we use an RT_SDR the input has been decimated and needs further cleanup
+    if( opts->GetOriginalInputSourceType() == RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
+
+        // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
+        _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilter = new HIqFirFilter<int16_t>(previous,
+            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+            51, BLOCKSIZE, _inputFirFilterProbe);
+    }
+
+    return previous;
+}
+
+HWriterConsumer<int16_t>* BoomaInput::SetGain(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
     // Add RF gain
     HLog("Setting up RF gain");
-    _rfGainProbe = new HProbe<int16_t>("input_07_rf_gain", opts->GetEnableProbes());
+    _rfGainProbe = new HProbe<int16_t>("input_08_rf_gain", opts->GetEnableProbes());
     _rfGain = new HGain<int16_t>(previous, opts->GetRfGain(), BLOCKSIZE, _rfGainProbe);
+
+    return _rfGain->Consumer();
+}
+
+HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
@@ -378,12 +405,12 @@ HWriterConsumer<int16_t>* BoomaInput::SetGainAndShift(ConfigOptions* opts, HWrit
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_08_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplierProbe = new HProbe<int16_t>("input_09_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(_rfGain->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
 
         return _ifMultiplier->Consumer();
-    } else {
-        return _rfGain->Consumer();
     }
+
+    return previous;
 }
 

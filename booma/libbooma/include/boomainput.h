@@ -25,6 +25,8 @@ public:
         HBufferedWriter<int16_t>* _rfBuffer;
         HGain<int16_t>* _rfGain;
         HProbe<int16_t>* _rfGainProbe;
+        HIqFirFilter<int16_t>* _inputFirFilter;
+        HProbe<int16_t>* _inputFirFilterProbe;
 
         // Decimation
         HProbe<int16_t>* _ifMultiplierProbe;
@@ -51,7 +53,9 @@ public:
         bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
         bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
         HReader<int16_t>* SetDecimation(ConfigOptions* opts, HReader<int16_t>* reader);
-        HWriterConsumer<int16_t>* SetGainAndShift(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* SetInputFilter(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* SetShift(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* SetGain(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
 
     public:
 
