@@ -536,7 +536,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Fir filter size
         if( strcmp(argv[i], "-ffs") == 0 && i < argc - 1) {
             _firFilterSize = atoi(argv[i + 1]);
-            if( _firFilterSize % 2 > 0 ) {
+            if( _firFilterSize % 2 == 0 ) {
                 _firFilterSize++;
             }
             HLog("Fir filter size set to %d", _firFilterSize);
