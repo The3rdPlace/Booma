@@ -87,7 +87,7 @@ class ConfigOptions {
 
         // First stage gain (default 0 = auto)
         int _rfGain = 0;
-        int _rfAgcLevel = 10000;
+        int _rfAgcLevel = 1000;
 
         // Output volume
         int _volume = 20;

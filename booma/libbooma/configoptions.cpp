@@ -74,7 +74,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
         std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
-        std::cout << tr("Automatic RF gain level (default 10000)                  -ral level") << std::endl;
+        std::cout << tr("Automatic RF gain level (default 1000)                   -ral level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
