@@ -85,8 +85,8 @@ class ConfigOptions {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
 
-        // First stage gain (default 100)
-        int _rfGain = 1;
+        // First stage gain (default 0 = auto)
+        int _rfGain = 0;
         int _rfAgcLevel = 10000;
 
         // Output volume
