@@ -18,6 +18,7 @@ class BoomaCwReceiver : public BoomaReceiver {
         HProbe<int16_t>* _iq2IConverterProbe;
         HProbe<int16_t>* _iqMultiplierProbe;
         HProbe<int16_t>* _preselectProbe;
+        HProbe<int16_t>* _preselectGainProbe;
         HProbe<int16_t>* _ifMixerProbe;
         HProbe<int16_t>* _ifFilterProbe;
         HProbe<int16_t>* _beatToneMixerProbe;
@@ -28,6 +29,7 @@ class BoomaCwReceiver : public BoomaReceiver {
         HIq2IConverter<int16_t>* _iq2IConverter;
         HIqMultiplier<int16_t>* _iqMultiplier;
         HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>* _preselect;
+        HGain<int16_t>* _preselectGain;
         HMultiplier<int16_t>* _ifMixer;
 
         // Receiver
