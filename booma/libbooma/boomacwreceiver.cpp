@@ -71,26 +71,26 @@ float BoomaCwReceiver::_cwCoeffs[] =
 };
 
 BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
-    BoomaReceiver(opts, initialFrequency),
-    _enableProbes(opts->GetEnableProbes()),
-    _humfilterProbe(nullptr),
-    _iq2IConverterProbe(nullptr),
-    _iqMultiplierProbe(nullptr),
-    _preselectProbe(nullptr),
-    _ifMixerProbe(nullptr),
-    _ifFilterProbe(nullptr),
-    _beatToneMixerProbe(nullptr),
-    _postSelectProbe(nullptr),
-    _humfilter(nullptr),
-    _iq2IConverter(nullptr),
-    _iqMultiplier(nullptr),
-    _preselect(nullptr),
-    _ifMixer(nullptr),
-    _ifFilter(nullptr),
-    _beatToneMixer(nullptr),
-    _postSelect(nullptr),
-    _preselectGain(nullptr),
-    _preselectGainProbe(nullptr) {
+        BoomaReceiver(opts, initialFrequency),
+        _enableProbes(opts->GetEnableProbes()),
+        _humfilterProbe(nullptr),
+        _iq2IConverterProbe(nullptr),
+        _iqMultiplierProbe(nullptr),
+        _preselectProbe(nullptr),
+        _ifMixerProbe(nullptr),
+        _ifFilterProbe(nullptr),
+        _beatToneMixerProbe(nullptr),
+        _postSelectProbe(nullptr),
+        _humfilter(nullptr),
+        _iq2IConverter(nullptr),
+        _iqMultiplier(nullptr),
+        _preselect(nullptr),
+        _ifMixer(nullptr),
+        _ifFilter(nullptr),
+        _beatToneMixer(nullptr),
+        _postSelect(nullptr),
+        _passbandGain(nullptr),
+        _passbandGainProbe(nullptr) {
 
         std::vector<OptionValue> bandwidthValues {
             OptionValue {"50", "Narrow CW IF filter at 50Hz", 0},
@@ -163,13 +163,13 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         _preselect = new HBiQuadFilter<HBandpassBiQuad<int16_t>, int16_t>(_humfilter->Consumer(), GetFrequency() + offset, opts->GetOutputSampleRate(), 1.0f, 1, BLOCKSIZE, _preselectProbe);
 
         // Gain after preselect filtering
-        _preselectGainProbe = new HProbe<int16_t>("cwreceiver_03_preselectgain", _enableProbes);
-        _preselectGain = new HGain<int16_t>(_preselect->Consumer(), 32, BLOCKSIZE, _preselectGainProbe);
+        _passbandGainProbe = new HProbe<int16_t>("cwreceiver_03_preselectgain", _enableProbes);
+        _passbandGain = new HGain<int16_t>(_preselect->Consumer(), 32, BLOCKSIZE, _passbandGainProbe);
 
         // Mix down to IF frequency = 6000Hz
         HLog("- IF Mixer");
         _ifMixerProbe = new HProbe<int16_t>("cwreceiver_04_if_mixer", _enableProbes);
-        _ifMixer = new HMultiplier<int16_t>(_preselectGain->Consumer(), opts->GetOutputSampleRate(), GetFrequency() - 6000 + offset, 10, BLOCKSIZE, _ifMixerProbe);
+        _ifMixer = new HMultiplier<int16_t>(_passbandGain->Consumer(), opts->GetOutputSampleRate(), GetFrequency() - 6000 + offset, 10, BLOCKSIZE, _ifMixerProbe);
 
         // Return signal at IF = 6KHz
         return _ifMixer->Consumer();
@@ -194,11 +194,11 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWrit
         _iq2IConverter = new HIq2IConverter<int16_t>(_iqMultiplier->Consumer(), BLOCKSIZE, _iq2IConverterProbe);
 
         // Gain after converting to realvalued samples
-        _preselectGainProbe = new HProbe<int16_t>("cwreceiver_07_preselectgain", _enableProbes);
-        _preselectGain = new HGain<int16_t>(_iq2IConverter->Consumer(), 4, BLOCKSIZE, _preselectGainProbe);
+        _passbandGainProbe = new HProbe<int16_t>("cwreceiver_07_preselectgain", _enableProbes);
+        _passbandGain = new HGain<int16_t>(_iq2IConverter->Consumer(), 4, BLOCKSIZE, _passbandGainProbe);
 
         // Return signal at IF = 6KHz
-        return _preselectGain->Consumer();
+        return _passbandGain->Consumer();
     }
 
     // Unhandled data type - that should not happen!
@@ -242,7 +242,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PostProcess(ConfigOptions* opts, HWri
 BoomaCwReceiver::~BoomaCwReceiver() {
     SAFE_DELETE(_humfilter);
     SAFE_DELETE(_preselect);
-    SAFE_DELETE(_preselectGain);
+    SAFE_DELETE(_passbandGain);
     SAFE_DELETE(_ifMixer);
     SAFE_DELETE(_iqMultiplier);
     SAFE_DELETE(_iq2IConverter);
@@ -254,7 +254,7 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     SAFE_DELETE(_iqMultiplierProbe);
     SAFE_DELETE(_iq2IConverterProbe);
     SAFE_DELETE(_preselectProbe);
-    SAFE_DELETE(_preselectGainProbe);
+    SAFE_DELETE(_passbandGainProbe);
     SAFE_DELETE(_ifMixerProbe);
     SAFE_DELETE(_ifFilterProbe);
     SAFE_DELETE(_beatToneMixerProbe);
