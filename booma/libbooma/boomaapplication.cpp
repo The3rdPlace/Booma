@@ -296,3 +296,25 @@ void BoomaApplication::DeleteBookmark(std::string name) {
 std::vector<std::string> BoomaApplication::GetBookmarks() {
     return _opts->ListBookmarks();
 }
+
+std::map<int, Channel*> BoomaApplication::GetChannels() {
+    return _opts->GetChannels();
+}
+
+bool BoomaApplication::AddChannel(std::string name, long int frequency) {
+    return _opts->AddChannel(name, frequency);
+}
+
+bool BoomaApplication::RemoveChannel(int id) {
+    return _opts->RemoveChannel(id);
+}
+
+bool BoomaApplication::UseChannel(int id) {
+    std::map<int, Channel*> channels = GetChannels();
+    for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+        if( (*it).first == id ) {
+            return SetFrequency((*it).second->Frequency);
+        }
+    }
+    return false;
+}

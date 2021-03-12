@@ -158,6 +158,12 @@ class BoomaApplication {
         void ApplyBookmark(std::string name);
         void DeleteBookmark(std::string name);
 
+        // Channels
+        std::map<int, Channel*> GetChannels();
+        bool AddChannel(std::string name, long int frequency);
+        bool RemoveChannel(int id);
+        bool UseChannel(int id);
+
     private:
 
         // Configuration and state

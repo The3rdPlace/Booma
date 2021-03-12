@@ -199,6 +199,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             std::cout << appName << " " << appVersion << " " << tr("using") << " Booma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << " " << tr("and") << " Hardt " << getversion() << std::endl;
             exit(0);
         }
+
+        // Reset cached configuration
+        if( strcmp(argv[i], "-z") == 0 ) {
+            RemoveStoredConfig(CONFIGNAME);
+            std::cout << tr("Cached configuration has been removed") << std::endl;
+            exit(0);
+        }
     }
 
     // Seed configuration with values from last execution
@@ -206,6 +213,11 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         std::cout << "No stored config in ~/.booma/" << CONFIGNAME << " and no arguments. Kindly presenting options" << std::endl << std::endl;
         PrintUsage();
         exit(1);
+    }
+
+    // Check if we have some channels, if not then add a default set
+    if( _channels.empty() ) {
+        _channels = ReadPersistentChannels(CONFIGNAME);
     }
 
     // Second pass: config options
@@ -563,13 +575,6 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Reset cached configuration
-        if( strcmp(argv[i], "-z") == 0 ) {
-            RemoveStoredConfig(CONFIGNAME);
-            std::cout << tr("Cached configuration has been removed") << std::endl;
-            exit(0);
-        }
-
         // Scheduled start and stop
         if( strcmp(argv[i], "-b") == 0 ) {
             _schedule.SetStart(argv[i + 1]);
@@ -833,6 +838,9 @@ void ConfigOptions::DumpConfigInfo() {
 
 ConfigOptions::~ConfigOptions() {
     WriteStoredConfig(CONFIGNAME);
+    for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
+        delete (*it);
+    }
 }
 
 void ConfigOptions::RemoveStoredConfig(std::string configname) {
@@ -957,7 +965,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
             if( name == "shift" )                  _shift = atoi(value.c_str());
             if( name == "rfagclevel" )             _rfAgcLevel = atoi(value.c_str());
-            if( name == "channels" )               _channels = ReadChannels(value);
+            if( name == "channels" )               _channels = ReadChannels(configname, value);
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -1072,7 +1080,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
     configStream << "shift=" << _shift << std::endl;
     configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
-    configStream << "channels=" << WriteChannels(_channels) << std::endl;
+    configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
 
     // Done writing the config file
     configStream.close();
@@ -1185,23 +1193,47 @@ std::map<std::string, std::map<std::string, std::string>> ConfigOptions::ReadSto
     return optionsFor;
 }
 
-std::string ConfigOptions::WriteChannels(std::vector<Channel*> channels) {
+std::string ConfigOptions::WriteChannels(std::string configname, std::vector<Channel*> channels) {
     std::string list = "";
+
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to save configuration");
+        return "";
+    }
+
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
+    // Compose path to config file's channel list (persistent)
+    std::string configFile(configPath);
+    configFile += "/" + configname + ".channels";
+    HLog("Config file's persistent channel file is %s", configFile.c_str());
+
+    // Open the config file
+    std::ofstream configStream;
+    configStream.open(configFile);
+    if( !configStream.is_open() ) {
+        HError("Failed to open config file for writing");
+        return "";
+    }
 
     for( std::vector<Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         list += (*it)->GetDefinition() + ",";
+        configStream << (*it)->GetDefinition() << std::endl;
     }
+
+    // Close the channels file stream
+    configStream.close();
 
     return list;
 }
 
-std::vector<Channel*> ConfigOptions::ReadChannels(std::string channels) {
+std::vector<Channel*> ConfigOptions::ReadChannels(std::string configname, std::string channels) {
 
     std::vector<Channel*> list;
-
-    if( channels.size() == 0 ) {
-        return list;
-    }
 
     std::istringstream stream(channels);
     std::string definition;
@@ -1210,9 +1242,52 @@ std::vector<Channel*> ConfigOptions::ReadChannels(std::string channels) {
             list.push_back(new Channel(definition));
         }
     }
-
     std::sort(list.begin(), list.end(), Channel::comparator);
 
+    return list;
+}
+
+std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configname) {
+
+    std::vector<Channel*> list;
+
+    // Get the users homedirectory
+    const char* home = std::getenv("HOME");
+    if( home == NULL ) {
+        HError("No HOME env. variable. Unable to save configuration");
+        return list;
+    }
+
+    // Compose the config path
+    std::string configPath(home);
+    configPath += "/.booma";
+
+    // Compose path to config file's channel list (persistent)
+    std::string configFile(configPath);
+    configFile += "/" + configname + ".channels";
+    HLog("Config file's persistent channel file is %s", configFile.c_str());
+
+    std::ifstream configStream;
+    configStream.open(configFile, std::ifstream::in);
+    if( !configStream.is_open() ) {
+        std::cout << "No persistent channels file found, adding default channels" << std::endl;
+        list.push_back(new Channel("SAQ Grimeton", 17200));
+        return list;
+    }
+    std::cout << "Restoring channels from persistent channels file" << std::endl;
+
+    // Read channels
+    std::string opt;
+    configStream >> opt;
+    while (configStream.good()) {
+        if( opt.length() > 0 ) {
+            list.push_back(new Channel(opt));
+        }
+        configStream >> opt;
+    }
+
+    // Close the channels file stream
+    configStream.close();
     return list;
 }
 

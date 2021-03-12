@@ -126,8 +126,9 @@ class ConfigOptions {
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
         std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
-        std::vector<Channel*> ReadChannels(std::string channels);
-        std::string WriteChannels(std::vector<Channel*> channels);
+        std::vector<Channel*> ReadChannels(std::string configname, std::string channels);
+        std::vector<Channel*> ReadPersistentChannels(std::string configname);
+        std::string WriteChannels(std::string configname, std::vector<Channel*> channels);
         void DumpConfigInfo();
 
         bool _enableProbes = false;

@@ -12,11 +12,15 @@ class Channel {
 
         Channel(std::string definition) {
             std::istringstream stream(definition);
+            std::string storedName;
             std::string frequency;
-            if( !std::getline(stream, Name, ':') ) {
+            if( !std::getline(stream, storedName, ':') ) {
                 throw new BoomaConfigurationException("No name in channel definition");
             }
+            std::replace(storedName.begin(), storedName.end(), ' ', '_');
+            Name = storedName;
             if( !std::getline(stream, frequency, ':') ) {
+                std::cout << definition << std::endl;
                 throw new BoomaConfigurationException("No frequency in channel definition");
             }
             Frequency = std::stol(frequency);
@@ -37,7 +41,9 @@ class Channel {
         long int Frequency;
 
         std::string GetDefinition() {
-            return Name + ":" + std::to_string(Frequency);
+            std::string storedName = Name;
+            std::replace(storedName.begin(), storedName.end(), ' ', '_');
+            return storedName  + ":" + std::to_string(Frequency);
         }
 
         static struct ChannelComparator {
