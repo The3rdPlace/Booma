@@ -339,8 +339,8 @@ void BoomaCwReceiver::OptionChanged(ConfigOptions* opts, std::string name, int v
     if( _preselect != nullptr ) {
         _passbandGain->SetGain(GetOption("PassbandGain"));
     } else if( _iq2IConverter != nullptr ) {
-        if( GetOption("IQPassBand") > 0 ) {
-            _passbandGain->SetGain(GetOption("IQPassBand"));
+        if( GetOption("IQPassbandGain") > 0 ) {
+            _passbandGain->SetGain(GetOption("IQPassbandGain"));
         } else {
             _passbandGain->SetGain(0.5);
         }
