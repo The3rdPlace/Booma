@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include <hardtapi.h>
+#include "channel.h"
 
 /** Type of input device */
 enum InputSourceType {
@@ -109,6 +110,9 @@ class ConfigOptions {
         bool _frequencyAlign = false;
         int _frequencyAlignVolume = 500;
 
+        // Memory channels
+        std::vector<Channel*> _channels;
+
         void PrintUsage(bool showSecretSettings = false);
         void PrintAudioDevices();
         void PrintRtlsdrDevices();
@@ -122,6 +126,8 @@ class ConfigOptions {
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
         std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
+        std::vector<Channel*> ReadChannels(std::string channels);
+        std::string WriteChannels(std::vector<Channel*> channels);
         void DumpConfigInfo();
 
         bool _enableProbes = false;
@@ -350,6 +356,36 @@ class ConfigOptions {
 
         int GetFrequencyAlignVolume() {
             return _frequencyAlignVolume;
+        }
+
+        std::map<int, Channel*> GetChannels() {
+            std::map<int, Channel*> channels;
+            int number = 1;
+            for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
+                channels.insert(std::pair<int, Channel*>(number, *it));
+            }
+            return channels;
+        }
+
+        bool AddChannel(std::string name, long int frequency) {
+            _channels.push_back(new Channel(name, frequency));
+            std::sort(_channels.begin(), _channels.end(), Channel::comparator);
+            return true;
+        }
+
+        bool RemoveChannel(int id) {
+            std::map<int, Channel*> channels = GetChannels();
+            if( id > 0 && id <= channels.size() ) {
+                std::vector<Channel*>::iterator it = _channels.begin();
+                int number = 0;
+                while( it != _channels.end() ) {
+                    if( number + 1 == id ) {
+                        _channels.erase(it);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);

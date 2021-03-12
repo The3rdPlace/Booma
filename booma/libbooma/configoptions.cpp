@@ -255,29 +255,29 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Select input device and optional device-specific settings
-        if( strcmp(argv[i], "-i") == 0 && i < argc - 2) {
-            if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
+        if( strcmp(argv[i], "-i") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "AUDIO") == 0 && i < argc - 2 ) {
                 _inputSourceType = AUDIO_DEVICE;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _inputDevice = atoi(argv[i + 2]);
                 _isRemoteHead = false;
                 HLog("Input audio device %d", _inputDevice);
             }
-            else if( strcmp(argv[i + 1], "GENERATOR") == 0 ) {
+            else if( strcmp(argv[i + 1], "GENERATOR") == 0 && i < argc - 2 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
             }
-            else if( strcmp(argv[i + 1], "PCM") == 0 ) {
+            else if( strcmp(argv[i + 1], "PCM") == 0 && i < argc - 2 ) {
                 _inputSourceType = PCM_FILE;
                 _pcmFile = argv[i + 2];
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input file %s", _pcmFile.c_str());
             }
-            else if( strcmp(argv[i + 1], "WAV") == 0 ) {
+            else if( strcmp(argv[i + 1], "WAV") == 0 && i < argc - 2 ) {
                 _inputSourceType = WAV_FILE;
                 _wavFile = argv[i + 2];
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
@@ -291,14 +291,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 i -= 1;
                 HLog("input silence");
             }
-            else if( strcmp(argv[i + 1], "RTLSDR") == 0 ) {
+            else if( strcmp(argv[i + 1], "RTLSDR") == 0 && i < argc - 2 ) {
                 _inputDevice = atoi(argv[i + 2]);
                 _inputSourceType = RTLSDR;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input RTL-SDR device %d", _inputDevice);
             }
-            else if( strcmp(argv[i + 1], "NETWORK") == 0 ) {
+            else if( strcmp(argv[i + 1], "NETWORK") == 0 && i < argc - 2 ) {
                 _inputDevice = -1;
                 _inputSourceType = NETWORK;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
@@ -957,6 +957,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
             if( name == "shift" )                  _shift = atoi(value.c_str());
             if( name == "rfagclevel" )             _rfAgcLevel = atoi(value.c_str());
+            if( name == "channels" )               _channels = ReadChannels(value);
 
             // Historic config names
             if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
@@ -988,7 +989,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
     // Read a stored config
     return true;
 }
-
 
 void ConfigOptions::WriteStoredConfig(std::string configname) {
 
@@ -1072,6 +1072,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
     configStream << "shift=" << _shift << std::endl;
     configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
+    configStream << "channels=" << WriteChannels(_channels) << std::endl;
 
     // Done writing the config file
     configStream.close();
@@ -1182,6 +1183,37 @@ std::map<std::string, std::map<std::string, std::string>> ConfigOptions::ReadSto
     }
 
     return optionsFor;
+}
+
+std::string ConfigOptions::WriteChannels(std::vector<Channel*> channels) {
+    std::string list = "";
+
+    for( std::vector<Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+        list += (*it)->GetDefinition() + ",";
+    }
+
+    return list;
+}
+
+std::vector<Channel*> ConfigOptions::ReadChannels(std::string channels) {
+
+    std::vector<Channel*> list;
+
+    if( channels.size() == 0 ) {
+        return list;
+    }
+
+    std::istringstream stream(channels);
+    std::string definition;
+    while( std::getline(stream, definition, ',') ) {
+        if( definition.length() > 0 ) {
+            list.push_back(new Channel(definition));
+        }
+    }
+
+    std::sort(list.begin(), list.end(), Channel::comparator);
+
+    return list;
 }
 
 void ConfigOptions::WriteBookmark(std::string name) {
