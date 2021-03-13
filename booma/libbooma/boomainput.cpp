@@ -81,9 +81,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Add inputfilter, gain and optional zero-shift
     HLog("Setting input filter, rf gain and optional zero shift");
-    HWriterConsumer<int16_t>* gain = SetGain(opts, _rfSplitter->Consumer());
-    HWriterConsumer<int16_t>* shift = SetShift(opts, gain);
-    _lastConsumer = SetInputFilter(opts, shift);
+    HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
+    HWriterConsumer<int16_t>* input = SetInputFilter(opts, shift);
+    _lastConsumer = SetGain(opts, input);
 }
 
 BoomaInput::~BoomaInput() {
@@ -386,6 +386,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
         _inputFirFilter = new HIqFirFilter<int16_t>(previous,
             HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
             51, BLOCKSIZE, _inputFirFilterProbe);
+        return _inputFirFilter->Consumer();
     }
 
     return previous;
@@ -415,7 +416,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
         _ifMultiplierProbe = new HProbe<int16_t>("input_09_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(_rfAgc->Consumer(), opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
 
         return _ifMultiplier->Consumer();
     }
