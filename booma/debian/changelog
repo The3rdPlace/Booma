@@ -1,9 +1,9 @@
-booma (1.1-10) RELEASED; urgency=medium
+booma (1.1-11) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
-  * Add receiver option to the CW receiver for controlling passband gain
+  * Fix problem with receiver options in the CW receiver
 
- -- Mackie <henrik@hardttoolkit.org>  Thu, 10 Mar 2021 00:30:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Thu, 12 Mar 2021 01:30:00 +0100
 
 booma (1.1-9) RELEASED; urgency=medium
 
