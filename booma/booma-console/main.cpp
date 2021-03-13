@@ -99,6 +99,7 @@ int main(int argc, char** argv) {
         char lastCmd;
         std::string opt;
         std::string lastOpt;
+        int currentChannel = 0;
         std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
         do {
             std::cout << ComposeInfoPrompt(&app);
@@ -112,7 +113,7 @@ int main(int argc, char** argv) {
             else
             {
                 // Does the command requires an option ?
-                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd') {
+                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd' || cmd == 'w' || cmd == 'e' ) {
                     std::cin >> opt;
                 }
                 else
@@ -193,6 +194,12 @@ int main(int argc, char** argv) {
                 }
             }
 
+            // Set 1.st input filter width
+            else if( cmd == 'w' ) {
+                int width = atoi(opt.c_str());
+                app.SetInputFilterWidth(width);
+            }
+
             // Change receiver type
             else if( cmd == 'r' ) {
                 if( opt == "CW" ) {
@@ -229,7 +236,42 @@ int main(int argc, char** argv) {
             }
 
             // Tune to channel
-            else if( cmd == 'e' ) {
+            if( cmd == 'e' ) {
+                int channel;
+
+                if( opt.at(0) == '+' ) {
+                    if( currentChannel == 0 ) {
+                        std::cout << "No channel currently selected" << std::endl;
+                    } else {
+                        if( !app.UseChannel( currentChannel + 1 ) ) {
+                            std::cout << "No channel " << (currentChannel + 1) << " defined" << std::endl;
+                        } else {
+                            currentChannel++;
+                        }
+                    }
+                }
+                else if( opt.at(0) == '-' ) {
+                    if( currentChannel == 0 ) {
+                        std::cout << "No channel currently selected" << std::endl;
+                    } else if( currentChannel == 1 ) {
+                        std::cout << "Already at channel 1" << std::endl;
+                    } else {
+                        if( !app.UseChannel( currentChannel - 1 ) ) {
+                            std::cout << "No channel " << (currentChannel - 1) << " defined" << std::endl;
+                        } else {
+                            currentChannel--;
+                        }
+                    }
+                }
+                else
+                {
+                    channel = atoi(opt.c_str());
+                    if( !app.UseChannel( channel ) ) {
+                        std::cout << "No channel " << channel << " defined" << std::endl;
+                    } else {
+                        currentChannel = channel;
+                    }
+                }
             }
 
             // List channels
@@ -241,7 +283,11 @@ int main(int argc, char** argv) {
             }
 
             // Add current frequency as a channel
-            else if( cmd == 'e' ) {
+            else if( cmd == 'k' ) {
+                std::cout << "Name (or short description) of the channel: ";
+                std::cout.flush();
+                getline(std::cin, opt);
+                app.AddChannel(opt, app.GetFrequency());
             }
 
             // Delete channel
@@ -255,6 +301,7 @@ int main(int argc, char** argv) {
                 std::cout << "Change RF gain:                     g <[+|-]gain> or g 0 (enable auto RF gain)" << std::endl;
                 std::cout << "Change volume:                      v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
                 std::cout << "Change receiver type:               r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
+                std::cout << "Change 1.st IF filter width:        w width" << std::endl;
                 std::cout << "Set receiver option:                o <NAME=VALUE>" << std::endl;
                 std::cout << "Toggle audio recording on/off:      a" << std::endl;
                 std::cout << "Toggle rf recording on/off:         p" << std::endl;
@@ -263,8 +310,8 @@ int main(int argc, char** argv) {
                 std::cout << "Get bookmark:                       c <name>" << std::endl;
                 std::cout << "Delete bookmark                     d" << std::endl;
                 std::cout << "List bookmarks:                     x" << std::endl;
-                std::cout << "Tune to channel                     e <channel> or + og - " << std::endl;
                 std::cout << "List channels:                      j" << std::endl;
+                std::cout << "Tune to channel                     e <channel> or + og - " << std::endl;
                 std::cout << "Add current frequency as a channel  k" << std::endl;
                 std::cout << "Delete channel                      z channel" << std::endl;
                 std::cout << std::endl;

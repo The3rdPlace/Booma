@@ -87,6 +87,8 @@ public:
         int GetIfFrequency() {
             return _ifFrequency;
         }
+
+        bool SetInputFilterWidth(ConfigOptions* opts, int width);
 };
 
 #endif

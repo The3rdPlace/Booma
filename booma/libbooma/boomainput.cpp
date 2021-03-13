@@ -379,17 +379,29 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
     // If we use an RT_SDR the input has been decimated and needs further cleanup
-    if( opts->GetOriginalInputSourceType() == RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
+    if( opts->GetOriginalInputSourceType() == RTLSDR ) {
 
         // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
         _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
         _inputFirFilter = new HIqFirFilter<int16_t>(previous,
-            HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+            HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
             51, BLOCKSIZE, _inputFirFilterProbe);
         return _inputFirFilter->Consumer();
     }
 
     return previous;
+}
+
+bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
+
+    // Change input filter width
+    if( _inputFirFilter != nullptr ) {
+        HLog("Setting new input filter width %d", width);
+        _inputFirFilter->SetCoefficients(HLowpassKaiserBessel<int16_t>(width, opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
+        return true;
+    }
+
+    return false;
 }
 
 HWriterConsumer<int16_t>* BoomaInput::SetGain(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {

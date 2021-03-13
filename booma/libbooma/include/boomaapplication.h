@@ -98,7 +98,11 @@ class BoomaApplication {
 
         // Get the IF frequency, the frequency where the received signal is
         // located in the frequency band provided to the receiver
-        int GetIfFrequency();
+        //int GetIfFrequency();
+
+        // Set 1.st IF filter width
+        bool SetInputFilterWidth(int width);
+        int GetInputFilterWidth();
 
         int GetVolume();
         bool SetVolume(int volume);

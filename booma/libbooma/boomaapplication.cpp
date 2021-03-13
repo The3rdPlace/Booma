@@ -318,3 +318,12 @@ bool BoomaApplication::UseChannel(int id) {
     }
     return false;
 }
+
+bool BoomaApplication::SetInputFilterWidth(int width) {
+    _opts->SetInputFilterWidth(width);
+    return _input->SetInputFilterWidth(_opts, width);
+}
+
+int BoomaApplication::GetInputFilterWidth() {
+    return _opts->GetInputFilterWidth();
+}

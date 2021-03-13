@@ -62,10 +62,11 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
     std::cout << std::endl;
 
-    std::cout << tr("==[Performance and quality]==") << std::endl;
+    std::cout << tr("==[Performance and quality (not persisted)]==") << std::endl;
     std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
     std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
     std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
+    std::cout << tr("1.st IF filter width, only for RTL-SDR (default 3000)    -ifw width") << std::endl;
     std::cout << std::endl;
 
     if( showSecretSettings ) {
@@ -557,6 +558,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Input filter width
+        if( strcmp(argv[i], "-ifw") == 0 && i < argc - 1) {
+            _inputFilterWidth = atoi(argv[i + 1]);
+            HLog("Input filter width set to %d", _inputFilterWidth);
+            i++;
+            continue;
+        }
+
         // Automatic RF gain level
         if( strcmp(argv[i], "-ral") == 0 && i < argc - 1) {
             _rfAgcLevel = atoi(argv[i + 1]);
@@ -958,10 +967,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
             if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
             if( name == "rtlsdrCorrection" )       _rtlsdrCorrection = atoi(value.c_str());
             if( name == "rtlsdrOffset" )           _rtlsdrOffset = atoi(value.c_str());
-            if( name == "decimatorGain" )          _decimatorGain = atoi(value.c_str());
             if( name == "rtlsdrCorrectionFactor" ) _rtlsdrCorrectionFactor= atoi(value.c_str());
-            if( name == "firFilterSize" )          _firFilterSize =atoi(value.c_str());
-            if( name == "decimatorAgcLevel")       _decimatorAgcLevel = atoi(value.c_str());
             if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
             if( name == "shift" )                  _shift = atoi(value.c_str());
             if( name == "rfagclevel" )             _rfAgcLevel = atoi(value.c_str());
@@ -1073,10 +1079,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
     configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
     configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
-    configStream << "decimatorGain=" << _decimatorGain << std::endl;
     configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
-    configStream << "firFilterSize" << _firFilterSize << std::endl;
-    configStream << "decimatorAgcLevel=" << _decimatorAgcLevel << std::endl;
     configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
     configStream << "shift=" << _shift << std::endl;
     configStream << "rfagclevel=" << _rfAgcLevel << std::endl;

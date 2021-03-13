@@ -148,6 +148,7 @@ class ConfigOptions {
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
         int _firFilterSize = 51;
+        int _inputFilterWidth = 3000;
 
     public:
 
@@ -363,7 +364,7 @@ class ConfigOptions {
             std::map<int, Channel*> channels;
             int number = 1;
             for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
-                channels.insert(std::pair<int, Channel*>(number, *it));
+                channels.insert(std::pair<int, Channel*>(number++, *it));
             }
             return channels;
         }
@@ -387,6 +388,15 @@ class ConfigOptions {
                 }
             }
             return false;
+        }
+
+        bool SetInputFilterWidth(int width) {
+            _inputFilterWidth = width;
+            return true;
+        }
+
+        int GetInputFilterWidth() {
+            return _inputFilterWidth;
         }
 
         void SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options);
