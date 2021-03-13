@@ -200,17 +200,17 @@ int main(int argc, char** argv) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     app.Run();
                 }
-                if( opt == "SSB" ) {
+                else if( opt == "SSB" ) {
                     app.ChangeReceiver(ReceiverModeType::SSB);
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     app.Run();
                 }
-                if( opt == "AM" ) {
+                else if( opt == "AM" ) {
                     app.ChangeReceiver(ReceiverModeType::AM);
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     app.Run();
                 }
-                if( opt == "AURORAL" ) {
+                else if( opt == "AURORAL" ) {
                     app.ChangeReceiver(ReceiverModeType::AURORAL);
                     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     app.Run();
@@ -228,28 +228,52 @@ int main(int argc, char** argv) {
                 app.Run();
             }
 
+            // Tune to channel
+            else if( cmd == 'e' ) {
+            }
+
+            // List channels
+            else if( cmd == 'j' ) {
+                std::map<int, Channel*> channels = app.GetChannels();
+                for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+                    std::cout << "Channel " << (*it).first << "  = " << (*it).second->Name << " " << (*it).second->Frequency << std::endl;
+                }
+            }
+
+            // Add current frequency as a channel
+            else if( cmd == 'e' ) {
+            }
+
+            // Delete channel
+            else if( cmd == 'z' ) {
+            }
+
             // Get help
             else if( cmd == '?' || cmd == 'h' ) {
                 std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
-                std::cout << "Change frequency:               f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
-                std::cout << "Change RF gain:                 g <[+|-]gain> or g 0 (enable auto RF gain)" << std::endl;
-                std::cout << "Change volume:                  v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
-                std::cout << "Change receiver type:           r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
-                std::cout << "Set receiver option:            o <NAME=VALUE>" << std::endl;
-                std::cout << "Toggle audio recording on/off:  a" << std::endl;
-                std::cout << "Toggle rf recording on/off:     p" << std::endl;
-                std::cout << "Enter measurement mode:         m" << std::endl;
-                std::cout << "Set bookmark:                   b <name>" << std::endl;
-                std::cout << "Get bookmark:                   c <name>" << std::endl;
-                std::cout << "Delete bookmark                 d" << std::endl;
-                std::cout << "List bookmarks:                 x" << std::endl;
+                std::cout << "Change frequency:                   f <frequency>  or  f +<amount>  or  -<amount>" << std::endl;
+                std::cout << "Change RF gain:                     g <[+|-]gain> or g 0 (enable auto RF gain)" << std::endl;
+                std::cout << "Change volume:                      v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
+                std::cout << "Change receiver type:               r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
+                std::cout << "Set receiver option:                o <NAME=VALUE>" << std::endl;
+                std::cout << "Toggle audio recording on/off:      a" << std::endl;
+                std::cout << "Toggle rf recording on/off:         p" << std::endl;
+                std::cout << "Enter measurement mode:             m" << std::endl;
+                std::cout << "Set bookmark:                       b <name>" << std::endl;
+                std::cout << "Get bookmark:                       c <name>" << std::endl;
+                std::cout << "Delete bookmark                     d" << std::endl;
+                std::cout << "List bookmarks:                     x" << std::endl;
+                std::cout << "Tune to channel                     e <channel> or + og - " << std::endl;
+                std::cout << "List channels:                      j" << std::endl;
+                std::cout << "Add current frequency as a channel  k" << std::endl;
+                std::cout << "Delete channel                      z channel" << std::endl;
                 std::cout << std::endl;
                 std::cout << "Press enter on a blank line to repeat the last command" << std::endl;
                 std::cout << std::endl;
-                std::cout << "Get help (this text):           ?  or  h" << std::endl;
-                std::cout << "Get reception status:           i" << std::endl;
-                std::cout << "List receiver options:          l" << std::endl;
-                std::cout << "Quit:                           q" << std::endl;
+                std::cout << "Get help (this text):               ?  or  h" << std::endl;
+                std::cout << "Get reception status:               i" << std::endl;
+                std::cout << "List receiver options:              l" << std::endl;
+                std::cout << "Quit:                               q" << std::endl;
                 std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
             }
 
