@@ -56,7 +56,7 @@ class ConfigOptions {
         int _outputSampleRate = H_SAMPLE_RATE_48K;
 
         // Output audio device
-        int _outputAudioDevice = -1;
+        int _outputAudioDevice = 0;
         std::string _outputFilename = "";
 
         // Input device- and datatype
@@ -65,7 +65,7 @@ class ConfigOptions {
         InputSourceDataType _inputSourceDataType = NO_INPUT_SOURCE_DATA_TYPE;
 
         // Input device
-        int _inputDevice = -1;
+        int _inputDevice = 0;
 
         // RTL-SDR and IQ/I/Q specific settings
         long int _rtlsdrAdjust = 0;

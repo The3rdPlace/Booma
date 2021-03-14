@@ -140,7 +140,7 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
             "Bandwidth",
             "Bandwidth of IF filter",
             bandwidthValues,
-            1
+            2
         };
         Option beattoneOption {
                 "Beattone",
