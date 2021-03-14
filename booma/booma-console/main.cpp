@@ -35,16 +35,17 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
 }
 
 std::string ComposeInfoPrompt(BoomaApplication* app) {
-    return "Booma [ " +
-    TranslateReceiverModeType(app->GetReceiver()) +
-    " f=" + std::to_string(app->GetFrequency()) + ( app->GetOptionInfoString() != "" ? "[" + app->GetOptionInfoString() + "]" : "") +
+    return "Booma[ " +
+    TranslateReceiverModeType(app->GetReceiver()) + ( app->GetOptionInfoString() != "" ? "(" + app->GetOptionInfoString() + ")" : "") +
+    " f=" + std::to_string(app->GetFrequency()) +
     " v=" + std::to_string(app->GetVolume()) +
     " gain=" + std::to_string(app->GetRfGain()) +
+    " ifw=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
     (app->GetDumpRf() ? " " : "") +
     (app->GetDumpRf() ? (app->GetEnableBuffers() ? "RF(b)" : "RF") : "") +
     (app->GetDumpAudio() ? " " : "") +
     (app->GetDumpAudio() ? (app->GetEnableBuffers() ? "AUDIO(b)" : "AUDIO") : "") +
-    " ]# ";
+    " ]$ ";
 }
 
 int main(int argc, char** argv) {
@@ -58,25 +59,25 @@ int main(int argc, char** argv) {
         // Wait for scheduled start time or stop now if we have passed a scheduled stop time
         if( app.GetSchedule().Before() ) {
             HLog("Scheduled start is pending. Waiting %ld seconds", app.GetSchedule().Duration());
-            std::cout << "Scheduled start is pending. Waiting..." << std::endl;
+            std::cout << "*{info}* Scheduled start is pending. Waiting..." << std::endl;
             app.GetSchedule().Wait();
-            std::cout << "Scheduled start time has arrived. Starting..." << std::endl;
+            std::cout << "*{info}* Scheduled start time has arrived. Starting..." << std::endl;
         }
         if( app.GetSchedule().After() ) {
             HLog("After scheduled stop, halting application");
-            std::cout << "Scheduled stop has been reached. Will exit now" << std::endl;
+            std::cout << "*{info}* Scheduled stop has been reached. Will exit now" << std::endl;
             return 0;
         }
 
         // Run initial receiver (if any configured)
         if( app.GetEnableProbes() ) {
             HLog("Probe run is starting");
-            std::cout << "Probe run is starting" << std::endl;
+            std::cout << "*{info}* Probe run is starting" << std::endl;
         }
         app.Run();
         if( app.GetEnableProbes() ) {
             HLog("Probe run has been completed. Will exit now");
-            std::cout << "Probe run has been completed. Will exit now" << std::endl;
+            std::cout << "*{info}* Probe run has been completed. Will exit now" << std::endl;
             return 0;
         }
 
@@ -85,11 +86,11 @@ int main(int argc, char** argv) {
 
         // If we have a schedule, non-interactive mode is selected
         if( app.GetSchedule().Active() ) {
-            std::cout << "Running in non-interactive mode due to schedule" << std::endl;
+            std::cout << "*{info}* Running in non-interactive mode due to schedule" << std::endl;
             while( !app.GetSchedule().After() ) {
                 sleep(1);
             }
-            std::cout << "Scheduled stop time has been reached. Stopping..." << std::endl;
+            std::cout << "*{info}* Scheduled stop time has been reached. Stopping..." << std::endl;
             app.Halt();
             return 0;
         }
@@ -100,7 +101,7 @@ int main(int argc, char** argv) {
         std::string opt;
         std::string lastOpt;
         int currentChannel = 0;
-        std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
+        std::cout << "*{info}* Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
         do {
             std::cout << ComposeInfoPrompt(&app);
             cmd = (char) std::cin.get();
@@ -113,7 +114,7 @@ int main(int argc, char** argv) {
             else
             {
                 // Does the command requires an option ?
-                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd' || cmd == 'w' || cmd == 'e' ) {
+                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd' || cmd == 'w' || cmd == 'e' || cmd == 'z' ) {
                     std::cin >> opt;
                 }
                 else
@@ -236,18 +237,12 @@ int main(int argc, char** argv) {
             }
 
             // Tune to channel
-            if( cmd == 'e' ) {
-                int channel;
-
+            else if( cmd == 'e' ) {
                 if( opt.at(0) == '+' ) {
-                    if( currentChannel == 0 ) {
-                        std::cout << "No channel currently selected" << std::endl;
+                    if( !app.UseChannel( currentChannel + 1 ) ) {
+                        std::cout << "No channel " << (currentChannel + 1) << " defined" << std::endl;
                     } else {
-                        if( !app.UseChannel( currentChannel + 1 ) ) {
-                            std::cout << "No channel " << (currentChannel + 1) << " defined" << std::endl;
-                        } else {
-                            currentChannel++;
-                        }
+                        currentChannel++;
                     }
                 }
                 else if( opt.at(0) == '-' ) {
@@ -265,7 +260,7 @@ int main(int argc, char** argv) {
                 }
                 else
                 {
-                    channel = atoi(opt.c_str());
+                    int channel = atoi(opt.c_str());
                     if( !app.UseChannel( channel ) ) {
                         std::cout << "No channel " << channel << " defined" << std::endl;
                     } else {
@@ -284,14 +279,20 @@ int main(int argc, char** argv) {
 
             // Add current frequency as a channel
             else if( cmd == 'k' ) {
-                std::cout << "Name (or short description) of the channel: ";
-                std::cout.flush();
+                std::cout << "Name (or short description) of the channel: " << std::flush;
                 getline(std::cin, opt);
                 app.AddChannel(opt, app.GetFrequency());
+                currentChannel = 0;
             }
 
             // Delete channel
             else if( cmd == 'z' ) {
+                int channel = atoi(opt.c_str());
+                if (!app.RemoveChannel(channel)) {
+                    std::cout << "No channel " << channel << " defined" << std::endl;
+                } else {
+                    currentChannel = 0;
+                }
             }
 
             // Get help

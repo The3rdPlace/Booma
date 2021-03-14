@@ -381,10 +381,13 @@ class ConfigOptions {
                 std::vector<Channel*>::iterator it = _channels.begin();
                 int number = 0;
                 while( it != _channels.end() ) {
+                    std::cout << "NAME " << (*it)->Name << " with number " << (number + 1) << " <== " << id << std::endl;
                     if( number + 1 == id ) {
                         _channels.erase(it);
                         return true;
                     }
+                    number++;
+                    it++;
                 }
             }
             return false;
