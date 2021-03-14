@@ -24,6 +24,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _iqDecimator(nullptr),
         _firDecimator(nullptr),
         _decimator(nullptr),
+        _inputIqFirFilter(nullptr),
         _inputFirFilter(nullptr),
         _inputFirFilterProbe(nullptr) {
 
@@ -105,6 +106,7 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_decimator);
     SAFE_DELETE(_decimatorGainProbe);
     SAFE_DELETE(_decimatorAgcProbe);
+    SAFE_DELETE(_inputIqFirFilter);
     SAFE_DELETE(_inputFirFilter);
     SAFE_DELETE(_inputFirFilterProbe);
 
@@ -211,9 +213,15 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
 
 bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 
+    // Calculate new IF and hardware frequencies
     if( !SetReaderFrequencies(opts, frequency) ) {
         HError("Failed to set input reader frequency %d", frequency);
         return false;
+    }
+
+    // If we have a bandpass filter as inputfilter (REAL input), then move it
+    if( _inputFirFilter != nullptr ) {
+        _inputFirFilter->SetCoefficients(HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
     }
 
     // Device handling
@@ -383,8 +391,16 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
 
         // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
         _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
-        _inputFirFilter = new HIqFirFilter<int16_t>(previous,
+        _inputIqFirFilter = new HIqFirFilter<int16_t>(previous,
             HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+            51, BLOCKSIZE, _inputFirFilterProbe);
+        return _inputIqFirFilter->Consumer();
+    } else {
+
+        // Add extra filter the removes (mostly) anything outside the current frequency passband frequency
+        _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilter = new HFirFilter<int16_t>(previous,
+            HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
             51, BLOCKSIZE, _inputFirFilterProbe);
         return _inputFirFilter->Consumer();
     }
@@ -394,10 +410,16 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
 
 bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
 
-    // Change input filter width
-    if( _inputFirFilter != nullptr ) {
+    // Change input filter width for an IQ fir input filter
+    if(_inputIqFirFilter != nullptr ) {
         HLog("Setting new input filter width %d", width);
-        _inputFirFilter->SetCoefficients(HLowpassKaiserBessel<int16_t>(width, opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
+        _inputIqFirFilter->SetCoefficients(HLowpassKaiserBessel<int16_t>(width, opts->GetOutputSampleRate(), 51, 50).Calculate(), 51);
+        return true;
+    }
+
+    // If we have a bandpass filter as inputfilter (REAL input), then move it
+    if( _inputFirFilter != nullptr ) {
+        _inputFirFilter->SetCoefficients(HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
         return true;
     }
 

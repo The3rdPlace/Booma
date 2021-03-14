@@ -25,7 +25,8 @@ public:
         HBufferedWriter<int16_t>* _rfBuffer;
         HAgc<int16_t>* _rfAgc;
         HProbe<int16_t>* _rfAgcProbe;
-        HIqFirFilter<int16_t>* _inputFirFilter;
+        HIqFirFilter<int16_t>* _inputIqFirFilter;
+        HFirFilter<int16_t>* _inputFirFilter;
         HProbe<int16_t>* _inputFirFilterProbe;
 
         // Decimation
