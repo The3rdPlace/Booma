@@ -1,3 +1,10 @@
+booma (1.1-12) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Added channels to allow fast tuning to preset frequencies
+
+ -- Mackie <henrik@hardttoolkit.org>  Sun, 14 Mar 2021 17:40:00 +0100
+
 booma (1.1-11) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

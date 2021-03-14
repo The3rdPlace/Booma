@@ -1269,7 +1269,72 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
     configStream.open(configFile, std::ifstream::in);
     if (!configStream.is_open()) {
         std::cout << "No persistent channels file found, adding default channels" << std::endl;
-        list.push_back(new Channel("SAQ Grimeton", 17200));
+
+        // VLF transmitters
+        list.push_back(new Channel("JXN Novik. Norway", 16400));
+        list.push_back(new Channel("SAQ Grimeton. Sweeden", 17200));
+        list.push_back(new Channel("??? ???. Russia", 18100));
+        list.push_back(new Channel("GBZ Anthorn. UK", 15580));
+        list.push_back(new Channel("ICV Isola di Tavolara. Italy", 20270));
+        list.push_back(new Channel("FTA Sainte-Assise. France", 20900));
+        list.push_back(new Channel("HWU Rosnay. France", 21750));
+        list.push_back(new Channel("GQD Skelton. UK", 22100));
+        list.push_back(new Channel("DHO38 Rhauderfehn. Germany", 23400));
+        list.push_back(new Channel("GQD Skelton. UK", 22100));
+        list.push_back(new Channel("NAA Cutler. ME USA", 24000));
+        list.push_back(new Channel("??? ???. ???", 25900));
+        list.push_back(new Channel("??? ???. ???", 29700));
+        list.push_back(new Channel("??? ???. ???", 30700));
+        list.push_back(new Channel("??? ???. ???", 30700));
+        list.push_back(new Channel("??? ???. ???", 35400));
+        list.push_back(new Channel("??? ???. ???", 30700));
+        list.push_back(new Channel("NRK/TFK Grindavik. Iceland", 37500));
+        list.push_back(new Channel("SRC Varberg. Sweden", 40400));
+        list.push_back(new Channel("??? ???. ???", 44270));
+        list.push_back(new Channel("NSY Niscemi. Italy", 45900));
+        list.push_back(new Channel("SXA Marathon. Greece", 49000));
+        list.push_back(new Channel("GYW1 Crimond. UK", 51950));
+        list.push_back(new Channel("MSF Anthorn. UK", 60000));
+        list.push_back(new Channel("FUG La Régine. France", 62600));
+        list.push_back(new Channel("FUE Kerlouan. France", 65800));
+        list.push_back(new Channel("DCF77 Mainflingen. Germany", 77500));
+        list.push_back(new Channel("GYN2 Inskip. UK", 81000));
+        list.push_back(new Channel("LORAN", 100000));
+        list.push_back(new Channel("EFR Teleswitch ainflingen. Germany", 129100));
+        list.push_back(new Channel("EFR Teleswitch Lakihegy. Hungary", 135600));
+        list.push_back(new Channel("EFR Teleswitch Burg. Germany", 139000));
+        list.push_back(new Channel("DDH47 DWD Pinneberg. Germany", 147300));
+
+        // Longwave Am transmitters
+        list.push_back(new Channel("ROU SRR Radio Antena Satelor. Hungary (AM)", 153000));
+        list.push_back(new Channel("TDF Timesignal  Allouis. France (AM)", 162000));
+        list.push_back(new Channel("BBC Radio 4. UK (AM)", 198000));
+        list.push_back(new Channel("POL Polskie Radio Jedynka. Poland (AM)", 225000));
+        list.push_back(new Channel("LUX RTL (AM/DRM). Luxemburg ", 234000));
+        list.push_back(new Channel("DNK DR Langboelge. Denmark (AM)", 243000));
+        list.push_back(new Channel("IRL RTE Radio 1. Ireland (AM)", 252000));
+        list.push_back(new Channel("CZE CRo Radiozurnal. czech republic (AM)", 270000));
+        list.push_back(new Channel("Radio 208 Ishoej. Denmark (AM)", 1440000));
+        list.push_back(new Channel("Radio OZ-Viola Hilleroed. Denmark (AM)", 5980000));
+
+        // RTTY or other small bandwidth signals
+        list.push_back(new Channel("??? ???. ???", 290000));
+        list.push_back(new Channel("??? ???. ???", 298500));
+
+        // NDB
+        list.push_back(new Channel("RK NDB Roskilde. Denmark (beacon)", 368000));
+        list.push_back(new Channel("RK NDB Roskilde. Denmark (id)", 368400));
+        list.push_back(new Channel("LB NDB Angelholm. Sweeden (beacon)", 370500));
+        list.push_back(new Channel("LB NDB Angelholm. Sweeden (id)", 370900));
+
+        // Aviation services
+        list.push_back(new Channel("VOLMET Shannon. Ireland (AM)", 3413000));
+        list.push_back(new Channel("VOLMET Kastrup. Denmark (AM)", 127000000));
+
+        // Ham radio beacons
+        list.push_back(new Channel("OZ7IGY 6m Jystrup. Denmark (USB-CW)", 50470250));
+        list.push_back(new Channel("OZ7IGY 2m Jystrup. Denmark (USB-CW)", 144470250));
+
         return list;
     }
 

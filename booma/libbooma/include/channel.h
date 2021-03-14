@@ -17,7 +17,7 @@ class Channel {
             if( !std::getline(stream, storedName, ':') ) {
                 throw new BoomaConfigurationException("No name in channel definition");
             }
-            std::replace(storedName.begin(), storedName.end(), ' ', '_');
+            std::replace(storedName.begin(), storedName.end(), '_', ' ');
             Name = storedName;
             if( !std::getline(stream, frequency, ':') ) {
                 std::cout << definition << std::endl;
@@ -28,10 +28,10 @@ class Channel {
 
         Channel(std::string name, long int frequency) {
             if( name.find(',') != std::string::npos ) {
-                throw new BoomaConfigurationException("Invalid character in name ','");
+                throw new BoomaConfigurationException("Invalid character in name channel ','");
             }
             if( name.find(':') != std::string::npos ) {
-                throw new BoomaConfigurationException("Invalid character in name ':'");
+                throw new BoomaConfigurationException("Invalid character in name channel ':'");
             }
             Name = name;
             Frequency = frequency;
