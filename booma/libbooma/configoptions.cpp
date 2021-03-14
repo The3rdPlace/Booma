@@ -602,14 +602,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-fa") == 0 ) {
             _frequencyAlign = true;
             _rtlsdrAdjust = 0;
-            std::cout << tr("*{info}* Frequency align mode is enabled.") << std::endl;
-            std::cout << tr("*{info}* ") << std::endl;
-            std::cout << tr("*{info}* RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
-            std::cout << tr("*{info}* ") <<std::endl;
-            std::cout << tr("*{info}* An 800Hz tone is superimposed on the output audio") << std::endl;
-            std::cout << tr("*{info}* to help you find the offset error in your RTL-SDR") << std::endl;
-            std::cout << tr("*{info}* dongle. Use this value with the -rtla parameter") << std::endl;
-            std::cout << tr("*{info}* to enable precise tuning.") << std::endl;
+            std::cout << tr("*{msg}* Frequency align mode is enabled.") << std::endl;
+            std::cout << tr("*{msg}* ") << std::endl;
+            std::cout << tr("*{msg}* RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
+            std::cout << tr("*{msg}* ") <<std::endl;
+            std::cout << tr("*{msg}* An 800Hz tone is superimposed on the output audio") << std::endl;
+            std::cout << tr("*{msg}* to help you find the offset error in your RTL-SDR") << std::endl;
+            std::cout << tr("*{msg}* dongle. Use this value with the -rtla parameter") << std::endl;
+            std::cout << tr("*{msg}* to enable precise tuning.") << std::endl;
             HLog("Frequency alignment mode enabled");
             continue;
         }
