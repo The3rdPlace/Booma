@@ -1240,7 +1240,7 @@ std::vector<Channel*> ConfigOptions::ReadChannels(std::string configname, std::s
             list.push_back(new Channel(definition));
         }
     }
-    std::sort(list.begin(), list.end(), Channel::comparator);
+    std::sort(list.begin(), list.end(), Channel::ChannelComparator());
 
     return list;
 }

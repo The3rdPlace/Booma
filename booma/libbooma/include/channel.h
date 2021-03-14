@@ -46,9 +46,9 @@ class Channel {
             return storedName  + ":" + std::to_string(Frequency);
         }
 
-        static struct ChannelComparator {
+        struct ChannelComparator {
             bool operator() (Channel* i, Channel* j) { return (i->Frequency < j->Frequency); }
-        } comparator;
+        };
 };
 
 #endif

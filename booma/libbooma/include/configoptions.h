@@ -371,7 +371,7 @@ class ConfigOptions {
 
         bool AddChannel(std::string name, long int frequency) {
             _channels.push_back(new Channel(name, frequency));
-            std::sort(_channels.begin(), _channels.end(), Channel::comparator);
+            std::sort(_channels.begin(), _channels.end(), Channel::ChannelComparator());
             return true;
         }
 
