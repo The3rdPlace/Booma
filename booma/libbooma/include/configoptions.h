@@ -147,6 +147,7 @@ class ConfigOptions {
         int _rtlsdrOffset = 6000;
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
+        int _rtlsdrGain = 0;
         int _firFilterSize = 51;
         int _inputFilterWidth = 3000;
 
@@ -342,6 +343,10 @@ class ConfigOptions {
 
         int GetRtlsdrCorrectionFactor() {
             return _rtlsdrCorrectionFactor;
+        }
+
+        int GetRtlsdrGain() {
+            return _rtlsdrGain;
         }
 
         int GetFirFilterSize() {

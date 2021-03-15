@@ -6,8 +6,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfSplitter(nullptr),
         _rfBreaker(nullptr),
         _rfBuffer(nullptr),
-        _rfAgc(nullptr),
-        _rfAgcProbe(nullptr),
         _networkProcessor(nullptr),
         _streamProcessor(nullptr),
         _decimatorGain(nullptr),
@@ -83,8 +81,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     // Add inputfilter, gain and optional zero-shift
     HLog("Setting input filter, rf gain and optional zero shift");
     HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
-    HWriterConsumer<int16_t>* input = SetInputFilter(opts, shift);
-    _lastConsumer = SetGain(opts, input);
+    _lastConsumer = SetInputFilter(opts, shift);
 }
 
 BoomaInput::~BoomaInput() {
@@ -115,9 +112,6 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfSplitter);
     SAFE_DELETE(_rfBreaker);
     SAFE_DELETE(_rfBuffer);
-
-    SAFE_DELETE(_rfAgc);
-    SAFE_DELETE(_rfAgcProbe);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -149,20 +143,20 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
         case RTLSDR:
             switch(opts->GetInputSourceDataType()) {
                 case InputSourceDataType::IQ_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::I_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::Q_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL_SAMPLES, 0, _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
+                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
+                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
                     break;
                 default:
                     HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
@@ -232,17 +226,6 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
         return true;
     } else {
         return true;
-    }
-}
-
-int BoomaInput::SetRfGain(int gain) {
-    if( gain != 0 ) {
-        float g = gain > 0 ? gain : ((float) 1 / ((float) gain * (float) -1));
-        _rfAgc->SetGain(g);
-        return _rfAgc->GetGain();
-    } else {
-        _rfAgc->SetEnabled(true);
-        return 0;
     }
 }
 
@@ -424,19 +407,6 @@ bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
     }
 
     return false;
-}
-
-HWriterConsumer<int16_t>* BoomaInput::SetGain(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
-
-    // Add RF gain
-    HLog("Setting up RF gain");
-    _rfAgcProbe = new HProbe<int16_t>("input_08_rf_agc", opts->GetEnableProbes());
-    _rfAgc = new HAgc<int16_t>(previous, opts->GetRfAgcLevel(), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
-    if( opts->GetRfGain() != 0 ) {
-        float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
-        _rfAgc->SetGain(g);
-    }
-    return _rfAgc->Consumer();
 }
 
 HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {

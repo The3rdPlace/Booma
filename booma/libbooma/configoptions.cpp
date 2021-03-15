@@ -74,7 +74,8 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
         std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
-        std::cout << tr("RTL-SDR frequency correction factor (default 0)          -fcf factor") << std::endl;
+        std::cout << tr("RTL-SDR frequency correction factor (default 0)          -rtlf factor") << std::endl;
+        std::cout << tr("RTL-SDR gain (default 0 = auto)                          -rtlg gain") << std::endl;
         std::cout << tr("Automatic RF gain level (default 1000)                   -ral level") << std::endl;
         std::cout << std::endl;
 
@@ -553,9 +554,17 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // Frequency correction factor for rtl-sdr dongles
-        if( strcmp(argv[i], "-fcf") == 0 && i < argc - 1) {
+        if( strcmp(argv[i], "-rtlf") == 0 && i < argc - 1) {
             _rtlsdrCorrectionFactor = atoi(argv[i + 1]);
             HLog("RTL-SDR frequency correction factor set to %d", _rtlsdrCorrectionFactor);
+            i++;
+            continue;
+        }
+
+        // RTL-SDR gain
+        if( strcmp(argv[i], "-rtlg") == 0 && i < argc - 1) {
+            _rtlsdrGain = atoi(argv[i + 1]);
+            HLog("RTL-SDR gain set to %d", _rtlsdrGain);
             i++;
             continue;
         }

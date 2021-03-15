@@ -23,8 +23,6 @@ public:
         HSplitter<int16_t>* _rfSplitter;
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
-        HAgc<int16_t>* _rfAgc;
-        HProbe<int16_t>* _rfAgcProbe;
         HIqFirFilter<int16_t>* _inputIqFirFilter;
         HFirFilter<int16_t>* _inputFirFilter;
         HProbe<int16_t>* _inputFirFilterProbe;
@@ -82,8 +80,6 @@ public:
         bool SetDumpRf(bool enabled);
 
         bool SetFrequency(ConfigOptions* opts, int frequency);
-
-        int SetRfGain(int gain);
 
         int GetIfFrequency() {
             return _ifFrequency;

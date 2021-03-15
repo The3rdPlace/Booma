@@ -13,6 +13,11 @@ class BoomaReceiver {
 
     private:
 
+        // Input gain/agc
+        int _gainValue;
+        HAgc<int16_t>* _rfAgc;
+        HProbe<int16_t>* _rfAgcProbe;
+
         // Major receiver hooks
         HWriterConsumer<int16_t>* _preProcess;
         HWriterConsumer<int16_t>* _receive;
@@ -72,6 +77,8 @@ class BoomaReceiver {
         BoomaReceiver(ConfigOptions* opts, int initialFrequency):
             _hasBuilded(false),
             _frequency(initialFrequency),
+            _rfAgc(nullptr),
+            _rfAgcProbe(nullptr),
             _spectrum(nullptr),
             _rfFft(nullptr),
             _rfFftWindow(nullptr),
@@ -90,6 +97,9 @@ class BoomaReceiver {
     public:
 
         virtual ~BoomaReceiver() {
+            SAFE_DELETE(_rfAgc);
+            SAFE_DELETE(_rfAgcProbe);
+
             SAFE_DELETE(_spectrum);
 
             SAFE_DELETE(_rfFft);
@@ -155,8 +165,17 @@ class BoomaReceiver {
                 SetOption(opts, (*it).first, (*it).second);
             }
 
+            // Add receiver gain/agc
+            _gainValue = opts->GetRfGain();
+            _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
+            _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), opts->GetRfAgcLevel(), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
+            if( opts->GetRfGain() != 0 ) {
+                float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
+                _rfAgc->SetGain(g);
+            }
+
             // Add a splitter so that we can take the full spectrum out before running through the receiver filters
-            _spectrum = new HSplitter<int16_t>(input->GetLastWriterConsumer());
+            _spectrum = new HSplitter<int16_t>(_rfAgc->Consumer());
 
             // Add RF spectrum calculation
             _rfFftWindow = new HRectangularWindow<int16_t>();
@@ -206,6 +225,22 @@ class BoomaReceiver {
 
         HWriterConsumer<int16_t>* GetSpectrumConsumer() {
             return _spectrum->Consumer();
+        }
+
+        int SetRfGain(int gain) {
+            _gainValue = gain;
+            if( gain != 0 ) {
+                float g = gain > 0 ? gain : ((float) 1 / ((float) gain * (float) -1));
+                _rfAgc->SetGain(g);
+                return _rfAgc->GetGain();
+            } else {
+                _rfAgc->SetEnabled(true);
+                return 0;
+            }
+        }
+
+        int GetRfGain() {
+            return _gainValue;
         }
 
         int GetRfSpectrum(double* spectrum);
