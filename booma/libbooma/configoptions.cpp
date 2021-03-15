@@ -138,7 +138,20 @@ void ConfigOptions::PrintRtlsdrDevices() {
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
         std::cout << "Device: " << (*it).Device << std::endl;
-        std::cout << "        \"" << (*it).Vendor << " " << (*it).Product << "\"" << std::endl;
+        std::cout << "    Vendor: " << (*it).Vendor << std::endl;
+        std::cout << "    Product: " << (*it).Product << std::endl;
+        std::cout << "    Available gain values: ";
+        int cols = 0;
+        for( std::vector<int>::iterator git = (*it).Gain.begin(); git != (*it).Gain.end(); git++ ) {
+            std::cout << std::to_string(*git) << " ";
+            if( cols++ >= 10 ) {
+                std::cout << std::endl << "                           ";
+                cols = 0;
+            }
+        }
+        if( cols != 0 ) {
+            std::cout << std::endl;
+        }
         std::cout << std::endl;
     }
 }
