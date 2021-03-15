@@ -1273,20 +1273,18 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
         // VLF transmitters
         list.push_back(new Channel("JXN Novik. Norway", 16400));
         list.push_back(new Channel("SAQ Grimeton. Sweeden", 17200));
-        list.push_back(new Channel("??? ???. Russia", 18100));
-        list.push_back(new Channel("GBZ Anthorn. UK", 15580));
+        list.push_back(new Channel("RDL ???. Russia", 18100));
+        list.push_back(new Channel("GBZ Anthorn. UK", 19580));
+        list.push_back(new Channel("NWC Harold E. Holt. North West Cape. Exmouth. Australia", 19800));
         list.push_back(new Channel("ICV Isola di Tavolara. Italy", 20270));
         list.push_back(new Channel("FTA Sainte-Assise. France", 20900));
         list.push_back(new Channel("HWU Rosnay. France", 21750));
         list.push_back(new Channel("GQD Skelton. UK", 22100));
         list.push_back(new Channel("DHO38 Rhauderfehn. Germany", 23400));
-        list.push_back(new Channel("GQD Skelton. UK", 22100));
-        list.push_back(new Channel("NAA Cutler. ME USA", 24000));
-        list.push_back(new Channel("??? ???. ???", 25900));
-        list.push_back(new Channel("??? ???. ???", 29700));
-        list.push_back(new Channel("??? ???. ???", 30700));
-        list.push_back(new Channel("??? ???. ???", 30700));
-        list.push_back(new Channel("??? ???. ???", 35400));
+        list.push_back(new Channel("NAA Cutler. ME. USA", 24000));
+        list.push_back(new Channel("unid25 Mokpo. South Korea", 25000));
+        list.push_back(new Channel("NML La Moure. ND. USA", 25200));
+        list.push_back(new Channel("TBB Bafa. Turkey", 26700));
         list.push_back(new Channel("??? ???. ???", 30700));
         list.push_back(new Channel("NRK/TFK Grindavik. Iceland", 37500));
         list.push_back(new Channel("SRC Varberg. Sweden", 40400));

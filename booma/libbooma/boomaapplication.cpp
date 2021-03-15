@@ -306,7 +306,10 @@ std::map<int, Channel*> BoomaApplication::GetChannels() {
 }
 
 bool BoomaApplication::AddChannel(std::string name, long int frequency) {
-    return _opts->AddChannel(name, frequency);
+    std::string cleanName = name;
+    std::replace(cleanName.begin(), cleanName.end(), ',', '.');
+    std::replace(cleanName.begin(), cleanName.end(), ':', '.');
+    return _opts->AddChannel(cleanName, frequency);
 }
 
 bool BoomaApplication::RemoveChannel(int id) {

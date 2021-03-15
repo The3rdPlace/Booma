@@ -1,3 +1,11 @@
+booma (1.1-14) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Added a couple of new default channels and cleaned up a slight mess
+  * Automatically clean the channel name when entered for a new channel
+
+ -- Mackie <henrik@hardttoolkit.org>  Mon, 15 Mar 2021 12:20:00 +0100
+
 booma (1.1-13) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
