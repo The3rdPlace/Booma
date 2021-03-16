@@ -1,9 +1,16 @@
+booma (1.1-16) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Fixed reading IQ samples from PCM dump
+
+ -- Mackie <henrik@hardttoolkit.org>  Tue, 16 Mar 2021 10:30:00 +0100
+
 booma (1.1-15) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
   * Moved signal level calculation to a better palce
 
- -- Mackie <henrik@hardttoolkit.org>  Mon, 16 Mar 2021 01:35:00 +0100
+ -- Mackie <henrik@hardttoolkit.org>  Tue, 16 Mar 2021 01:35:00 +0100
 
 booma (1.1-14) RELEASED; urgency=medium
 

@@ -745,13 +745,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Sanitize sample rate
-    if( _inputSampleRate == _outputSampleRate && (_inputSourceType == RTLSDR || _originalInputSourceType == RTLSDR) ) {
+    if( _inputSampleRate == _outputSampleRate && (_inputSourceType == RTLSDR) ) {
         std::cout << "Input (device) and output sample rate should not be the same for RTL-SDR devices" << std::endl;
         exit(1);
     }
-    if( _inputSourceType != RTLSDR && _originalInputSourceType != RTLSDR ) {
+    if( _inputSourceType != RTLSDR ) {
         _inputSampleRate = _outputSampleRate;
     }
+
 
     // Dump info during startup
     DumpConfigInfo();

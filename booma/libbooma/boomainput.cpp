@@ -63,13 +63,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(reader, BLOCKSIZE, isTerminated);
     }
 
-    // Add optional zero-shift
-    HLog("Setting optional zero shift");
-    HWriterConsumer<int16_t>* shift = SetShift(opts, (_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
-
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter and RF optional output dump");
-    _rfSplitter = new HSplitter<int16_t>(shift->Consumer());
+    _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
     _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
@@ -79,9 +75,14 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
 
+    // Add optional zero-shift
+    HLog("Setting optional zero shift");
+    HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
+
+
     // Add inputfilter
     HLog("Setting 1.st. IF (input) filter");
-    _lastConsumer = SetInputFilter(opts, _rfSplitter->Consumer());
+    _lastConsumer = SetInputFilter(opts, shift);
 }
 
 BoomaInput::~BoomaInput() {
@@ -274,6 +275,12 @@ bool BoomaInput::GetDecimationRate(int inputRate, int outputRate, int* first, in
 }
 
 HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t>* previous) {
+
+    // Decimation not needed if not an rtl-sdr
+    if( opts->GetInputSourceType() != InputSourceType::RTLSDR ) {
+        HLog("Input is not RTL-SDR hardware, no decimation is needed");
+        return previous;
+    }
 
     // Decimation not enabled or required
     if (opts->GetInputSampleRate() == opts->GetOutputSampleRate()) {
