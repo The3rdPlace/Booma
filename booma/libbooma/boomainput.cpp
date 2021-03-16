@@ -63,12 +63,13 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(reader, BLOCKSIZE, isTerminated);
     }
 
-    // Setup a splitter to split off rf dump and spectrum calculation
-    HLog("Setting up input RF splitter");
-    _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
+    // Add optional zero-shift
+    HLog("Setting optional zero shift");
+    HWriterConsumer<int16_t>* shift = SetShift(opts, (_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
 
-    // Add a filewriter so that we can dump pcm data on request
-    HLog("Adding RF output filewriter");
+    // Setup a splitter to split off rf dump and spectrum calculation
+    HLog("Setting up input RF splitter and RF optional output dump");
+    _rfSplitter = new HSplitter<int16_t>(shift->Consumer());
     _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
@@ -78,10 +79,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer());
     }
 
-    // Add inputfilter, gain and optional zero-shift
-    HLog("Setting input filter, rf gain and optional zero shift");
-    HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
-    _lastConsumer = SetInputFilter(opts, shift);
+    // Add inputfilter
+    HLog("Setting 1.st. IF (input) filter");
+    _lastConsumer = SetInputFilter(opts, _rfSplitter->Consumer());
 }
 
 BoomaInput::~BoomaInput() {
@@ -300,7 +300,7 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
         _decimatorGainProbe = new HProbe<int16_t>("input_01_decimator_gain", opts->GetEnableProbes());
         _decimatorGain = new HGain<int16_t>(previous, opts->GetDecimatorGain(), BLOCKSIZE, _decimatorGainProbe);
     } else {
-        HLog("Using agc at average value=2000 before decimator");
+        HLog("Using agc at level=%d before decimator", opts->GetDecimatorAgcLevel());
         _decimatorAgcProbe = new HProbe<int16_t>("input_02_decimator_agc", opts->GetEnableProbes());
         _decimatorAgc = new HAgc<int16_t>(previous, opts->GetDecimatorAgcLevel(), 50, BLOCKSIZE, 6, true, _decimatorAgcProbe);
     }
@@ -381,7 +381,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
     } else {
 
         // Add extra filter the removes (mostly) anything outside the current frequency passband frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilterProbe = new HProbe<int16_t>("input_08_inputfirfilter", opts->GetEnableProbes());
         _inputFirFilter = new HFirFilter<int16_t>(previous,
             HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
             51, BLOCKSIZE, _inputFirFilterProbe);
@@ -427,4 +427,3 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
 
     return previous;
 }
-

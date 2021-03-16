@@ -243,6 +243,10 @@ class BoomaReceiver {
             return _gainValue;
         }
 
+        float GetRfAgcCurrentGain() {
+            return _rfAgc->GetGain();
+        }
+
         int GetRfSpectrum(double* spectrum);
         int GetRfFftSize();
         int GetAudioFftSize();

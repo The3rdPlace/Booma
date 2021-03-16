@@ -13,35 +13,39 @@ public:
 
     private:
 
+        // Input and processor
+        HReader<int16_t>* _inputReader;
         HStreamProcessor<int16_t>* _streamProcessor;
         HNetworkProcessor<int16_t>* _networkProcessor;
 
+        // Decimation
         HProbe<int16_t>* _decimatorGainProbe;
+        HGain<int16_t>* _decimatorGain;
         HProbe<int16_t>* _decimatorAgcProbe;
-        HReader<int16_t>* _inputReader;
-        HWriter<int16_t>* _rfWriter;
-        HSplitter<int16_t>* _rfSplitter;
-        HBreaker<int16_t>* _rfBreaker;
-        HBufferedWriter<int16_t>* _rfBuffer;
+        HAgc<int16_t>* _decimatorAgc;
+        HProbe<int16_t>* _ifMultiplierProbe;
+        HIqMultiplier<int16_t>* _ifMultiplier;
+        HProbe<int16_t>* _iqFirDecimatorProbe;
+        HIqFirDecimator<int16_t>* _iqFirDecimator;
+        HProbe<int16_t>* _iqDecimatorProbe;
+        HIqDecimator<int16_t>* _iqDecimator;
+        HProbe<int16_t>* _firDecimatorProbe;
+        HFirDecimator<int16_t>* _firDecimator;
+        HProbe<int16_t>* _decimatorProbe;
+        HDecimator<int16_t>* _decimator;
+
+        // Input filtering
         HIqFirFilter<int16_t>* _inputIqFirFilter;
         HFirFilter<int16_t>* _inputFirFilter;
         HProbe<int16_t>* _inputFirFilterProbe;
 
-        // Decimation
-        HProbe<int16_t>* _ifMultiplierProbe;
-        HProbe<int16_t>* _iqFirDecimatorProbe;
-        HProbe<int16_t>* _iqDecimatorProbe;
-        HProbe<int16_t>* _firDecimatorProbe;
-        HProbe<int16_t>* _decimatorProbe;
+        // Dumping rf input
+        HSplitter<int16_t>* _rfSplitter;
+        HBreaker<int16_t>* _rfBreaker;
+        HBufferedWriter<int16_t>* _rfBuffer;
+        HWriter<int16_t>* _rfWriter;
 
-        HGain<int16_t>* _decimatorGain;
-        HAgc<int16_t>* _decimatorAgc;
-        HIqMultiplier<int16_t>* _ifMultiplier;
-        HIqFirDecimator<int16_t>* _iqFirDecimator;
-        HIqDecimator<int16_t>* _iqDecimator;
-        HFirDecimator<int16_t>* _firDecimator;
-        HDecimator<int16_t>* _decimator;
-
+        // Final consumer
         HWriterConsumer<int16_t>* _lastConsumer;
 
         int _virtualFrequency;

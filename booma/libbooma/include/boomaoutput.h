@@ -9,6 +9,7 @@ class BoomaOutput {
 
     private:
 
+        // Output
         HMux<int16_t>* _soundcardMultiplexer;
         HSoundcardWriter<int16_t>* _soundcardWriter;
         HNullWriter<int16_t>* _nullWriter;
@@ -24,6 +25,7 @@ class BoomaOutput {
         HBufferedWriter<int16_t>* _audioBuffer;
 
         // Signal level reporting
+        HSplitter<int16_t>* _ifSplitter;
         HSignalLevelOutput<int16_t>* _signalLevel;
         HCustomWriter<HSignalLevelResult>* _signalLevelWriter;
         int SignalLevelCallback(HSignalLevelResult* result, size_t length);
@@ -38,9 +40,9 @@ class BoomaOutput {
         // Frequency alignment
         HSineGenerator<int16_t>* _frequencyAlignmentGenerator;
         HLinearMixer<int16_t>* _frequencyAlignmentMixer;
-        HWriterConsumer<int16_t>* GetOutputFilterConsumer() {
+        HWriterConsumer<int16_t>* GetOutputVolumeConsumer() {
             return _frequencyAlignmentMixer == nullptr
-                    ? _outputFilter->Consumer()
+                    ? _outputVolume->Consumer()
                     : _frequencyAlignmentMixer->Consumer();
         }
 

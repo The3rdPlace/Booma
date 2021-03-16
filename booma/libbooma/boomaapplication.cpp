@@ -192,7 +192,11 @@ int BoomaApplication::GetRfGain() {
 }
 
 int BoomaApplication::GetSignalLevel() {
-    return _output->GetSignalLevel();
+    // We need to do our own S calculation since the agc must be be "removed" from the max value
+    // The factor 20 is just picked from relative measurements.. this is not
+    // a level that can be used for anything but a local reference!
+    int max = GetSignalMax() * 20;
+    return (20 * log10((float) ceil((max == 0 ? 0.25 : max) / 1))) / 6;
 }
 
 double BoomaApplication::GetSignalSum() {
@@ -200,7 +204,9 @@ double BoomaApplication::GetSignalSum() {
 }
 
 int BoomaApplication::GetSignalMax() {
-    return _output->GetSignalMax();
+    //static int m = 10;
+    return (_output->GetSignalMax() / _receiver->GetRfAgcCurrentGain());
+    //return m += 10;
 }
 
 int BoomaApplication::GetRfFftSize() {

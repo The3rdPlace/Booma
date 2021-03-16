@@ -63,8 +63,6 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << std::endl;
 
     std::cout << tr("==[Performance and quality (not persisted)]==") << std::endl;
-    std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
-    std::cout << tr("Agc level for manual decimator gain (default 2000)       -dal level") << std::endl;
     std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
     std::cout << tr("1.st IF filter width, only for RTL-SDR (default 3000)    -ifw width") << std::endl;
     std::cout << std::endl;
@@ -76,7 +74,9 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -rtlf factor") << std::endl;
         std::cout << tr("RTL-SDR gain (default 0 = auto)                          -rtlg gain") << std::endl;
-        std::cout << tr("Automatic RF gain level (default 1000)                   -ral level") << std::endl;
+        std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
+        std::cout << tr("Agc level for automatic decimator gain (default 2000)    -dal level") << std::endl;
+        std::cout << tr("Automatic RF gain level (default 500)                    -ral level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
@@ -286,6 +286,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             if( strcmp(argv[i + 1], "AUDIO") == 0 && i < argc - 2 ) {
                 _inputSourceType = AUDIO_DEVICE;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
+                _originalInputSourceType = _inputSourceType;
                 _inputDevice = atoi(argv[i + 2]);
                 _isRemoteHead = false;
                 HLog("Input audio device %d", _inputDevice);
@@ -293,6 +294,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             else if( strcmp(argv[i + 1], "GENERATOR") == 0 && i < argc - 2 ) {
                 _inputSourceType = SIGNAL_GENERATOR;
                 _signalGeneratorFrequency = atoi(argv[i + 2]);
+                _originalInputSourceType = _inputSourceType;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
                 _isRemoteHead = false;
                 HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
@@ -314,6 +316,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
                 _inputSourceType = SILENCE;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
+                _originalInputSourceType = _inputSourceType;
                 _isRemoteHead = false;
                 i -= 1;
                 HLog("input silence");
@@ -322,6 +325,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 _inputDevice = atoi(argv[i + 2]);
                 _inputSourceType = RTLSDR;
                 _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
+                _originalInputSourceType = _inputSourceType;
                 _isRemoteHead = false;
                 HLog("Input RTL-SDR device %d", _inputDevice);
             }
