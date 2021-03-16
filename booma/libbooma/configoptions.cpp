@@ -31,6 +31,11 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Output samplerate (default 48KHz)                        -or rate") << std::endl;
     std::cout << std::endl;
 
+    std::cout << tr("==[Use with converters]==") << std::endl;
+    std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
+    std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
+    std::cout << std::endl;
+
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
     std::cout << tr("Select receiver (CW default)                             -m CW|AURORAL|AM|SSB") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
@@ -56,7 +61,6 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("==[Options]==") << std::endl;
     std::cout << tr("Wait untill scheduled time                               -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
-    std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
     std::cout << tr("Reset cached configuration                               -z") << std::endl;
     std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
     std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
@@ -71,7 +75,6 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
         std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
-        std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -rtlf factor") << std::endl;
         std::cout << tr("RTL-SDR gain (default 0 = auto)                          -rtlg gain") << std::endl;
         std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
