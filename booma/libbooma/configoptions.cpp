@@ -79,7 +79,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("RTL-SDR gain (default 0 = auto)                          -rtlg gain") << std::endl;
         std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
         std::cout << tr("Agc level for automatic decimator gain (default 1000)    -dal level") << std::endl;
-        std::cout << tr("Automatic RF gain level (default 200)                    -ral level") << std::endl;
+        std::cout << tr("Automatic RF gain level (default 500)                    -ral level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
