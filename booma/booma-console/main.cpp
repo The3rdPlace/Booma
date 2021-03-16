@@ -37,10 +37,11 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
 std::string ComposeInfoPrompt(BoomaApplication* app) {
     return "Booma[ " +
     TranslateReceiverModeType(app->GetReceiver()) + ( app->GetOptionInfoString() != "" ? "(" + app->GetOptionInfoString() + ")" : "") +
-    " f=" + std::to_string(app->GetFrequency()) +
+    " f=" + std::to_string(app->GetFrequency()) + (app->GetFrequencyAdjust() != 0 ? "(" + std::to_string(app->GetFrequencyAdjust()) + ")" : "") +
     " v=" + std::to_string(app->GetVolume()) +
     " gain=" + std::to_string(app->GetRfGain()) +
     " ifw=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
+    (app->GetShift() != 0 ? " shift=" + std::to_string(app->GetShift()) : "") +
     (app->GetDumpRf() ? " " : "") +
     (app->GetDumpRf() ? (app->GetEnableBuffers() ? "RF(b)" : "RF") : "") +
     (app->GetDumpAudio() ? " " : "") +

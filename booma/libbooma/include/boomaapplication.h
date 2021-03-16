@@ -96,9 +96,9 @@ class BoomaApplication {
         bool SetFrequency(long int frequency);
         bool ChangeFrequency(int stepSize);
 
-        // Get the IF frequency, the frequency where the received signal is
-        // located in the frequency band provided to the receiver
-        //int GetIfFrequency();
+        // Get frequency shift and frequency adjustments for rtl-sdr dongles
+        int GetShift();
+        int GetFrequencyAdjust();
 
         // Set 1.st IF filter width
         bool SetInputFilterWidth(int width);

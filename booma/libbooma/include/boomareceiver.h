@@ -94,6 +94,22 @@ class BoomaReceiver {
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
         }
 
+        int GetRfAgcLevel(ConfigOptions* opts) {
+            switch(opts->GetInputSourceDataType()) {
+                case IQ_INPUT_SOURCE_DATA_TYPE:
+                case I_INPUT_SOURCE_DATA_TYPE:
+                case Q_INPUT_SOURCE_DATA_TYPE:
+                    // Set level of individual branches, so that the absolute size
+                    // of the IQ vector has the requested level..
+                    // I^2 + Q^2 = MAG^2  ==>  I = Q = sqrt(MAG^2 / 2)
+                    // Then divide by 2 to go from peak-to-peak to size of positive or
+                    // negative part of the cycle.
+                    return sqrt( pow(opts->GetRfAgcLevel(), 2) / 2 ) / 2;
+                default:
+                    return opts->GetRfAgcLevel();
+            }
+        }
+
     public:
 
         virtual ~BoomaReceiver() {
@@ -168,8 +184,9 @@ class BoomaReceiver {
             // Add receiver gain/agc
             _gainValue = opts->GetRfGain();
             _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
-            _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), opts->GetRfAgcLevel(), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
+            _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
             if( opts->GetRfGain() != 0 ) {
+                std::cout << "SET GAIN" << std::endl;
                 float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
                 _rfAgc->SetGain(g);
             }

@@ -1,3 +1,10 @@
+booma (1.1-17) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Adjust rf-gain level for iq samples
+
+ -- Mackie <henrik@hardttoolkit.org>  Tue, 16 Mar 2021 21:20:00 +0100
+
 booma (1.1-16) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

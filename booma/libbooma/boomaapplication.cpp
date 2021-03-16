@@ -193,7 +193,7 @@ int BoomaApplication::GetRfGain() {
 
 int BoomaApplication::GetSignalLevel() {
     // We need to do our own S calculation since the agc must be be "removed" from the max value
-    // The factor 20 is just picked from relative measurements.. this is not
+    // The factor 25 is just picked from relative measurements.. this is not
     // a level that can be used for anything but a local reference!
     int max = GetSignalMax() * 20;
     return (20 * log10((float) ceil((max == 0 ? 0.25 : max) / 1))) / 6;
@@ -204,9 +204,7 @@ double BoomaApplication::GetSignalSum() {
 }
 
 int BoomaApplication::GetSignalMax() {
-    //static int m = 10;
     return (_output->GetSignalMax() / _receiver->GetRfAgcCurrentGain());
-    //return m += 10;
 }
 
 int BoomaApplication::GetRfFftSize() {
@@ -339,4 +337,20 @@ bool BoomaApplication::SetInputFilterWidth(int width) {
 
 int BoomaApplication::GetInputFilterWidth() {
     return _opts->GetInputFilterWidth();
+}
+
+int BoomaApplication::GetShift() {
+    if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
+        return _opts->GetShift();
+    } else {
+        return 0;
+    }
+}
+
+int BoomaApplication::GetFrequencyAdjust() {
+    if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
+        return _opts->GetRtlsdrAdjust();
+    } else {
+        return 0;
+    }
 }

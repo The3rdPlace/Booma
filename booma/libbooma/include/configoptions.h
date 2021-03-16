@@ -140,7 +140,7 @@ class ConfigOptions {
 
         // Decimation settings
         int _decimatorGain = 0; // = auto
-        int _decimatorAgcLevel = 2000;
+        int _decimatorAgcLevel = 1000;
 
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
