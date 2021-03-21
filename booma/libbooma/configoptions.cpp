@@ -187,6 +187,9 @@ bool ConfigOptions::IsVerbose(int argc, char** argv) {
 
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
+    // Setup default section
+    _values.insert(std::pair<std::string, ConfigOptionValues*>(_section, new ConfigOptionValues));
+
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
 
@@ -244,20 +247,20 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Enable probes
         if( strcmp(argv[i], "-x") == 0 ) {
             HLog("Enabled probe run");
-            _enableProbes = true;
+            _values.at(_section)->_enableProbes = true;
             continue;
         }
 
         // Dump output as ... to file
         if( strcmp(argv[i], "-a") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
-                _dumpAudio = true;
-                _dumpAudioFileFormat = PCM;
+                _values.at(_section)->_dumpAudio = true;
+                _values.at(_section)->_dumpAudioFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
-                _dumpAudio = true;
-               _dumpAudioFileFormat = WAV;
+                _values.at(_section)->_dumpAudio = true;
+                _values.at(_section)->_dumpAudioFileFormat = WAV;
             } else {
-                _dumpAudio = false;
+                _values.at(_section)->_dumpAudio = false;
             }
             i++;
             continue;
@@ -265,21 +268,21 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Dump file suffix
         if( strcmp(argv[i], "-dfs") == 0 && i < argc - 1) {
-            _dumpFileSuffix = argv[i + 1];
+            _values.at(_section)->_dumpFileSuffix = argv[i + 1];
             i++;
             continue;
         }
 
         // Frequency
         if( strcmp(argv[i], "-f") == 0 && i < argc - 1) {
-            _frequency = atoi(argv[i + 1]);
+            _values.at(_section)->_frequency = atoi(argv[i + 1]);
             i++;
             continue;
         }
 
         // Rf gain
         if( strcmp(argv[i], "-g") == 0 && i < argc - 1) {
-            _rfGain = atoi(argv[i + 1]);
+            _values.at(_section)->_rfGain = atoi(argv[i + 1]);
             i++;
             continue;
         }
@@ -287,74 +290,74 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Select input device and optional device-specific settings
         if( strcmp(argv[i], "-i") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "AUDIO") == 0 && i < argc - 2 ) {
-                _inputSourceType = AUDIO_DEVICE;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _originalInputSourceType = _inputSourceType;
-                _inputDevice = atoi(argv[i + 2]);
-                _isRemoteHead = false;
-                HLog("Input audio device %d", _inputDevice);
+                _values.at(_section)->_inputSourceType = AUDIO_DEVICE;
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_originalInputSourceType = _values.at(_section)->_inputSourceType;
+                _values.at(_section)->_inputDevice = atoi(argv[i + 2]);
+                _values.at(_section)->_isRemoteHead = false;
+                HLog("Input audio device %d", _values.at(_section)->_inputDevice);
             }
             else if( strcmp(argv[i + 1], "GENERATOR") == 0 && i < argc - 2 ) {
-                _inputSourceType = SIGNAL_GENERATOR;
-                _signalGeneratorFrequency = atoi(argv[i + 2]);
-                _originalInputSourceType = _inputSourceType;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _isRemoteHead = false;
-                HLog("Input generator running at %d Hz", _signalGeneratorFrequency);
+                _values.at(_section)->_inputSourceType = SIGNAL_GENERATOR;
+                _values.at(_section)->_signalGeneratorFrequency = atoi(argv[i + 2]);
+                _values.at(_section)->_originalInputSourceType = _values.at(_section)->_inputSourceType;
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_isRemoteHead = false;
+                HLog("Input generator running at %d Hz", _values.at(_section)->_signalGeneratorFrequency);
             }
             else if( strcmp(argv[i + 1], "PCM") == 0 && i < argc - 2 ) {
-                _inputSourceType = PCM_FILE;
-                _pcmFile = argv[i + 2];
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _isRemoteHead = false;
-                HLog("Input file %s", _pcmFile.c_str());
+                _values.at(_section)->_inputSourceType = PCM_FILE;
+                _values.at(_section)->_pcmFile = argv[i + 2];
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_isRemoteHead = false;
+                HLog("Input file %s", _values.at(_section)->_pcmFile.c_str());
             }
             else if( strcmp(argv[i + 1], "WAV") == 0 && i < argc - 2 ) {
-                _inputSourceType = WAV_FILE;
-                _wavFile = argv[i + 2];
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _isRemoteHead = false;
-                HLog("Input file %s", _wavFile.c_str());
+                _values.at(_section)->_inputSourceType = WAV_FILE;
+                _values.at(_section)->_wavFile = argv[i + 2];
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_isRemoteHead = false;
+                HLog("Input file %s", _values.at(_section)->_wavFile.c_str());
             }
             else if( strcmp(argv[i + 1], "SILENCE") == 0 ) {
-                _inputSourceType = SILENCE;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _originalInputSourceType = _inputSourceType;
-                _isRemoteHead = false;
+                _values.at(_section)->_inputSourceType = SILENCE;
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_originalInputSourceType = _values.at(_section)->_inputSourceType;
+                _values.at(_section)->_isRemoteHead = false;
                 i -= 1;
                 HLog("input silence");
             }
             else if( strcmp(argv[i + 1], "RTLSDR") == 0 && i < argc - 2 ) {
-                _inputDevice = atoi(argv[i + 2]);
-                _inputSourceType = RTLSDR;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _originalInputSourceType = _inputSourceType;
-                _isRemoteHead = false;
-                HLog("Input RTL-SDR device %d", _inputDevice);
+                _values.at(_section)->_inputDevice = atoi(argv[i + 2]);
+                _values.at(_section)->_inputSourceType = RTLSDR;
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? IQ_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_originalInputSourceType = _values.at(_section)->_inputSourceType;
+                _values.at(_section)->_isRemoteHead = false;
+                HLog("Input RTL-SDR device %d", _values.at(_section)->_inputDevice);
             }
             else if( strcmp(argv[i + 1], "NETWORK") == 0 && i < argc - 2 ) {
-                _inputDevice = -1;
-                _inputSourceType = NETWORK;
-                _inputSourceDataType = (_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _inputSourceDataType);
-                _remoteServer = argv[i + 2];
-                _isRemoteHead = true;
+                _values.at(_section)->_inputDevice = -1;
+                _values.at(_section)->_inputSourceType = NETWORK;
+                _values.at(_section)->_inputSourceDataType = (_values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ? REAL_INPUT_SOURCE_DATA_TYPE : _values.at(_section)->_inputSourceDataType);
+                _values.at(_section)->_remoteServer = argv[i + 2];
+                _values.at(_section)->_isRemoteHead = true;
 
                 // Optional port assignments
                 if( i < argc - 3 && argv[i + 3][0] != '-' ) {
-                    _remoteDataPort = atoi(argv[i + 3]);
+                    _values.at(_section)->_remoteDataPort = atoi(argv[i + 3]);
                     if( i < argc - 4 && argv[i + 4][0] != '-' ) {
-                        _remoteCommandPort = atoi(argv[i + 4]);
+                        _values.at(_section)->_remoteCommandPort = atoi(argv[i + 4]);
                         i++;
                     } else {
-                        _remoteCommandPort = _remoteDataPort + 1;
+                        _values.at(_section)->_remoteCommandPort = _values.at(_section)->_remoteDataPort + 1;
                     }
                     i++;
                 } else {
-                    _remoteDataPort = 1720;
-                    _remoteCommandPort = _remoteDataPort + 1;
+                    _values.at(_section)->_remoteDataPort = 1720;
+                    _values.at(_section)->_remoteCommandPort = _values.at(_section)->_remoteDataPort + 1;
                 }
 
-                HLog("Input NETWORK device %s:%d+%d", _remoteServer.c_str(), _remoteDataPort, _remoteCommandPort);
+                HLog("Input NETWORK device %s:%d+%d", _values.at(_section)->_remoteServer.c_str(), _values.at(_section)->_remoteDataPort, _values.at(_section)->_remoteCommandPort);
             }
             else
             {
@@ -369,19 +372,19 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Input data type (if different than the default)
         if( strcmp(argv[i], "-it") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "IQ") == 0 ) {
-                _inputSourceDataType = IQ_INPUT_SOURCE_DATA_TYPE;
+                _values.at(_section)->_inputSourceDataType = IQ_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to IQ");
             }
             else if( strcmp(argv[i + 1], "I") == 0 ) {
-                _inputSourceDataType = I_INPUT_SOURCE_DATA_TYPE;
+                _values.at(_section)->_inputSourceDataType = I_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to I");
             }
             else if( strcmp(argv[i + 1], "Q") == 0 ) {
-                _inputSourceDataType = Q_INPUT_SOURCE_DATA_TYPE;
+                _values.at(_section)->_inputSourceDataType = Q_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to Q");
             }
             else if( strcmp(argv[i + 1], "REAL") == 0 ) {
-                _inputSourceDataType = REAL_INPUT_SOURCE_DATA_TYPE;
+                _values.at(_section)->_inputSourceDataType = REAL_INPUT_SOURCE_DATA_TYPE;
                 HLog("Setting input data type to REAL");
             }
             else {
@@ -396,11 +399,11 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Input type (if different than the default)
         if( strcmp(argv[i], "-is") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "AUDIO") == 0 ) {
-                _originalInputSourceType = AUDIO_DEVICE;
+                _values.at(_section)->_originalInputSourceType = AUDIO_DEVICE;
                 HLog("Setting input type to AUDIO_DEVICE");
             }
             else if( strcmp(argv[i + 1], "RTLSDR") == 0 ) {
-                _originalInputSourceType = RTLSDR;
+                _values.at(_section)->_originalInputSourceType = RTLSDR;
                 HLog("Setting input type to RTLSDR");
             }
             else {
@@ -414,7 +417,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Volume
         if( strcmp(argv[i], "-l") == 0 && i < argc - 1) {
-            _volume = atoi(argv[i + 1]);
+            _values.at(_section)->_volume = atoi(argv[i + 1]);
             i++;
             continue;
         }
@@ -422,16 +425,16 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Select receiver mode ...
         if( strcmp(argv[i], "-m") == 0 && i < argc - 1) {
             if( strcmp(argv[i + 1], "CW") == 0 ) {
-                _receiverModeType = CW;
+                _values.at(_section)->_receiverModeType = CW;
             }
             else if( strcmp(argv[i + 1], "AM") == 0 ) {
-                _receiverModeType = AM;
+                _values.at(_section)->_receiverModeType = AM;
             }
             else if( strcmp(argv[i + 1], "AURORAL") == 0 ) {
-                _receiverModeType = AURORAL;
+                _values.at(_section)->_receiverModeType = AURORAL;
             }
             else if( strcmp(argv[i + 1], "SSB") == 0 ) {
-                _receiverModeType = SSB;
+                _values.at(_section)->_receiverModeType = SSB;
             }
             else {
                 std::cout << "Unknown receiver type " << argv[i + 1] << std::endl;
@@ -443,7 +446,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Disable file buffers
         if( strcmp(argv[i], "-n") == 0 && i < argc - 1 ) {
-            _reservedBuffers = atoi(argv[i + 1]);
+            _values.at(_section)->_reservedBuffers = atoi(argv[i + 1]);
             i++;
             continue;
         }
@@ -454,14 +457,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             for( int pos = 0; pos < strlen(argv[i + 1]); pos++ ) {
                 if( argv[i + 1][pos] < '0' || argv[i + 1][pos] > '9' ) {
                     if( argv[i + 1][pos] != '-' || pos > 0 ) {
-                        _outputFilename = argv[i + 1];
-                        HLog("Output filename set to %s", _outputFilename.c_str());
+                        _values.at(_section)->_outputFilename = argv[i + 1];
+                        HLog("Output filename set to %s", _values.at(_section)->_outputFilename.c_str());
                         break;
                     }
                 }
             }
-            if( _outputFilename == "" ) {
-                _outputAudioDevice = atoi(argv[i + 1]);
+            if( _values.at(_section)->_outputFilename == "" ) {
+                _values.at(_section)->_outputAudioDevice = atoi(argv[i + 1]);
             }
             i++;
             continue;
@@ -470,13 +473,13 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Dump input rf as ...
         if( strcmp(argv[i], "-p") == 0) {
             if( strcmp(argv[i + 1], "PCM") == 0 ) {
-                _dumpRf = true;
-                _dumpRfFileFormat = PCM;
+                _values.at(_section)->_dumpRf = true;
+                _values.at(_section)->_dumpRfFileFormat = PCM;
             } else if( strcmp(argv[i + 1], "WAV") == 0 ) {
-                _dumpRf = true;
-               _dumpRfFileFormat = WAV;
+                _values.at(_section)->_dumpRf = true;
+                _values.at(_section)->_dumpRfFileFormat = WAV;
             } else {
-                _dumpRf = false;
+                _values.at(_section)->_dumpRf = false;
             }
             i++;
             continue;
@@ -484,14 +487,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Samplerates
         if( strcmp(argv[i], "-dr") == 0 && i < argc - 1) {
-            _inputSampleRate = atoi(argv[i + 1]);
-            HLog("Input samplerate set to %d", _inputSampleRate);
+            _values.at(_section)->_inputSampleRate = atoi(argv[i + 1]);
+            HLog("Input samplerate set to %d", _values.at(_section)->_inputSampleRate);
             i++;
             continue;
         }
         if( strcmp(argv[i], "-or") == 0 && i < argc - 1) {
-            _outputSampleRate = atoi(argv[i + 1]);
-            HLog("Output samplerate set to %d", _outputSampleRate);
+            _values.at(_section)->_outputSampleRate = atoi(argv[i + 1]);
+            HLog("Output samplerate set to %d", _values.at(_section)->_outputSampleRate);
             i++;
             continue;
         }
@@ -511,113 +514,113 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
                 std::cout << "VALUE can not be empty in receiver option definition" << std::endl;
                 exit(1);
             }
-            _receiverOptions[s.substr(0, pos)] = s.substr(pos + 1);
+            _values.at(_section)->_receiverOptions[s.substr(0, pos)] = s.substr(pos + 1);
             i++;
             continue;
         }
 
         // RTL-SDR options
         if( strcmp(argv[i], "-rtlc") == 0 && i < argc - 1) {
-            _rtlsdrCorrection = atoi(argv[i + 1]);
-            HLog("RTL-SDR frequency correction set to %d", _rtlsdrCorrection);
+            _values.at(_section)->_rtlsdrCorrection = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency correction set to %d", _values.at(_section)->_rtlsdrCorrection);
             i++;
             continue;
         }
         if( strcmp(argv[i], "-rtlo") == 0 && i < argc - 1) {
-            _rtlsdrOffset = atoi(argv[i + 1]);
-            HLog("RTL-SDR frequency offset set to %d", _rtlsdrOffset);
+            _values.at(_section)->_rtlsdrOffset = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency offset set to %d", _values.at(_section)->_rtlsdrOffset);
             i++;
             continue;
         }
         if( strcmp(argv[i], "-rtla") == 0 && i < argc - 1) {
-            _rtlsdrAdjust = atoi(argv[i + 1]);
-            HLog("RTL-SDR frequency adjust set to %d", _rtlsdrAdjust);
+            _values.at(_section)->_rtlsdrAdjust = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency adjust set to %d", _values.at(_section)->_rtlsdrAdjust);
             i++;
             continue;
         }
 
         // Frequency shift when used with converters
         if( strcmp(argv[i], "-shift") == 0 && i < argc - 1) {
-            _shift = atoi(argv[i + 1]);
-            HLog("Frequency shift set to %d", _shift);
+            _values.at(_section)->_shift = atoi(argv[i + 1]);
+            HLog("Frequency shift set to %d", _values.at(_section)->_shift);
             i++;
             continue;
         }
 
         // Decimation gain
         if( strcmp(argv[i], "-dg") == 0 && i < argc - 1) {
-            _decimatorGain = atoi(argv[i + 1]);
-            HLog("Decimation gain set to %d", _decimatorGain);
+            _values.at(_section)->_decimatorGain = atoi(argv[i + 1]);
+            HLog("Decimation gain set to %d", _values.at(_section)->_decimatorGain);
             i++;
             continue;
         }
 
         // Decimation AGC level
         if( strcmp(argv[i], "-dal") == 0 && i < argc - 1) {
-            _decimatorAgcLevel = atoi(argv[i + 1]);
-            HLog("Decimation AGC level set to %d", _decimatorAgcLevel);
+            _values.at(_section)->_decimatorAgcLevel = atoi(argv[i + 1]);
+            HLog("Decimation AGC level set to %d", _values.at(_section)->_decimatorAgcLevel);
             i++;
             continue;
         }
 
         // Frequency correction factor for rtl-sdr dongles
         if( strcmp(argv[i], "-rtlf") == 0 && i < argc - 1) {
-            _rtlsdrCorrectionFactor = atoi(argv[i + 1]);
-            HLog("RTL-SDR frequency correction factor set to %d", _rtlsdrCorrectionFactor);
+            _values.at(_section)->_rtlsdrCorrectionFactor = atoi(argv[i + 1]);
+            HLog("RTL-SDR frequency correction factor set to %d", _values.at(_section)->_rtlsdrCorrectionFactor);
             i++;
             continue;
         }
 
         // RTL-SDR gain
         if( strcmp(argv[i], "-rtlg") == 0 && i < argc - 1) {
-            _rtlsdrGain = atoi(argv[i + 1]);
-            HLog("RTL-SDR gain set to %d", _rtlsdrGain);
+            _values.at(_section)->_rtlsdrGain = atoi(argv[i + 1]);
+            HLog("RTL-SDR gain set to %d", _values.at(_section)->_rtlsdrGain);
             i++;
             continue;
         }
 
         // Fir filter size
         if( strcmp(argv[i], "-ffs") == 0 && i < argc - 1) {
-            _firFilterSize = atoi(argv[i + 1]);
-            if( _firFilterSize % 2 == 0 ) {
-                _firFilterSize++;
+            _values.at(_section)->_firFilterSize = atoi(argv[i + 1]);
+            if( _values.at(_section)->_firFilterSize % 2 == 0 ) {
+                _values.at(_section)->_firFilterSize++;
             }
-            HLog("Fir filter size set to %d", _firFilterSize);
+            HLog("Fir filter size set to %d", _values.at(_section)->_firFilterSize);
             i++;
             continue;
         }
 
         // Input filter width
         if( strcmp(argv[i], "-ifw") == 0 && i < argc - 1) {
-            _inputFilterWidth = atoi(argv[i + 1]);
-            HLog("Input filter width set to %d", _inputFilterWidth);
+            _values.at(_section)->_inputFilterWidth = atoi(argv[i + 1]);
+            HLog("Input filter width set to %d", _values.at(_section)->_inputFilterWidth);
             i++;
             continue;
         }
 
         // Automatic RF gain level
         if( strcmp(argv[i], "-ral") == 0 && i < argc - 1) {
-            _rfAgcLevel = atoi(argv[i + 1]);
-            HLog("Automatic RF gain level set to %d", _rfAgcLevel);
+            _values.at(_section)->_rfAgcLevel = atoi(argv[i + 1]);
+            HLog("Automatic RF gain level set to %d", _values.at(_section)->_rfAgcLevel);
             i++;
             continue;
         }
 
         // Server for remote input
         if( strcmp(argv[i], "-s") == 0 && i < argc - 2) {
-            _remoteDataPort = atoi(argv[i + 1]);
-            _remoteCommandPort = atoi(argv[i + 2]);
-            _isRemoteHead = false;
-            _useRemoteHead = true;
+            _values.at(_section)->_remoteDataPort = atoi(argv[i + 1]);
+            _values.at(_section)->_remoteCommandPort = atoi(argv[i + 2]);
+            _values.at(_section)->_isRemoteHead = false;
+            _values.at(_section)->_useRemoteHead = true;
             i += 2;
             continue;
         }
 
         // Scheduled start and stop
         if( strcmp(argv[i], "-b") == 0 ) {
-            _schedule.SetStart(argv[i + 1]);
+            _values.at(_section)->_schedule.SetStart(argv[i + 1]);
             i++;
-            _schedule.SetStop(argv[i + 1]);
+            _values.at(_section)->_schedule.SetStop(argv[i + 1]);
             i++;
             continue;
         }
@@ -629,8 +632,8 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Enable frequency align mode
         if( strcmp(argv[i], "-fa") == 0 ) {
-            _frequencyAlign = true;
-            _rtlsdrAdjust = 0;
+            _values.at(_section)->_frequencyAlign = true;
+            _values.at(_section)->_rtlsdrAdjust = 0;
             std::cout << tr("*{msg}* Frequency align mode is enabled.") << std::endl;
             std::cout << tr("*{msg}* ") << std::endl;
             std::cout << tr("*{msg}* RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
@@ -645,8 +648,8 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Frequency alignment volume
         if( strcmp(argv[i], "-fav") == 0 && i < argc - 1) {
-            _frequencyAlignVolume = atoi(argv[i + 1]);
-            HLog("Frequency alignment volume set to %d", _frequencyAlignVolume);
+            _values.at(_section)->_frequencyAlignVolume = atoi(argv[i + 1]);
+            HLog("Frequency alignment volume set to %d", _values.at(_section)->_frequencyAlignVolume);
             i++;
             continue;
         }
@@ -657,85 +660,85 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Check configuration for remote server/head
-    if( _isRemoteHead && _remoteServer.empty() ) {
+    if( _values.at(_section)->_isRemoteHead && _values.at(_section)->_remoteServer.empty() ) {
         std::cout << tr("Please select address of remote input with '-r address port'") << std::endl;
         exit(1);
     }
-    if( _isRemoteHead && _remoteDataPort == 0 ) {
+    if( _values.at(_section)->_isRemoteHead && _values.at(_section)->_remoteDataPort == 0 ) {
         std::cout << tr("Please select data port of remote input with '-r address dataport commandport'") << std::endl;
         exit(1);
     }
-    if( _useRemoteHead && _remoteDataPort == 0 ) {
+    if( _values.at(_section)->_useRemoteHead && _values.at(_section)->_remoteDataPort == 0 ) {
         std::cout << tr("Please select data port for the input server with '-s dataport commandport'") << std::endl;
         exit(1);
     }
-    if( _isRemoteHead && _remoteCommandPort == 0 ) {
+    if( _values.at(_section)->_isRemoteHead && _values.at(_section)->_remoteCommandPort == 0 ) {
         std::cout << tr("Please select command port of remote input with '-r address dataport commandport'") << std::endl;
         exit(1);
     }
-    if( _useRemoteHead && _remoteCommandPort == 0 ) {
+    if( _values.at(_section)->_useRemoteHead && _values.at(_section)->_remoteCommandPort == 0 ) {
         std::cout << tr("Please select command  for the input server with '-s dataport commandport'") << std::endl;
         exit(1);
     }
 
     // Check that the required minimum of settings has been provided
-    if( _useRemoteHead == false ) {
-        if( _receiverModeType == NO_RECEIVE_MODE ) {
+    if( _values.at(_section)->_useRemoteHead == false ) {
+        if( _values.at(_section)->_receiverModeType == NO_RECEIVE_MODE ) {
             std::cout << tr("Please select the receive mode with '-m [CW]'") << std::endl;
             exit(1);
         }
     }
-    if( _isRemoteHead == false ) {
-        if( _inputSourceType == NO_INPUT_SOURCE_TYPE ) {
+    if( _values.at(_section)->_isRemoteHead == false ) {
+        if( _values.at(_section)->_inputSourceType == NO_INPUT_SOURCE_TYPE ) {
             std::cout << tr("Please select the input type with '-i ...'") << std::endl;
             exit(1);
         }
-        if( _inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ) {
+        if( _values.at(_section)->_inputSourceDataType == NO_INPUT_SOURCE_DATA_TYPE ) {
             std::cout << tr("Please select the input data type with '-i ...' or explicit with '-it ...'") << std::endl;
             exit(1);
         }
-        else if( _inputSourceType == AUDIO_DEVICE && _inputDevice < 0 ) {
+        else if( _values.at(_section)->_inputSourceType == AUDIO_DEVICE && _values.at(_section)->_inputDevice < 0 ) {
             std::cout << tr("Please select the input audio device with '-i AUDIO devicenumber'") << std::endl;
             std::cout << tr("Hint: Use '-c' to get a list of audio devices on your system (Raspian may require sudo)") << std::endl;
             exit(1);
         }
-        else if( _inputSourceType == RTLSDR && _inputDevice < 0 ) {
+        else if( _values.at(_section)->_inputSourceType == RTLSDR && _values.at(_section)->_inputDevice < 0 ) {
             std::cout << tr("Please select the input RTLSDR device with '-i RTLSDR devicenumber'") << std::endl;
             std::cout << tr("Hint: Use '-c' to get a list of audio devices on your system (Raspian may require sudo)") << std::endl;
             exit(1);
         }
-        else if( _inputSourceType == SIGNAL_GENERATOR && _signalGeneratorFrequency < 0 ) {
+        else if( _values.at(_section)->_inputSourceType == SIGNAL_GENERATOR && _values.at(_section)->_signalGeneratorFrequency < 0 ) {
             std::cout << tr("Please select the input signal generator frequency with '-i GENERATOR frequency'") << std::endl;
             exit(1);
         }
-        else if( _inputSourceType == PCM_FILE ) {
+        else if( _values.at(_section)->_inputSourceType == PCM_FILE ) {
 
             // We need a filename
-            if( _pcmFile.empty() ) {
+            if( _values.at(_section)->_pcmFile.empty() ) {
                 std::cout << tr("Please select the input filename with '-i PCM filename'") << std::endl;
                 exit(1);
             }
 
             // Check if the input file exists
             struct stat stats;
-            if( stat(_pcmFile.c_str(), &stats) != -1 ) {
+            if( stat(_values.at(_section)->_pcmFile.c_str(), &stats) != -1 ) {
                 if( !S_ISREG(stats.st_mode) ) {
                     std::cout << "Input file does not exist" << std::endl;
                     exit(1);
                 }
             }
         }
-        else if( _inputSourceType == WAV_FILE ) {
+        else if( _values.at(_section)->_inputSourceType == WAV_FILE ) {
 
             // We need a filename
-            if( _wavFile.empty() ) {
+            if( _values.at(_section)->_wavFile.empty() ) {
                 std::cout << tr("Please select the input filename with '-i WAV filename'") << std::endl;
                 exit(1);
             }
 
             // Check if the input file exists
             struct stat stats;
-            if( stat(_wavFile.c_str(), &stats) != -1 ) {
+            if( stat(_values.at(_section)->_wavFile.c_str(), &stats) != -1 ) {
                 if( !S_ISREG(stats.st_mode) ) {
                     std::cout << "Input file does not exist" << std::endl;
                     exit(1);
@@ -745,12 +748,12 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Sanitize sample rate
-    if( _inputSampleRate == _outputSampleRate && (_inputSourceType == RTLSDR) ) {
+    if( _values.at(_section)->_inputSampleRate == _values.at(_section)->_outputSampleRate && (_values.at(_section)->_inputSourceType == RTLSDR) ) {
         std::cout << "Input (device) and output sample rate should not be the same for RTL-SDR devices" << std::endl;
         exit(1);
     }
-    if( _inputSourceType != RTLSDR ) {
-        _inputSampleRate = _outputSampleRate;
+    if( _values.at(_section)->_inputSourceType != RTLSDR ) {
+        _values.at(_section)->_inputSampleRate = _values.at(_section)->_outputSampleRate;
     }
 
 
@@ -762,62 +765,62 @@ void ConfigOptions::DumpConfigInfo() {
     std::cout << "*{info}* Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
 
     // Remote/local
-    if( _useRemoteHead ) {
-        std::cout << "*{info}* Receiver for remote head with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
-    } else if( _isRemoteHead) {
-        std::cout << "*{info}* Head for remote receiver on " << _remoteServer << " with dataport " << _remoteDataPort << " and commandport " << _remoteCommandPort << std::endl;
+    if( _values.at(_section)->_useRemoteHead ) {
+        std::cout << "*{info}* Receiver for remote head with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
+    } else if( _values.at(_section)->_isRemoteHead) {
+        std::cout << "*{info}* Head for remote receiver on " << _values.at(_section)->_remoteServer << " with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
     }
 
     // Input
-    switch( _inputSourceType ) {
+    switch( _values.at(_section)->_inputSourceType ) {
         case NO_INPUT_SOURCE_TYPE:
             std::cout << "*{error}* No input type given!" << std::endl;
             exit(1);
         case AUDIO_DEVICE:
-            std::cout << "*{info}* Input is audio device " << GetAudioDevice(_inputDevice) << " running with sampling rate " << _inputSampleRate << std::endl;
+            std::cout << "*{info}* Input is audio device " << GetAudioDevice(_values.at(_section)->_inputDevice) << " running with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case SIGNAL_GENERATOR:
-            std::cout << "*{info}* Input is a generator running at frequency " << _signalGeneratorFrequency <<  " with sampling rate " << _inputSampleRate << std::endl;
+            std::cout << "*{info}* Input is a generator running at frequency " << _values.at(_section)->_signalGeneratorFrequency <<  " with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case PCM_FILE:
-            std::cout << "*{info}* Input PCM is read from " << _pcmFile << " assuming 16 bit signed at sampling rate " << _inputSampleRate << std::endl;
+            std::cout << "*{info}* Input PCM is read from " << _values.at(_section)->_pcmFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case WAV_FILE:
-            std::cout << "*{info}* Input WAV is read from " << _wavFile << " assuming 16 bit signed at sampling rate " << _inputSampleRate << std::endl;
+            std::cout << "*{info}* Input WAV is read from " << _values.at(_section)->_wavFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case SILENCE:
             std::cout << "*{info}* Input is total silence" << std::endl;
             break;
         case NETWORK:
-            switch( _originalInputSourceType ) {
+            switch( _values.at(_section)->_originalInputSourceType ) {
                 case AUDIO_DEVICE:
                 case SIGNAL_GENERATOR:
                 case PCM_FILE:
                 case WAV_FILE:
                 case SILENCE:
                     std::cout << "*{info}* Remote input is either an audio device, signalgenerator, pcm- or wavfile, or just silence." << std::endl;
-                    std::cout << "*{info}* Remote input is running in REAL input mode at samplerate " << _inputSampleRate << std::endl;
+                    std::cout << "*{info}* Remote input is running in REAL input mode at samplerate " << _values.at(_section)->_inputSampleRate << std::endl;
                     break;
                 case RTLSDR:
                     std::cout << "*{info}* Remote input is an RTL-SDR dongle." << std::endl;
-                    switch (_inputSourceDataType) {
+                    switch (_values.at(_section)->_inputSourceDataType) {
                         case IQ_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in IQ mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            std::cout << "*{info}* Remote input is running in IQ mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case I_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in I mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            std::cout << "*{info}* Remote input is running in I mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case Q_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in Q mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            std::cout << "*{info}* Remote input is running in Q mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case REAL_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in REAL mode decimated to samplerate " << _outputSampleRate << std::endl;
+                            std::cout << "*{info}* Remote input is running in REAL mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case NO_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input has  no input mode specified, assuming REAL, decimated to " << _outputSampleRate << std::endl;
+                            std::cout << "*{info}* Remote input has  no input mode specified, assuming REAL, decimated to " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                     }
-                    std::cout << "*{info}* Center frequency set to " << _frequency << " using offset " << _rtlsdrOffset << " and correction " << _rtlsdrCorrection << " * " << _rtlsdrCorrectionFactor << " = " << (_rtlsdrCorrection * _rtlsdrCorrectionFactor) << std::endl;
+                    std::cout << "*{info}* Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
                     break;
                 case NETWORK:
                     std::cout << "*{info}* Remote input is a remote receiver" << std::endl;
@@ -828,44 +831,44 @@ void ConfigOptions::DumpConfigInfo() {
             }
             break;
         case RTLSDR:
-            std::cout << "*{info}* Input is an RTL-SDR dongle " << GetRtlsdrDevice(_inputDevice) << std::endl;
-            switch( _inputSourceDataType ) {
+            std::cout << "*{info}* Input is an RTL-SDR dongle " << GetRtlsdrDevice(_values.at(_section)->_inputDevice) << std::endl;
+            switch( _values.at(_section)->_inputSourceDataType ) {
                 case IQ_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in IQ mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    std::cout << "*{info}* Input is running in IQ mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case I_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in I mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    std::cout << "*{info}* Input is running in I mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case Q_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in Q mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    std::cout << "*{info}* Input is running in Q mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case REAL_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in REAL mode decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    std::cout << "*{info}* Input is running in REAL mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case NO_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running with no input mode specified, assuming REAL, decimating samplerate " << _inputSampleRate << " to " << _outputSampleRate << std::endl;
+                    std::cout << "*{info}* Input is running with no input mode specified, assuming REAL, decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
             }
-            std::cout << "*{info}* Center frequency set to " << _frequency << " using offset " << _rtlsdrOffset << " and correction " << _rtlsdrCorrection << " * " << _rtlsdrCorrectionFactor << " = " << (_rtlsdrCorrection * _rtlsdrCorrectionFactor) << std::endl;
-            if( _decimatorGain == 0 ) {
-                std::cout << "*{info}* Decimator gain set to auto using agc with minimum output level " << _decimatorAgcLevel << std::endl;
+            std::cout << "*{info}* Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
+            if( _values.at(_section)->_decimatorGain == 0 ) {
+                std::cout << "*{info}* Decimator gain set to auto using agc with minimum output level " << _values.at(_section)->_decimatorAgcLevel << std::endl;
             } else {
-                std::cout << "*{info}* Decimator gain set to " << _decimatorGain << std::endl;
+                std::cout << "*{info}* Decimator gain set to " << _values.at(_section)->_decimatorGain << std::endl;
             }
-            std::cout << "*{info}* FIR Decimator running with " << _firFilterSize << " points and cutoff frequency " << GetDecimatorCutoff() << std::endl;
+            std::cout << "*{info}* FIR Decimator running with " << _values.at(_section)->_firFilterSize << " points and cutoff frequency " << GetDecimatorCutoff() << std::endl;
             break;
     }
 
     // Output
-    if( !_useRemoteHead ) {
-        if (_outputFilename == "") {
-            if (_outputAudioDevice == -1) {
+    if( !_values.at(_section)->_useRemoteHead ) {
+        if (_values.at(_section)->_outputFilename == "") {
+            if (_values.at(_section)->_outputAudioDevice == -1) {
                 std::cout << "*{info}* No output (silently discarding receiver output)" << std::endl;
             } else {
-                std::cout << "*{info}* Output to audio device " << GetAudioDevice(_outputAudioDevice) << " at samplerate " << _outputSampleRate << std::endl;
+                std::cout << "*{info}* Output to audio device " << GetAudioDevice(_values.at(_section)->_outputAudioDevice) << " at samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
             }
         } else {
-            std::cout << "*{info}* Output to file " << _outputFilename << std::endl;
+            std::cout << "*{info}* Output to file " << _values.at(_section)->_outputFilename << std::endl;
         }
     }
 }
@@ -966,39 +969,39 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
         if( splitAt != std::string::npos ) {
             std::string name = opt.substr(0, splitAt);
             std::string value = opt.substr(splitAt + 1, std::string::npos);
-            
+
             // Known config names
             HLog("config value (%s=%s)", name.c_str(), value.c_str());
             if( !isBookmark ) {
-                if (name == "inputSampleRate") _inputSampleRate = atoi(value.c_str());
-                if (name == "outputSampleRate") _outputSampleRate = atoi(value.c_str());
-                if (name == "outputAudioDevice") _outputAudioDevice = atoi(value.c_str());
-                if (name == "inputSourceType") _inputSourceType = (InputSourceType) atoi(value.c_str());
-                if (name == "inputSourceDataType") _inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
-                if (name == "originalInputSourceType") _originalInputSourceType = (InputSourceType) atoi(value.c_str());
-                if (name == "inputDevice") _inputDevice = atoi(value.c_str());
-                if (name == "remoteServer") _remoteServer = value;
-                if (name == "remoteDataPort") _remoteDataPort = atoi(value.c_str());
-                if (name == "remoteCommandPort") _remoteCommandPort = atoi(value.c_str());
-                if (name == "dumpRfFileFormat") _dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
-                if (name == "dumpAudioFileFormat") _dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
-                if (name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
-                if (name == "pcmFile") _pcmFile = value;
-                if (name == "wavFile") _wavFile = value;
-                if (name == "reservedBuffers") _reservedBuffers = atoi(value.c_str());
-                if (name == "rtlsdrCorrection") _rtlsdrCorrection = atoi(value.c_str());
-                if (name == "rtlsdrOffset") _rtlsdrOffset = atoi(value.c_str());
-                if (name == "rtlsdrCorrectionFactor") _rtlsdrCorrectionFactor = atoi(value.c_str());
-                if (name == "rtlsdrAdjust") _rtlsdrAdjust = atoi(value.c_str());
-                if (name == "shift") _shift = atoi(value.c_str());
-                if (name == "rfagclevel") _rfAgcLevel = atoi(value.c_str());
+                if (name == "inputSampleRate") _values.at(_section)->_inputSampleRate = atoi(value.c_str());
+                if (name == "outputSampleRate") _values.at(_section)->_outputSampleRate = atoi(value.c_str());
+                if (name == "outputAudioDevice") _values.at(_section)->_outputAudioDevice = atoi(value.c_str());
+                if (name == "inputSourceType") _values.at(_section)->_inputSourceType = (InputSourceType) atoi(value.c_str());
+                if (name == "inputSourceDataType") _values.at(_section)->_inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
+                if (name == "originalInputSourceType") _values.at(_section)->_originalInputSourceType = (InputSourceType) atoi(value.c_str());
+                if (name == "inputDevice") _values.at(_section)->_inputDevice = atoi(value.c_str());
+                if (name == "remoteServer") _values.at(_section)->_remoteServer = value;
+                if (name == "remoteDataPort") _values.at(_section)->_remoteDataPort = atoi(value.c_str());
+                if (name == "remoteCommandPort") _values.at(_section)->_remoteCommandPort = atoi(value.c_str());
+                if (name == "dumpRfFileFormat") _values.at(_section)->_dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
+                if (name == "dumpAudioFileFormat") _values.at(_section)->_dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
+                if (name == "signalGeneratorFrequency") _values.at(_section)->_signalGeneratorFrequency = atol(value.c_str());
+                if (name == "pcmFile") _values.at(_section)->_pcmFile = value;
+                if (name == "wavFile") _values.at(_section)->_wavFile = value;
+                if (name == "reservedBuffers") _values.at(_section)->_reservedBuffers = atoi(value.c_str());
+                if (name == "rtlsdrCorrection") _values.at(_section)->_rtlsdrCorrection = atoi(value.c_str());
+                if (name == "rtlsdrOffset") _values.at(_section)->_rtlsdrOffset = atoi(value.c_str());
+                if (name == "rtlsdrCorrectionFactor") _values.at(_section)->_rtlsdrCorrectionFactor = atoi(value.c_str());
+                if (name == "rtlsdrAdjust") _values.at(_section)->_rtlsdrAdjust = atoi(value.c_str());
+                if (name == "shift") _values.at(_section)->_shift = atoi(value.c_str());
+                if (name == "rfagclevel") _values.at(_section)->_rfAgcLevel = atoi(value.c_str());
                 if (name == "channels") _channels = ReadChannels(configname, value);
             }
-            if (name == "frequency") _frequency = atoi(value.c_str());
-            if (name == "receiverModeType") _receiverModeType = (ReceiverModeType) atoi(value.c_str());
-            if (name == "rfGain") _rfGain = atoi(value.c_str());
-            if (name == "volume") _volume = atoi(value.c_str());
-            if (name == "receiverOptionsFor") _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if (name == "frequency") _values.at(_section)->_frequency = atoi(value.c_str());
+            if (name == "receiverModeType") _values.at(_section)->_receiverModeType = (ReceiverModeType) atoi(value.c_str());
+            if (name == "rfGain") _values.at(_section)->_rfGain = atoi(value.c_str());
+            if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
+            if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
         }
         configStream >> opt;
     }
@@ -1007,20 +1010,20 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     configStream.close();
 
     // Set flags
-    if( _inputDevice > -1 ) {
-        _isRemoteHead = false;
-        _useRemoteHead = false;
+    if( _values.at(_section)->_inputDevice > -1 ) {
+        _values.at(_section)->_isRemoteHead = false;
+        _values.at(_section)->_useRemoteHead = false;
         HLog("Has input device from stored config, use local input");
     }
-    else if( _inputDevice == -1 && _remoteServer.empty() && _remoteDataPort > 0 ) {
-        _useRemoteHead = true;
-        _isRemoteHead = false;
+    else if( _values.at(_section)->_inputDevice == -1 && _values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
+        _values.at(_section)->_useRemoteHead = true;
+        _values.at(_section)->_isRemoteHead = false;
         HLog("Has remote port but no remote server, use remote head");
     }
-    else if( _inputDevice == -1 && !_remoteServer.empty() && _remoteDataPort > 0 ) {
-        _useRemoteHead = false;
-        _isRemoteHead = true;
-        _inputSourceType = NETWORK;
+    else if( _values.at(_section)->_inputDevice == -1 && !_values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
+        _values.at(_section)->_useRemoteHead = false;
+        _values.at(_section)->_isRemoteHead = true;
+        _values.at(_section)->_inputSourceType = NETWORK;
         HLog("Has remote port and remote server, is remote head");
     }
 
@@ -1031,7 +1034,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
 void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
 
     // If in frequency alignment mode, prevent writing the settings
-    if( _frequencyAlign ) {
+    if( _values.at(_section)->_frequencyAlign ) {
         std::cout << "*{info}* Running in frequency alignment mode. Config changes is not saved" << std::endl;
         HLog("Discarding config changes due to frequency alignment mode");
         return;
@@ -1081,35 +1084,35 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
 
     // Write config settings
     if( !isBookmark ) {
-        configStream << "inputSampleRate=" << _inputSampleRate << std::endl;
-        configStream << "outputSampleRate=" << _outputSampleRate << std::endl;
-        configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
-        configStream << "inputSourceType=" << _inputSourceType << std::endl;
-        configStream << "inputSourceDataType=" << _inputSourceDataType << std::endl;
-        configStream << "originalInputSourceType=" << _originalInputSourceType << std::endl;
-        configStream << "inputDevice=" << _inputDevice << std::endl;
-        configStream << "remoteServer=" << _remoteServer << std::endl;
-        configStream << "remoteDataPort=" << _remoteDataPort << std::endl;
-        configStream << "remoteCommandPort=" << _remoteCommandPort << std::endl;
-        configStream << "dumpRfFileFormat=" << _dumpRfFileFormat << std::endl;
-        configStream << "dumpAudioFileFormat=" << _dumpAudioFileFormat << std::endl;
-        configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
-        configStream << "pcmFile=" << _pcmFile << std::endl;
-        configStream << "wavFile=" << _wavFile << std::endl;
-        configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
-        configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
-        configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
-        configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
-        configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
-        configStream << "shift=" << _shift << std::endl;
-        configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
+        configStream << "inputSampleRate=" << _values.at(_section)->_inputSampleRate << std::endl;
+        configStream << "outputSampleRate=" << _values.at(_section)->_outputSampleRate << std::endl;
+        configStream << "outputAudioDevice=" << _values.at(_section)->_outputAudioDevice << std::endl;
+        configStream << "inputSourceType=" << _values.at(_section)->_inputSourceType << std::endl;
+        configStream << "inputSourceDataType=" << _values.at(_section)->_inputSourceDataType << std::endl;
+        configStream << "originalInputSourceType=" << _values.at(_section)->_originalInputSourceType << std::endl;
+        configStream << "inputDevice=" << _values.at(_section)->_inputDevice << std::endl;
+        configStream << "remoteServer=" << _values.at(_section)->_remoteServer << std::endl;
+        configStream << "remoteDataPort=" << _values.at(_section)->_remoteDataPort << std::endl;
+        configStream << "remoteCommandPort=" << _values.at(_section)->_remoteCommandPort << std::endl;
+        configStream << "dumpRfFileFormat=" << _values.at(_section)->_dumpRfFileFormat << std::endl;
+        configStream << "dumpAudioFileFormat=" << _values.at(_section)->_dumpAudioFileFormat << std::endl;
+        configStream << "signalGeneratorFrequency=" << _values.at(_section)->_signalGeneratorFrequency << std::endl;
+        configStream << "pcmFile=" << _values.at(_section)->_pcmFile << std::endl;
+        configStream << "wavFile=" << _values.at(_section)->_wavFile << std::endl;
+        configStream << "reservedBuffers=" << _values.at(_section)->_reservedBuffers << std::endl;
+        configStream << "rtlsdrCorrection=" << _values.at(_section)->_rtlsdrCorrection << std::endl;
+        configStream << "rtlsdrOffset=" << _values.at(_section)->_rtlsdrOffset << std::endl;
+        configStream << "rtlsdrCorrectionFactor" << _values.at(_section)->_rtlsdrCorrectionFactor << std::endl;
+        configStream << "rtlsdrAdjust=" << _values.at(_section)->_rtlsdrAdjust << std::endl;
+        configStream << "shift=" << _values.at(_section)->_shift << std::endl;
+        configStream << "rfagclevel=" << _values.at(_section)->_rfAgcLevel << std::endl;
         configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
     }
-    configStream << "frequency=" << _frequency << std::endl;
-    configStream << "receiverModeType=" << _receiverModeType << std::endl;
-    configStream << "rfGain=" << _rfGain << std::endl;
-    configStream << "volume=" << _volume << std::endl;
-    configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
+    configStream << "frequency=" << _values.at(_section)->_frequency << std::endl;
+    configStream << "receiverModeType=" << _values.at(_section)->_receiverModeType << std::endl;
+    configStream << "rfGain=" << _values.at(_section)->_rfGain << std::endl;
+    configStream << "volume=" << _values.at(_section)->_volume << std::endl;
+    configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at(_section)->_receiverOptionsFor) << std::endl;
 
     // Done writing the config file
     configStream.close();
@@ -1157,19 +1160,19 @@ std::string ConfigOptions::WriteStoredReceiverOptions(std::map<std::string, std:
 }
 
 void ConfigOptions::SetReceiverOptionsFor(std::string receiver, std::map<std::string, std::string> options) {
-    std::map<std::string, std::map<std::string, std::string>>::iterator it = _receiverOptionsFor.find(receiver);
-    if( it != _receiverOptionsFor.end() ) {
+    std::map<std::string, std::map<std::string, std::string>>::iterator it = _values.at(_section)->_receiverOptionsFor.find(receiver);
+    if( it != _values.at(_section)->_receiverOptionsFor.end() ) {
         HLog("Has existing options map for receiver %s", receiver.c_str());
         it->second = options;
         return;
     }
     HLog("Adding options map for receiver %s", receiver.c_str());
-    _receiverOptionsFor[receiver] = options;
+    _values.at(_section)->_receiverOptionsFor[receiver] = options;
 }
 
 std::map<std::string, std::string> ConfigOptions::GetReceiverOptionsFor(std::string receiver) {
-    std::map<std::string, std::map<std::string, std::string>>::iterator it = _receiverOptionsFor.find(receiver);
-    if( it != _receiverOptionsFor.end() ) {
+    std::map<std::string, std::map<std::string, std::string>>::iterator it = _values.at(_section)->_receiverOptionsFor.find(receiver);
+    if( it != _values.at(_section)->_receiverOptionsFor.end() ) {
         HLog("Found existing options map for receiver %s", receiver.c_str());
         return it->second;
     }

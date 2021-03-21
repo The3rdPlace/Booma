@@ -2,7 +2,7 @@ set(CMAKE_MACOSX_RPATH 1)
 
 find_package(Hardt CONFIG)
 
-add_library(booma SHARED "")
+add_library(booma SHARED "" include/configoptionvalues.h)
 
 include_directories(${Hardt_INCLUDE_DIRS})
 target_link_libraries (booma ${Hardt_LIBRARIES} pthread)
