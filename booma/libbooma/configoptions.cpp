@@ -227,7 +227,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
     }
 
     // Seed configuration with values from last execution
-    if( !ReadStoredConfig(CONFIGNAME) && argc == 1 ) {
+    if( !ReadStoredConfig(CONFIGNAME, false) && argc == 1 ) {
         std::cout << "No stored config in ~/.booma/" << CONFIGNAME << " and no arguments. Kindly presenting options" << std::endl << std::endl;
         PrintUsage();
         exit(1);
@@ -871,7 +871,7 @@ void ConfigOptions::DumpConfigInfo() {
 }
 
 ConfigOptions::~ConfigOptions() {
-    WriteStoredConfig(CONFIGNAME);
+    WriteStoredConfig(CONFIGNAME, false);
     for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
         delete (*it);
     }
@@ -915,7 +915,7 @@ void ConfigOptions::RemoveStoredConfig(std::string configname) {
     HLog("Removed the config file");
 }
 
-bool ConfigOptions::ReadStoredConfig(std::string configname) {
+bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
 
     // Get the users homedirectory
     const char* home = std::getenv("HOME");
@@ -966,40 +966,39 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
         if( splitAt != std::string::npos ) {
             std::string name = opt.substr(0, splitAt);
             std::string value = opt.substr(splitAt + 1, std::string::npos);
-
+            
             // Known config names
             HLog("config value (%s=%s)", name.c_str(), value.c_str());
-            if( name == "inputSampleRate" )          _inputSampleRate = atoi(value.c_str());
-            if( name == "outputSampleRate" )         _outputSampleRate = atoi(value.c_str());
-            if( name == "outputAudioDevice" )       _outputAudioDevice = atoi(value.c_str());
-            if( name == "inputSourceType" )         _inputSourceType = (InputSourceType) atoi(value.c_str());
-            if( name == "inputSourceDataType" )     _inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
-            if( name == "originalInputSourceType" ) _originalInputSourceType = (InputSourceType) atoi(value.c_str());
-            if( name == "inputDevice" )             _inputDevice = atoi(value.c_str());
-            if( name == "frequency" )               _frequency = atoi(value.c_str());
-            if( name == "receiverModeType" )        _receiverModeType = (ReceiverModeType) atoi(value.c_str());
-            if( name == "remoteServer" )            _remoteServer = value;
-            if( name == "remoteDataPort" )          _remoteDataPort = atoi(value.c_str());
-            if( name == "remoteCommandPort" )       _remoteCommandPort = atoi(value.c_str());
-            if( name == "rfGain" )                  _rfGain = atoi(value.c_str());
-            if( name == "volume" )                  _volume = atoi(value.c_str());
-            if( name == "dumpRfFileFormat" )        _dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
-            if( name == "dumpAudioFileFormat" )     _dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
-            if( name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
-            if( name == "pcmFile" )                 _pcmFile = value;
-            if( name == "wavFile" )                 _wavFile = value;
-            if( name == "reservedBuffers" )         _reservedBuffers = atoi(value.c_str());
-            if( name == "receiverOptionsFor" )      _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
-            if( name == "rtlsdrCorrection" )       _rtlsdrCorrection = atoi(value.c_str());
-            if( name == "rtlsdrOffset" )           _rtlsdrOffset = atoi(value.c_str());
-            if( name == "rtlsdrCorrectionFactor" ) _rtlsdrCorrectionFactor= atoi(value.c_str());
-            if( name == "rtlsdrAdjust" )           _rtlsdrAdjust = atoi(value.c_str());
-            if( name == "shift" )                  _shift = atoi(value.c_str());
-            if( name == "rfagclevel" )             _rfAgcLevel = atoi(value.c_str());
-            if( name == "channels" )               _channels = ReadChannels(configname, value);
-
-            // Historic config names
-            if( name == "inputAudioDevice" )        _inputDevice = atoi(value.c_str());
+            if( !isBookmark ) {
+                if (name == "inputSampleRate") _inputSampleRate = atoi(value.c_str());
+                if (name == "outputSampleRate") _outputSampleRate = atoi(value.c_str());
+                if (name == "outputAudioDevice") _outputAudioDevice = atoi(value.c_str());
+                if (name == "inputSourceType") _inputSourceType = (InputSourceType) atoi(value.c_str());
+                if (name == "inputSourceDataType") _inputSourceDataType = (InputSourceDataType) atoi(value.c_str());
+                if (name == "originalInputSourceType") _originalInputSourceType = (InputSourceType) atoi(value.c_str());
+                if (name == "inputDevice") _inputDevice = atoi(value.c_str());
+                if (name == "remoteServer") _remoteServer = value;
+                if (name == "remoteDataPort") _remoteDataPort = atoi(value.c_str());
+                if (name == "remoteCommandPort") _remoteCommandPort = atoi(value.c_str());
+                if (name == "dumpRfFileFormat") _dumpRfFileFormat = (DumpFileFormatType) atoi(value.c_str());
+                if (name == "dumpAudioFileFormat") _dumpAudioFileFormat = (DumpFileFormatType) atoi(value.c_str());
+                if (name == "signalGeneratorFrequency") _signalGeneratorFrequency = atol(value.c_str());
+                if (name == "pcmFile") _pcmFile = value;
+                if (name == "wavFile") _wavFile = value;
+                if (name == "reservedBuffers") _reservedBuffers = atoi(value.c_str());
+                if (name == "rtlsdrCorrection") _rtlsdrCorrection = atoi(value.c_str());
+                if (name == "rtlsdrOffset") _rtlsdrOffset = atoi(value.c_str());
+                if (name == "rtlsdrCorrectionFactor") _rtlsdrCorrectionFactor = atoi(value.c_str());
+                if (name == "rtlsdrAdjust") _rtlsdrAdjust = atoi(value.c_str());
+                if (name == "shift") _shift = atoi(value.c_str());
+                if (name == "rfagclevel") _rfAgcLevel = atoi(value.c_str());
+                if (name == "channels") _channels = ReadChannels(configname, value);
+            }
+            if (name == "frequency") _frequency = atoi(value.c_str());
+            if (name == "receiverModeType") _receiverModeType = (ReceiverModeType) atoi(value.c_str());
+            if (name == "rfGain") _rfGain = atoi(value.c_str());
+            if (name == "volume") _volume = atoi(value.c_str());
+            if (name == "receiverOptionsFor") _receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
         }
         configStream >> opt;
     }
@@ -1029,7 +1028,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname) {
     return true;
 }
 
-void ConfigOptions::WriteStoredConfig(std::string configname) {
+void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
 
     // If in frequency alignment mode, prevent writing the settings
     if( _frequencyAlign ) {
@@ -1081,34 +1080,36 @@ void ConfigOptions::WriteStoredConfig(std::string configname) {
     }
 
     // Write config settings
-    configStream << "inputSampleRate=" << _inputSampleRate << std::endl;
-    configStream << "outputSampleRate=" << _outputSampleRate << std::endl;
-    configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
-    configStream << "inputSourceType=" << _inputSourceType << std::endl;
-    configStream << "inputSourceDataType=" << _inputSourceDataType << std::endl;
-    configStream << "originalInputSourceType=" << _originalInputSourceType << std::endl;
-    configStream << "inputDevice=" << _inputDevice << std::endl;
+    if( !isBookmark ) {
+        configStream << "inputSampleRate=" << _inputSampleRate << std::endl;
+        configStream << "outputSampleRate=" << _outputSampleRate << std::endl;
+        configStream << "outputAudioDevice=" << _outputAudioDevice << std::endl;
+        configStream << "inputSourceType=" << _inputSourceType << std::endl;
+        configStream << "inputSourceDataType=" << _inputSourceDataType << std::endl;
+        configStream << "originalInputSourceType=" << _originalInputSourceType << std::endl;
+        configStream << "inputDevice=" << _inputDevice << std::endl;
+        configStream << "remoteServer=" << _remoteServer << std::endl;
+        configStream << "remoteDataPort=" << _remoteDataPort << std::endl;
+        configStream << "remoteCommandPort=" << _remoteCommandPort << std::endl;
+        configStream << "dumpRfFileFormat=" << _dumpRfFileFormat << std::endl;
+        configStream << "dumpAudioFileFormat=" << _dumpAudioFileFormat << std::endl;
+        configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
+        configStream << "pcmFile=" << _pcmFile << std::endl;
+        configStream << "wavFile=" << _wavFile << std::endl;
+        configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
+        configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
+        configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
+        configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
+        configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
+        configStream << "shift=" << _shift << std::endl;
+        configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
+        configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
+    }
     configStream << "frequency=" << _frequency << std::endl;
     configStream << "receiverModeType=" << _receiverModeType << std::endl;
-    configStream << "remoteServer=" << _remoteServer << std::endl;
-    configStream << "remoteDataPort=" << _remoteDataPort << std::endl;
-    configStream << "remoteCommandPort=" << _remoteCommandPort << std::endl;
     configStream << "rfGain=" << _rfGain << std::endl;
     configStream << "volume=" << _volume << std::endl;
-    configStream << "dumpRfFileFormat=" << _dumpRfFileFormat << std::endl;
-    configStream << "dumpAudioFileFormat=" << _dumpAudioFileFormat << std::endl;
-    configStream << "signalGeneratorFrequency=" << _signalGeneratorFrequency << std::endl;
-    configStream << "pcmFile=" << _pcmFile << std::endl;
-    configStream << "wavFile=" << _wavFile << std::endl;
-    configStream << "reservedBuffers=" << _reservedBuffers << std::endl;
     configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_receiverOptionsFor) << std::endl;
-    configStream << "rtlsdrCorrection=" << _rtlsdrCorrection << std::endl;
-    configStream << "rtlsdrOffset=" << _rtlsdrOffset << std::endl;
-    configStream << "rtlsdrCorrectionFactor" << _rtlsdrCorrectionFactor << std::endl;
-    configStream << "rtlsdrAdjust=" << _rtlsdrAdjust << std::endl;
-    configStream << "shift=" << _shift << std::endl;
-    configStream << "rfagclevel=" << _rfAgcLevel << std::endl;
-    configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
 
     // Done writing the config file
     configStream.close();
@@ -1387,11 +1388,11 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
 }
 
 void ConfigOptions::WriteBookmark(std::string name) {
-    WriteStoredConfig(name + ".bookmark");
+    WriteStoredConfig(name + ".bookmark", true);
 }
 
 bool ConfigOptions::ReadBookmark(std::string name) {
-    return ReadStoredConfig(name + ".bookmark");
+    return ReadStoredConfig(name + ".bookmark", true);
 }
 
 void ConfigOptions::DeleteBookmark(std::string name) {

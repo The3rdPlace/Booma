@@ -119,8 +119,8 @@ class ConfigOptions {
         std::string GetAudioDevice(int device);
         std::string GetRtlsdrDevice(int device);
 
-        bool ReadStoredConfig(std::string configname);
-        void WriteStoredConfig(std::string configname);
+        bool ReadStoredConfig(std::string configname, bool isBookmark);
+        void WriteStoredConfig(std::string configname, bool isBookmark);
         void RemoveStoredConfig(std::string configname);
         std::map<std::string, std::string> ReadStoredReceiverOptions(std::string optionsString);
         std::string WriteStoredReceiverOptions(std::map<std::string, std::string> options);
