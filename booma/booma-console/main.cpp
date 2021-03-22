@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
             else
             {
                 // Does the command requires an option ?
-                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd' || cmd == 'w' || cmd == 'e' || cmd == 'z' ) {
+                if( cmd == 'f' || cmd == 'g' || cmd == 'v' || cmd == 'r' || cmd == 'o' || cmd == 'b' || cmd == 'c' || cmd == 'd' || cmd == 'w' || cmd == 'e' || cmd == 'z' || cmd == 'n' || cmd == 'u' ) {
                     std::cin >> opt;
                 }
                 else
@@ -296,6 +296,40 @@ int main(int argc, char** argv) {
                 }
             }
 
+            // Change configuration section
+            else if( cmd == 'n' ) {
+                if (!app.SetConfigSection(opt)) {
+                    if( !app.CreateConfigSection(opt) ) {
+                        std::cout << "Could not create new configuration section '" << opt << "'" << std::endl;
+                    }
+                }
+                app.Run();
+            }
+
+            // Get configuration sections
+            else if( cmd == 't' ) {
+                std::vector<std::string> sections = app.GetConfigSections();
+                std::cout << "Configuration sections:" << std::endl;
+                for( std::vector<std::string>::iterator it = sections.begin(); it != sections.end(); it++ ) {
+                    if (app.GetConfigSection() == (*it)) {
+                        std::cout << "  * " << (*it) << std::endl;
+                    } else {
+                        std::cout << "  - " << (*it) << std::endl;
+                    }
+                }
+            }
+
+            // Delete configuration section
+            else if( cmd == 'u' ) {
+                if( opt == app.GetConfigSection() ) {
+                    std::cout << "Can not delete currently active config section" << std::endl;
+                } else {
+                    if (!app.DeleteConfigSection(opt)) {
+                        std::cout << "Could not delete configuration section '" << opt << "'" << std::endl;
+                    }
+                }
+            }
+
             // Get help
             else if( cmd == '?' || cmd == 'h' ) {
                 std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
@@ -304,14 +338,21 @@ int main(int argc, char** argv) {
                 std::cout << "Change volume:                      v <volume>     or  v +<amount>  or  -<amount>" << std::endl;
                 std::cout << "Change receiver type:               r <AM|CW|SSB|AURORAL> or  s (reinitialize current receiver)" << std::endl;
                 std::cout << "Change 1.st IF filter width:        w width" << std::endl;
+                std::cout << "List receiver options:              l" << std::endl;
                 std::cout << "Set receiver option:                o <NAME=VALUE>" << std::endl;
                 std::cout << "Toggle audio recording on/off:      a" << std::endl;
                 std::cout << "Toggle rf recording on/off:         p" << std::endl;
                 std::cout << "Enter measurement mode:             m" << std::endl;
+                std::cout << "Restart current receiver:           s" << std::endl;
+                std::cout << "Get configuration sections:         t" << std::endl;
+                std::cout << "Change configuration section:       n <section>" << std::endl;
+                std::cout << "Delete configuration section:       u <section>" << std::endl;
+                std::cout << std::endl;
                 std::cout << "Set bookmark:                       b <name>" << std::endl;
                 std::cout << "Get bookmark:                       c <name>" << std::endl;
                 std::cout << "Delete bookmark                     d" << std::endl;
                 std::cout << "List bookmarks:                     x" << std::endl;
+                std::cout << std::endl;
                 std::cout << "List channels:                      j" << std::endl;
                 std::cout << "Tune to channel                     e <channel> or + og - " << std::endl;
                 std::cout << "Add current frequency as a channel  k" << std::endl;
@@ -321,7 +362,6 @@ int main(int argc, char** argv) {
                 std::cout << std::endl;
                 std::cout << "Get help (this text):               ?  or  h" << std::endl;
                 std::cout << "Get reception status:               i" << std::endl;
-                std::cout << "List receiver options:              l" << std::endl;
                 std::cout << "Quit:                               q" << std::endl;
                 std::cout << "----------------------------------------------------------------------------------------------------" << std::endl;
             }

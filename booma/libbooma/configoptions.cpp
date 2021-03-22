@@ -31,11 +31,6 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Output samplerate (default 48KHz)                        -or rate") << std::endl;
     std::cout << std::endl;
 
-    std::cout << tr("==[Use with converters]==") << std::endl;
-    std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
-    std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
-    std::cout << std::endl;
-
     std::cout << tr("==[Receiver, frequency and gain]==") << std::endl;
     std::cout << tr("Select receiver (CW default)                             -m CW|AURORAL|AM|SSB") << std::endl;
     std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
@@ -54,7 +49,17 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Dump file suffix. If not set, a timestamp is used        -dfs suffix") << std::endl;
     std::cout << std::endl;
 
-    std::cout << tr("==[Use remote head]==") << std::endl;
+    std::cout << tr("==[Use with converters]==") << std::endl;
+    std::cout << tr("Up-/Downconverter in use                                 -shift basefrequency") << std::endl;
+    std::cout << tr("RTL-SDR tuning error alignment (default 0)               -rtla adjustment") << std::endl;
+    std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
+    std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
+    std::cout << std::endl;
+
+    std::cout << tr("==[Configuration sections]==") << std::endl;
+    std::cout << tr("Use existing or create new configuration section         -config section") << std::endl;
+
+    std::cout << tr("==[Remote head operation]==") << std::endl;
     std::cout << tr("Server for remote input                                  -s dataport commandport") << std::endl;
     std::cout << std::endl;
 
@@ -62,13 +67,11 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Wait untill scheduled time                               -b 'YYYY-MM-DD HH:MM' 'YYYY-MM-DD HH:MM' (begin .. end)") << std::endl;
     std::cout << tr("Set initial buffersize for file IO (0 to disable)        -n reserved-block") << std::endl;
     std::cout << tr("Reset cached configuration                               -z") << std::endl;
-    std::cout << tr("Enable RTL-SDR frequency align mode                      -fa") << std::endl;
-    std::cout << tr("Frequency align mode output volume (default 500)         -fav volume") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Performance and quality (not persisted)]==") << std::endl;
     std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
-    std::cout << tr("1.st IF filter width, only for RTL-SDR (default 3000)    -ifw width") << std::endl;
+    std::cout << tr("1.st IF filter width (default 3000)                      -ifw width") << std::endl;
     std::cout << std::endl;
 
     if( showSecretSettings ) {
@@ -187,9 +190,6 @@ bool ConfigOptions::IsVerbose(int argc, char** argv) {
 
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
-    // Setup default section
-    _values.insert(std::pair<std::string, ConfigOptionValues*>(_section, new ConfigOptionValues));
-
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
 
@@ -236,12 +236,28 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         exit(1);
     }
 
-    // Check if we have some channels, if not then add a default set
-    if( _channels.empty() ) {
-        _channels = ReadPersistentChannels(CONFIGNAME);
+    // Second pass: config section
+    for( int i = 1; i < argc; i++ ) {
+
+        // Config sections
+        if (strcmp(argv[i], "-config") == 0 && i < argc - 1) {
+            if (!SetConfigSection(argv[i + 1])) {
+                if (!CreateConfigSection(argv[i + 1])) {
+                    std::cout << "Could not create config section '" << argv[i + 1] << "'" << std::endl;
+                    exit(1);
+                }
+            }
+            i++;
+            continue;
+        }
     }
 
-    // Second pass: config options
+    // Check if we have some channels, if not then add a default set
+    if( _values.at(_section)->_channels.empty() ) {
+        _values.at(_section)->_channels = ReadPersistentChannels(CONFIGNAME, _section);
+    }
+
+    // Third pass: config options
     for( int i = 1; i < argc; i++ ) {
 
         // Enable probes
@@ -654,6 +670,12 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // Options handled in previously passes
+        if( strcmp(argv[i], "-config") == 0 && i < argc - 1) {
+            i++;
+            continue;
+        }
+
         // Unknown parameter
         std::cout << tr("Unknown parameter") << " '" << argv[i] << "' (" << tr("use '-h' to show the help") << ")" << std::endl;
         exit(1);
@@ -875,7 +897,7 @@ void ConfigOptions::DumpConfigInfo() {
 
 ConfigOptions::~ConfigOptions() {
     WriteStoredConfig(CONFIGNAME, false);
-    for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
+    for( std::vector<Channel*>::iterator it = _values.at(_section)->_channels.begin(); it != _values.at(_section)->_channels.end(); it++ ) {
         delete (*it);
     }
     for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
@@ -958,7 +980,8 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     std::ifstream configStream;
     configStream.open(configFile, std::ifstream::in);
     if( !configStream.is_open() ) {
-        HError("Failed to open config file for reading");
+        HError("Failed to open config file '%s' for reading", configFile.c_str());
+        _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
         return false;
     }
 
@@ -975,6 +998,9 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
             if (_values.find(_section) == _values.end()) {
                 _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
             }
+
+            configStream >> opt;
+            continue;
         }
 
         // Split into name and value
@@ -982,6 +1008,13 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
         if( splitAt != std::string::npos ) {
             std::string name = opt.substr(0, splitAt);
             std::string value = opt.substr(splitAt + 1, std::string::npos);
+
+            // Make sure we have the default config section, if no other section name has been set
+            if( name.length() > 0 && value.length() > 0 ) {
+                if( _values.find(_section) == _values.end() ) {
+                    _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
+                }
+            }
 
             // Known config names
             HLog("config value (%s=%s)", name.c_str(), value.c_str());
@@ -1008,18 +1041,21 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
                 if (name == "rtlsdrAdjust") _values.at(_section)->_rtlsdrAdjust = atoi(value.c_str());
                 if (name == "shift") _values.at(_section)->_shift = atoi(value.c_str());
                 if (name == "rfagclevel") _values.at(_section)->_rfAgcLevel = atoi(value.c_str());
-                if (name == "channels") _channels = ReadChannels(configname, value);
+                if (name == "channels") _values.at(_section)->_channels = ReadChannels(configname, value);
+                if (name == "isRemoteHead") _values.at(_section)->_isRemoteHead = (value == "true" ? true : false);
             }
             if (name == "frequency") _values.at(_section)->_frequency = atoi(value.c_str());
             if (name == "receiverModeType") _values.at(_section)->_receiverModeType = (ReceiverModeType) atoi(value.c_str());
             if (name == "rfGain") _values.at(_section)->_rfGain = atoi(value.c_str());
             if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
             if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if (name == "activeSection" && value == "true") _activeSection = _section;
         }
         configStream >> opt;
     }
 
     // Done reading the config file
+    _section = _activeSection;
     configStream.close();
 
     // Set flags
@@ -1103,35 +1139,37 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
 
         // Write config settings
         if (!isBookmark) {
-            configStream << "inputSampleRate=" << _values.at(_section)->_inputSampleRate << std::endl;
-            configStream << "outputSampleRate=" << _values.at(_section)->_outputSampleRate << std::endl;
-            configStream << "outputAudioDevice=" << _values.at(_section)->_outputAudioDevice << std::endl;
-            configStream << "inputSourceType=" << _values.at(_section)->_inputSourceType << std::endl;
-            configStream << "inputSourceDataType=" << _values.at(_section)->_inputSourceDataType << std::endl;
-            configStream << "originalInputSourceType=" << _values.at(_section)->_originalInputSourceType << std::endl;
-            configStream << "inputDevice=" << _values.at(_section)->_inputDevice << std::endl;
-            configStream << "remoteServer=" << _values.at(_section)->_remoteServer << std::endl;
-            configStream << "remoteDataPort=" << _values.at(_section)->_remoteDataPort << std::endl;
-            configStream << "remoteCommandPort=" << _values.at(_section)->_remoteCommandPort << std::endl;
-            configStream << "dumpRfFileFormat=" << _values.at(_section)->_dumpRfFileFormat << std::endl;
-            configStream << "dumpAudioFileFormat=" << _values.at(_section)->_dumpAudioFileFormat << std::endl;
-            configStream << "signalGeneratorFrequency=" << _values.at(_section)->_signalGeneratorFrequency << std::endl;
-            configStream << "pcmFile=" << _values.at(_section)->_pcmFile << std::endl;
-            configStream << "wavFile=" << _values.at(_section)->_wavFile << std::endl;
-            configStream << "reservedBuffers=" << _values.at(_section)->_reservedBuffers << std::endl;
-            configStream << "rtlsdrCorrection=" << _values.at(_section)->_rtlsdrCorrection << std::endl;
-            configStream << "rtlsdrOffset=" << _values.at(_section)->_rtlsdrOffset << std::endl;
-            configStream << "rtlsdrCorrectionFactor" << _values.at(_section)->_rtlsdrCorrectionFactor << std::endl;
-            configStream << "rtlsdrAdjust=" << _values.at(_section)->_rtlsdrAdjust << std::endl;
-            configStream << "shift=" << _values.at(_section)->_shift << std::endl;
-            configStream << "rfagclevel=" << _values.at(_section)->_rfAgcLevel << std::endl;
-            configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
+            configStream << "inputSampleRate=" << _values.at((*it).first)->_inputSampleRate << std::endl;
+            configStream << "outputSampleRate=" << _values.at((*it).first)->_outputSampleRate << std::endl;
+            configStream << "outputAudioDevice=" << _values.at((*it).first)->_outputAudioDevice << std::endl;
+            configStream << "inputSourceType=" << _values.at((*it).first)->_inputSourceType << std::endl;
+            configStream << "inputSourceDataType=" << _values.at((*it).first)->_inputSourceDataType << std::endl;
+            configStream << "originalInputSourceType=" << _values.at((*it).first)->_originalInputSourceType << std::endl;
+            configStream << "inputDevice=" << _values.at((*it).first)->_inputDevice << std::endl;
+            configStream << "remoteServer=" << _values.at((*it).first)->_remoteServer << std::endl;
+            configStream << "remoteDataPort=" << _values.at((*it).first)->_remoteDataPort << std::endl;
+            configStream << "remoteCommandPort=" << _values.at((*it).first)->_remoteCommandPort << std::endl;
+            configStream << "dumpRfFileFormat=" << _values.at((*it).first)->_dumpRfFileFormat << std::endl;
+            configStream << "dumpAudioFileFormat=" << _values.at((*it).first)->_dumpAudioFileFormat << std::endl;
+            configStream << "signalGeneratorFrequency=" << _values.at((*it).first)->_signalGeneratorFrequency << std::endl;
+            configStream << "pcmFile=" << _values.at((*it).first)->_pcmFile << std::endl;
+            configStream << "wavFile=" << _values.at((*it).first)->_wavFile << std::endl;
+            configStream << "reservedBuffers=" << _values.at((*it).first)->_reservedBuffers << std::endl;
+            configStream << "rtlsdrCorrection=" << _values.at((*it).first)->_rtlsdrCorrection << std::endl;
+            configStream << "rtlsdrOffset=" << _values.at((*it).first)->_rtlsdrOffset << std::endl;
+            configStream << "rtlsdrCorrectionFactor" << _values.at((*it).first)->_rtlsdrCorrectionFactor << std::endl;
+            configStream << "rtlsdrAdjust=" << _values.at((*it).first)->_rtlsdrAdjust << std::endl;
+            configStream << "shift=" << _values.at((*it).first)->_shift << std::endl;
+            configStream << "rfagclevel=" << _values.at((*it).first)->_rfAgcLevel << std::endl;
+            configStream << "channels=" << WriteChannels(configname, (*it).first, _values.at(_section)->_channels) << std::endl;
+            configStream << "isRemoteHead=" << (_values.at((*it).first)->_isRemoteHead ? "true" : "false") << std::endl;
         }
-        configStream << "frequency=" << _values.at(_section)->_frequency << std::endl;
-        configStream << "receiverModeType=" << _values.at(_section)->_receiverModeType << std::endl;
-        configStream << "rfGain=" << _values.at(_section)->_rfGain << std::endl;
-        configStream << "volume=" << _values.at(_section)->_volume << std::endl;
-        configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at(_section)->_receiverOptionsFor) << std::endl;
+        configStream << "frequency=" << _values.at((*it).first)->_frequency << std::endl;
+        configStream << "receiverModeType=" << _values.at((*it).first)->_receiverModeType << std::endl;
+        configStream << "rfGain=" << _values.at((*it).first)->_rfGain << std::endl;
+        configStream << "volume=" << _values.at((*it).first)->_volume << std::endl;
+        configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at((*it).first)->_receiverOptionsFor) << std::endl;
+        configStream << "activeSection=" << (_section == (*it).first ? "true" : "false") << std::endl;
         configStream << std::endl;
     }
 
@@ -1246,7 +1284,7 @@ std::map<std::string, std::map<std::string, std::string>> ConfigOptions::ReadSto
     return optionsFor;
 }
 
-std::string ConfigOptions::WriteChannels(std::string configname, std::vector<Channel*> channels) {
+std::string ConfigOptions::WriteChannels(std::string configname, std::string section, std::vector<Channel*> channels) {
     std::string list = "";
 
     // Get the users homedirectory
@@ -1262,7 +1300,7 @@ std::string ConfigOptions::WriteChannels(std::string configname, std::vector<Cha
 
     // Compose path to config file's channel list (persistent)
     std::string configFile(configPath);
-    configFile += "/" + configname + ".channels";
+    configFile += "/" + configname + "." + section + ".channels";
     HLog("Config file's persistent channel file is %s", configFile.c_str());
 
     // Open the config file
@@ -1300,7 +1338,7 @@ std::vector<Channel*> ConfigOptions::ReadChannels(std::string configname, std::s
     return list;
 }
 
-std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configname) {
+std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configname, std::string section) {
 
     std::vector<Channel *> list;
 
@@ -1317,7 +1355,7 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
 
     // Compose path to config file's channel list (persistent)
     std::string configFile(configPath);
-    configFile += "/" + configname + ".channels";
+    configFile += "/" + configname + "." + section + ".channels";
     HLog("Config file's persistent channel file is %s", configFile.c_str());
 
     std::ifstream configStream;

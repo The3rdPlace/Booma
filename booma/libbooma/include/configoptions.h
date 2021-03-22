@@ -19,11 +19,9 @@ class ConfigOptions {
         // Values
         std::map<std::string, ConfigOptionValues*> _values;
 
-        // Memory channels
-        std::vector<Channel*> _channels;
-
         // Current config section
         std::string _section = "default";
+        std::string _activeSection = "default";
 
         void PrintUsage(bool showSecretSettings = false);
         void PrintAudioDevices();
@@ -39,8 +37,8 @@ class ConfigOptions {
         std::map<std::string, std::map<std::string, std::string>> ReadStoredReceiverOptionsFor(std::string optionsForString);
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
         std::vector<Channel*> ReadChannels(std::string configname, std::string channels);
-        std::vector<Channel*> ReadPersistentChannels(std::string configname);
-        std::string WriteChannels(std::string configname, std::vector<Channel*> channels);
+        std::vector<Channel*> ReadPersistentChannels(std::string configname, std::string section);
+        std::string WriteChannels(std::string configname, std::string section, std::vector<Channel*> channels);
         void DumpConfigInfo();
 
     public:
@@ -260,27 +258,27 @@ class ConfigOptions {
         std::map<int, Channel*> GetChannels() {
             std::map<int, Channel*> channels;
             int number = 1;
-            for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
+            for( std::vector<Channel*>::iterator it = _values.at(_section)->_channels.begin(); it != _values.at(_section)->_channels.end(); it++ ) {
                 channels.insert(std::pair<int, Channel*>(number++, *it));
             }
             return channels;
         }
 
         bool AddChannel(std::string name, long int frequency) {
-            _channels.push_back(new Channel(name, frequency));
-            std::sort(_channels.begin(), _channels.end(), Channel::ChannelComparator());
+            _values.at(_section)->_channels.push_back(new Channel(name, frequency));
+            std::sort(_values.at(_section)->_channels.begin(), _values.at(_section)->_channels.end(), Channel::ChannelComparator());
             return true;
         }
 
         bool RemoveChannel(int id) {
             std::map<int, Channel*> channels = GetChannels();
             if( id > 0 && id <= channels.size() ) {
-                std::vector<Channel*>::iterator it = _channels.begin();
+                std::vector<Channel*>::iterator it = _values.at(_section)->_channels.begin();
                 int number = 0;
-                while( it != _channels.end() ) {
+                while( it != _values.at(_section)->_channels.end() ) {
                     std::cout << "NAME " << (*it)->Name << " with number " << (number + 1) << " <== " << id << std::endl;
                     if( number + 1 == id ) {
-                        _channels.erase(it);
+                        _values.at(_section)->_channels.erase(it);
                         return true;
                     }
                     number++;
@@ -328,6 +326,7 @@ class ConfigOptions {
                 HLog("Config section %s does not exist", section.c_str());
                 return false;
             }
+            HLog("Set section %s as active", _section.c_str());
             _section = section;
             return true;
         }
@@ -338,9 +337,18 @@ class ConfigOptions {
                 return false;
             }
 
-            _values.insert(std::pair<std::string, ConfigOptionValues*>(section, new ConfigOptionValues));
-            memcpy((void*) _values.at(section), (void*) _values.at(_section), sizeof(ConfigOptionValues));
+            // Clone current settings
+            ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
+            _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
 
+            // Replace current 'default' section ?
+            if( _section == "default" ) {
+                std::map<std::string, ConfigOptionValues*>::iterator old = _values.find(_section);
+                _values.erase(old);
+                HLog("Erase old 'default' config section");
+            }
+
+            HLog("Set section %s as active", _section.c_str()   );
             _section = section;
             return true;
         }
