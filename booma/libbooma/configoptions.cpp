@@ -949,7 +949,8 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     const char* home = std::getenv("HOME");
     if( home == NULL ) {
         HError("No HOME env. variable. Unable to read configuration");
-        return true;
+        _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
+        return false;
     }
 
     // Compose the config path
@@ -961,6 +962,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     if( stat(configPath.c_str(), &stats) != -1 ) {
         if( !S_ISDIR(stats.st_mode) ) {
             HError("File ~/.booma exists, but should be a directory");
+            _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
             return false;
         }
         HLog("Config directory %s exists", configPath.c_str());
@@ -968,6 +970,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     else
     {
         HLog("Config directory does not exists, no config to read");
+        _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
         return false;
     }
 
