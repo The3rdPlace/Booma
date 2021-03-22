@@ -354,3 +354,31 @@ int BoomaApplication::GetFrequencyAdjust() {
         return 0;
     }
 }
+
+std::vector<std::string> BoomaApplication::GetConfigSections() {
+    return _opts->GetConfigSections();
+}
+
+std::string BoomaApplication::GetConfigSection() {
+    return _opts->GetConfigSection();
+}
+
+bool BoomaApplication::SetConfigSection(std::string section) {
+    if( _opts->SetConfigSection(section) ) {
+        Reconfigure();
+        return true;
+    }
+    return false;
+}
+
+bool BoomaApplication::CreateConfigSection(std::string section) {
+    if( _opts->CreateConfigSection(section) ) {
+        Reconfigure();
+        return true;
+    }
+    return false;
+}
+
+bool BoomaApplication::DeleteConfigSection(std::string section) {
+    return _opts->DeleteConfigSection(section);
+}

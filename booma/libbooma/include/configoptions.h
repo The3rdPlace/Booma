@@ -323,8 +323,13 @@ class ConfigOptions {
             return _section;
         }
 
-        void SetConfigSection(std::string section) {
+        bool SetConfigSection(std::string section) {
+            if( _values.find(section) == _values.end() ) {
+                HLog("Config section %s does not exist", section.c_str());
+                return false;
+            }
             _section = section;
+            return true;
         }
 
         bool CreateConfigSection(std::string section) {

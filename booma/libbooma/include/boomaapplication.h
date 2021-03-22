@@ -168,6 +168,13 @@ class BoomaApplication {
         bool RemoveChannel(int id);
         bool UseChannel(int id);
 
+        // Config sections
+        std::vector<std::string> GetConfigSections();
+        std::string GetConfigSection();
+        bool SetConfigSection(std::string section);
+        bool CreateConfigSection(std::string section);
+        bool DeleteConfigSection(std::string section);
+
     private:
 
         // Configuration and state
