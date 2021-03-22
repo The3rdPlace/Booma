@@ -878,6 +878,9 @@ ConfigOptions::~ConfigOptions() {
     for( std::vector<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++ ) {
         delete (*it);
     }
+    for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
+        delete ((*it).second);
+    }
 }
 
 void ConfigOptions::RemoveStoredConfig(std::string configname) {

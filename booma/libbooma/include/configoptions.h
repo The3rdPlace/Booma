@@ -310,6 +310,51 @@ class ConfigOptions {
         void DeleteBookmark(std::string name);
 
         std::vector<std::string> ListBookmarks();
+
+        std::vector<std::string> GetConfigSections() {
+            std::vector<std::string> sections;
+            for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
+                sections.push_back((*it).first);
+            }
+            return sections;
+        }
+
+        std::string GetConfigSection() {
+            return _section;
+        }
+
+        void SetConfigSection(std::string section) {
+            _section = section;
+        }
+
+        bool CreateConfigSection(std::string section) {
+            if( _values.find(section) != _values.end() ) {
+                HLog("Config section %s exists", section.c_str());
+                return false;
+            }
+
+            _values.insert(std::pair<std::string, ConfigOptionValues*>(section, new ConfigOptionValues));
+            memcpy((void*) _values.at(section), (void*) _values.at(_section), sizeof(ConfigOptionValues));
+
+            _section = section;
+            return true;
+        }
+
+        bool DeleteConfigSection(std::string section) {
+            if( section == _section ) {
+                HLog("Unable to delete active config section %s", section.c_str());
+                return false;
+            }
+
+            std::map<std::string, ConfigOptionValues*>::iterator it = _values.find(section);
+            if( it == _values.end() ) {
+                HLog("Config section %s does not exist", section.c_str());
+                return false;
+            }
+
+            _values.erase(it);
+            return true;
+        }
     };
 
 #endif
