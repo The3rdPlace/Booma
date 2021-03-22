@@ -1,3 +1,10 @@
+booma (1.1-18) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Allow multiple configuration sections in a single config file
+
+ -- Mackie <henrik@hardttoolkit.org>  Mon, 22 Mar 2021 21:30:00 +0100
+
 booma (1.1-17) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

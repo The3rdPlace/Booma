@@ -10,7 +10,7 @@ include_directories("${PROJECT_BINARY_DIR}/booma/booma-console")
 # Set the application major and minor version here
 set (BoomaConsole_VERSION_MAJOR 1)
 set (BoomaConsole_VERSION_MINOR 0)
-set (BoomaConsole_VERSION_BUILD 5)
+set (BoomaConsole_VERSION_BUILD 6)
 
 # Configure the main.h header
 configure_file (
