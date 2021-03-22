@@ -964,6 +964,16 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     configStream >> opt;
     while (configStream.good()) {
 
+        // Check for section name
+        if( opt[0] == '[' && opt[opt.length() - 1] == ']' ) {
+            _section = opt.substr(1, opt.length() - 2);
+            HLog("Next config section is '%s'", _section.c_str());
+
+            if (_values.find(_section) == _values.end()) {
+                _values.insert(std::pair<std::string, ConfigOptionValues *>(_section, new ConfigOptionValues));
+            }
+        }
+
         // Split into name and value
         size_t splitAt = opt.find_first_of("=");
         if( splitAt != std::string::npos ) {
@@ -1082,37 +1092,45 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
         return;
     }
 
-    // Write config settings
-    if( !isBookmark ) {
-        configStream << "inputSampleRate=" << _values.at(_section)->_inputSampleRate << std::endl;
-        configStream << "outputSampleRate=" << _values.at(_section)->_outputSampleRate << std::endl;
-        configStream << "outputAudioDevice=" << _values.at(_section)->_outputAudioDevice << std::endl;
-        configStream << "inputSourceType=" << _values.at(_section)->_inputSourceType << std::endl;
-        configStream << "inputSourceDataType=" << _values.at(_section)->_inputSourceDataType << std::endl;
-        configStream << "originalInputSourceType=" << _values.at(_section)->_originalInputSourceType << std::endl;
-        configStream << "inputDevice=" << _values.at(_section)->_inputDevice << std::endl;
-        configStream << "remoteServer=" << _values.at(_section)->_remoteServer << std::endl;
-        configStream << "remoteDataPort=" << _values.at(_section)->_remoteDataPort << std::endl;
-        configStream << "remoteCommandPort=" << _values.at(_section)->_remoteCommandPort << std::endl;
-        configStream << "dumpRfFileFormat=" << _values.at(_section)->_dumpRfFileFormat << std::endl;
-        configStream << "dumpAudioFileFormat=" << _values.at(_section)->_dumpAudioFileFormat << std::endl;
-        configStream << "signalGeneratorFrequency=" << _values.at(_section)->_signalGeneratorFrequency << std::endl;
-        configStream << "pcmFile=" << _values.at(_section)->_pcmFile << std::endl;
-        configStream << "wavFile=" << _values.at(_section)->_wavFile << std::endl;
-        configStream << "reservedBuffers=" << _values.at(_section)->_reservedBuffers << std::endl;
-        configStream << "rtlsdrCorrection=" << _values.at(_section)->_rtlsdrCorrection << std::endl;
-        configStream << "rtlsdrOffset=" << _values.at(_section)->_rtlsdrOffset << std::endl;
-        configStream << "rtlsdrCorrectionFactor" << _values.at(_section)->_rtlsdrCorrectionFactor << std::endl;
-        configStream << "rtlsdrAdjust=" << _values.at(_section)->_rtlsdrAdjust << std::endl;
-        configStream << "shift=" << _values.at(_section)->_shift << std::endl;
-        configStream << "rfagclevel=" << _values.at(_section)->_rfAgcLevel << std::endl;
-        configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
+    // Run through all config sections
+    for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
+
+        // Section name
+        configStream << "[" << (*it).first << "]" << std::endl;
+
+        // Write config settings
+        if (!isBookmark) {
+            configStream << "inputSampleRate=" << _values.at(_section)->_inputSampleRate << std::endl;
+            configStream << "outputSampleRate=" << _values.at(_section)->_outputSampleRate << std::endl;
+            configStream << "outputAudioDevice=" << _values.at(_section)->_outputAudioDevice << std::endl;
+            configStream << "inputSourceType=" << _values.at(_section)->_inputSourceType << std::endl;
+            configStream << "inputSourceDataType=" << _values.at(_section)->_inputSourceDataType << std::endl;
+            configStream << "originalInputSourceType=" << _values.at(_section)->_originalInputSourceType << std::endl;
+            configStream << "inputDevice=" << _values.at(_section)->_inputDevice << std::endl;
+            configStream << "remoteServer=" << _values.at(_section)->_remoteServer << std::endl;
+            configStream << "remoteDataPort=" << _values.at(_section)->_remoteDataPort << std::endl;
+            configStream << "remoteCommandPort=" << _values.at(_section)->_remoteCommandPort << std::endl;
+            configStream << "dumpRfFileFormat=" << _values.at(_section)->_dumpRfFileFormat << std::endl;
+            configStream << "dumpAudioFileFormat=" << _values.at(_section)->_dumpAudioFileFormat << std::endl;
+            configStream << "signalGeneratorFrequency=" << _values.at(_section)->_signalGeneratorFrequency << std::endl;
+            configStream << "pcmFile=" << _values.at(_section)->_pcmFile << std::endl;
+            configStream << "wavFile=" << _values.at(_section)->_wavFile << std::endl;
+            configStream << "reservedBuffers=" << _values.at(_section)->_reservedBuffers << std::endl;
+            configStream << "rtlsdrCorrection=" << _values.at(_section)->_rtlsdrCorrection << std::endl;
+            configStream << "rtlsdrOffset=" << _values.at(_section)->_rtlsdrOffset << std::endl;
+            configStream << "rtlsdrCorrectionFactor" << _values.at(_section)->_rtlsdrCorrectionFactor << std::endl;
+            configStream << "rtlsdrAdjust=" << _values.at(_section)->_rtlsdrAdjust << std::endl;
+            configStream << "shift=" << _values.at(_section)->_shift << std::endl;
+            configStream << "rfagclevel=" << _values.at(_section)->_rfAgcLevel << std::endl;
+            configStream << "channels=" << WriteChannels(configname, _channels) << std::endl;
+        }
+        configStream << "frequency=" << _values.at(_section)->_frequency << std::endl;
+        configStream << "receiverModeType=" << _values.at(_section)->_receiverModeType << std::endl;
+        configStream << "rfGain=" << _values.at(_section)->_rfGain << std::endl;
+        configStream << "volume=" << _values.at(_section)->_volume << std::endl;
+        configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at(_section)->_receiverOptionsFor) << std::endl;
+        configStream << std::endl;
     }
-    configStream << "frequency=" << _values.at(_section)->_frequency << std::endl;
-    configStream << "receiverModeType=" << _values.at(_section)->_receiverModeType << std::endl;
-    configStream << "rfGain=" << _values.at(_section)->_rfGain << std::endl;
-    configStream << "volume=" << _values.at(_section)->_volume << std::endl;
-    configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at(_section)->_receiverOptionsFor) << std::endl;
 
     // Done writing the config file
     configStream.close();
