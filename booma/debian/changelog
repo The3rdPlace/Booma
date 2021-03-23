@@ -1,3 +1,10 @@
+booma (1.1-19) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Fix annoying bug in signal measurement mode
+
+ -- Mackie <henrik@hardttoolkit.org>  Mon, 23 Mar 2021 09:45:00 +0100
+
 booma (1.1-18) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

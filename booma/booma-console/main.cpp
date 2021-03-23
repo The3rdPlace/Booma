@@ -397,13 +397,14 @@ int main(int argc, char** argv) {
 
                 std::cout << std::endl << "Relative signal measurement (press 'm'+enter to mark, 'q'+enter to exit):" << std::endl << "0";
                 char subCmd;
+                char extra;
                 do {
                     subCmd = std::cin.get();
                     if( subCmd == 'm' ) {
                         shouldMark = true;
                     }
-                    std::cin.get();
-                } while( subCmd != 'q' );
+                    char extra = std::cin.get();
+                } while( subCmd != 'q' && extra != 'q' );
 
                 p.set_value();
                 t.join();
