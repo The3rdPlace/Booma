@@ -186,7 +186,6 @@ class BoomaReceiver {
             _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
             _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
             if( opts->GetRfGain() != 0 ) {
-                std::cout << "SET GAIN" << std::endl;
                 float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
                 _rfAgc->SetGain(g);
             }
