@@ -37,8 +37,10 @@ int main(int argc, char** argv) {
         boomaApp->Run();
 
         // Run the main event loop
-        MainWindow window;
-        rc = app->run(window, argc, argv);
+        HLog("Creating MainWindow");
+        MainWindow window(boomaApp);
+        rc = app->run(window);
+        HLog("MainWindow has exited");
 
         // Halt and delete the booma application
         boomaApp->Halt();

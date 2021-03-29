@@ -9,10 +9,17 @@
 #include <gtkmm/button.h>
 #include <gtkmm/window.h>
 
+#include "booma.h"
+#include "boomaapplication.h"
+
 class MainWindow : public Gtk::Window
 {
+    private:
+
+        void SetTitle(BoomaApplication* app);
+
     public:
-        MainWindow();
+        MainWindow(BoomaApplication* app);
 };
 
 #endif
