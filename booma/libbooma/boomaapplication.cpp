@@ -17,7 +17,7 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
     HInit(std::string("Booma"), ConfigOptions::IsVerbose(argc, argv));
 
     // Show library name and and Hardt version.
-    HLog("booma: using Hardt %s", getversion().c_str());
+    HLog("booma: using Hardt %s", getVersion().c_str());
 
     // Parse input arguments
     _opts = new ConfigOptions(appName, appVersion, argc, argv);

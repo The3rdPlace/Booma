@@ -217,7 +217,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Get version information
         if( strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version" ) == 0 ) {
-            std::cout << appName << " " << appVersion << " " << tr("using") << " Booma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << " " << tr("and") << " Hardt " << getversion() << std::endl;
+            std::cout << appName << " " << appVersion << " " << tr("using") << " Booma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << " " << tr("and") << " Hardt " << getVersion() << std::endl;
             exit(0);
         }
 
@@ -784,34 +784,34 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 void ConfigOptions::DumpConfigInfo() {
-    std::cout << "*{info}* Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
+    std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
 
     // Remote/local
     if( _values.at(_section)->_useRemoteHead ) {
-        std::cout << "*{info}* Receiver for remote head with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
+        std::cout << "Receiver for remote head with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
     } else if( _values.at(_section)->_isRemoteHead) {
-        std::cout << "*{info}* Head for remote receiver on " << _values.at(_section)->_remoteServer << " with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
+        std::cout << "Head for remote receiver on " << _values.at(_section)->_remoteServer << " with dataport " << _values.at(_section)->_remoteDataPort << " and commandport " << _values.at(_section)->_remoteCommandPort << std::endl;
     }
 
     // Input
     switch( _values.at(_section)->_inputSourceType ) {
         case NO_INPUT_SOURCE_TYPE:
-            std::cout << "*{error}* No input type given!" << std::endl;
+            std::cout << "No input type given!" << std::endl;
             exit(1);
         case AUDIO_DEVICE:
-            std::cout << "*{info}* Input is audio device " << GetAudioDevice(_values.at(_section)->_inputDevice) << " running with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
+            std::cout << "Input is audio device " << GetAudioDevice(_values.at(_section)->_inputDevice) << " running with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case SIGNAL_GENERATOR:
-            std::cout << "*{info}* Input is a generator running at frequency " << _values.at(_section)->_signalGeneratorFrequency <<  " with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
+            std::cout << "Input is a generator running at frequency " << _values.at(_section)->_signalGeneratorFrequency <<  " with sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case PCM_FILE:
-            std::cout << "*{info}* Input PCM is read from " << _values.at(_section)->_pcmFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
+            std::cout << "Input PCM is read from " << _values.at(_section)->_pcmFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case WAV_FILE:
-            std::cout << "*{info}* Input WAV is read from " << _values.at(_section)->_wavFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
+            std::cout << "Input WAV is read from " << _values.at(_section)->_wavFile << " assuming 16 bit signed at sampling rate " << _values.at(_section)->_inputSampleRate << std::endl;
             break;
         case SILENCE:
-            std::cout << "*{info}* Input is total silence" << std::endl;
+            std::cout << "Input is total silence" << std::endl;
             break;
         case NETWORK:
             switch( _values.at(_section)->_originalInputSourceType ) {
@@ -820,64 +820,64 @@ void ConfigOptions::DumpConfigInfo() {
                 case PCM_FILE:
                 case WAV_FILE:
                 case SILENCE:
-                    std::cout << "*{info}* Remote input is either an audio device, signalgenerator, pcm- or wavfile, or just silence." << std::endl;
-                    std::cout << "*{info}* Remote input is running in REAL input mode at samplerate " << _values.at(_section)->_inputSampleRate << std::endl;
+                    std::cout << "Remote input is either an audio device, signalgenerator, pcm- or wavfile, or just silence." << std::endl;
+                    std::cout << "Remote input is running in REAL input mode at samplerate " << _values.at(_section)->_inputSampleRate << std::endl;
                     break;
                 case RTLSDR:
-                    std::cout << "*{info}* Remote input is an RTL-SDR dongle." << std::endl;
+                    std::cout << "Remote input is an RTL-SDR dongle." << std::endl;
                     switch (_values.at(_section)->_inputSourceDataType) {
                         case IQ_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in IQ mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
+                            std::cout << "Remote input is running in IQ mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case I_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in I mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
+                            std::cout << "Remote input is running in I mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case Q_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in Q mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
+                            std::cout << "Remote input is running in Q mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case REAL_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input is running in REAL mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
+                            std::cout << "Remote input is running in REAL mode decimated to samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                         case NO_INPUT_SOURCE_DATA_TYPE:
-                            std::cout << "*{info}* Remote input has  no input mode specified, assuming REAL, decimated to " << _values.at(_section)->_outputSampleRate << std::endl;
+                            std::cout << "Remote input has  no input mode specified, assuming REAL, decimated to " << _values.at(_section)->_outputSampleRate << std::endl;
                             break;
                     }
-                    std::cout << "*{info}* Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
+                    std::cout << "Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
                     break;
                 case NETWORK:
-                    std::cout << "*{info}* Remote input is a remote receiver" << std::endl;
+                    std::cout << "Remote input is a remote receiver" << std::endl;
                     break;
                 case NO_INPUT_SOURCE_TYPE:
-                    std::cout << "*{error}* No remote input type given. Receiver output will behave strangely!" << std::endl;
+                    std::cout << "No remote input type given. Receiver output will behave strangely!" << std::endl;
                     break;
             }
             break;
         case RTLSDR:
-            std::cout << "*{info}* Input is an RTL-SDR dongle " << GetRtlsdrDevice(_values.at(_section)->_inputDevice) << std::endl;
+            std::cout << "Input is an RTL-SDR dongle " << GetRtlsdrDevice(_values.at(_section)->_inputDevice) << std::endl;
             switch( _values.at(_section)->_inputSourceDataType ) {
                 case IQ_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in IQ mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
+                    std::cout << "Input is running in IQ mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case I_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in I mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
+                    std::cout << "Input is running in I mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case Q_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in Q mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
+                    std::cout << "Input is running in Q mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case REAL_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running in REAL mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
+                    std::cout << "Input is running in REAL mode decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
                 case NO_INPUT_SOURCE_DATA_TYPE:
-                    std::cout << "*{info}* Input is running with no input mode specified, assuming REAL, decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
+                    std::cout << "Input is running with no input mode specified, assuming REAL, decimating samplerate " << _values.at(_section)->_inputSampleRate << " to " << _values.at(_section)->_outputSampleRate << std::endl;
                     break;
             }
-            std::cout << "*{info}* Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
+            std::cout << "Center frequency set to " << _values.at(_section)->_frequency << " using offset " << _values.at(_section)->_rtlsdrOffset << " and correction " << _values.at(_section)->_rtlsdrCorrection << " * " << _values.at(_section)->_rtlsdrCorrectionFactor << " = " << (_values.at(_section)->_rtlsdrCorrection * _values.at(_section)->_rtlsdrCorrectionFactor) << std::endl;
             if( _values.at(_section)->_decimatorGain == 0 ) {
-                std::cout << "*{info}* Decimator gain set to auto using agc with minimum output level " << _values.at(_section)->_decimatorAgcLevel << std::endl;
+                std::cout << "Decimator gain set to auto using agc with minimum output level " << _values.at(_section)->_decimatorAgcLevel << std::endl;
             } else {
-                std::cout << "*{info}* Decimator gain set to " << _values.at(_section)->_decimatorGain << std::endl;
+                std::cout << "Decimator gain set to " << _values.at(_section)->_decimatorGain << std::endl;
             }
-            std::cout << "*{info}* FIR Decimator running with " << _values.at(_section)->_firFilterSize << " points and cutoff frequency " << GetDecimatorCutoff() << std::endl;
+            std::cout << "FIR Decimator running with " << _values.at(_section)->_firFilterSize << " points and cutoff frequency " << GetDecimatorCutoff() << std::endl;
             break;
     }
 
@@ -885,12 +885,12 @@ void ConfigOptions::DumpConfigInfo() {
     if( !_values.at(_section)->_useRemoteHead ) {
         if (_values.at(_section)->_outputFilename == "") {
             if (_values.at(_section)->_outputAudioDevice == -1) {
-                std::cout << "*{info}* No output (silently discarding receiver output)" << std::endl;
+                std::cout << "No output (silently discarding receiver output)" << std::endl;
             } else {
-                std::cout << "*{info}* Output to audio device " << GetAudioDevice(_values.at(_section)->_outputAudioDevice) << " at samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
+                std::cout << "Output to audio device " << GetAudioDevice(_values.at(_section)->_outputAudioDevice) << " at samplerate " << _values.at(_section)->_outputSampleRate << std::endl;
             }
         } else {
-            std::cout << "*{info}* Output to file " << _values.at(_section)->_outputFilename << std::endl;
+            std::cout << "Output to file " << _values.at(_section)->_outputFilename << std::endl;
         }
     }
 }
@@ -1087,7 +1087,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
 
     // If in frequency alignment mode, prevent writing the settings
     if( _values.at(_section)->_frequencyAlign ) {
-        std::cout << "*{info}* Running in frequency alignment mode. Config changes is not saved" << std::endl;
+        std::cout << "Running in frequency alignment mode. Config changes is not saved" << std::endl;
         HLog("Discarding config changes due to frequency alignment mode");
         return;
     }

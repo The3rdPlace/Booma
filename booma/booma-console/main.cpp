@@ -35,12 +35,12 @@ std::string TranslateReceiverModeType(ReceiverModeType type) {
 }
 
 std::string ComposeInfoPrompt(BoomaApplication* app) {
-    return "Booma [" + app->GetConfigSection() + "] " +
-    TranslateReceiverModeType(app->GetReceiver()) + ( app->GetOptionInfoString() != "" ? "(" + app->GetOptionInfoString() + ")" : "") +
+    return "Booma [config=" + app->GetConfigSection() + "] " +
+    "receiver=" + TranslateReceiverModeType(app->GetReceiver()) + ( app->GetOptionInfoString() != "" ? "(" + app->GetOptionInfoString() + ")" : "") +
     " f=" + std::to_string(app->GetFrequency()) + (app->GetFrequencyAdjust() != 0 ? "(" + std::to_string(app->GetFrequencyAdjust()) + ")" : "") +
     " v=" + std::to_string(app->GetVolume()) +
-    " gain=" + std::to_string(app->GetRfGain()) +
-    " ifw=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
+    " g=" + std::to_string(app->GetRfGain()) +
+    " w=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
     (app->GetShift() != 0 ? " shift=" + std::to_string(app->GetShift()) : "") +
     (app->GetDumpRf() ? " " : "") +
     (app->GetDumpRf() ? (app->GetEnableBuffers() ? "RF(b)" : "RF") : "") +
@@ -60,25 +60,25 @@ int main(int argc, char** argv) {
         // Wait for scheduled start time or stop now if we have passed a scheduled stop time
         if( app.GetSchedule().Before() ) {
             HLog("Scheduled start is pending. Waiting %ld seconds", app.GetSchedule().Duration());
-            std::cout << "*{info}* Scheduled start is pending. Waiting..." << std::endl;
+            std::cout << "Scheduled start is pending. Waiting..." << std::endl;
             app.GetSchedule().Wait();
-            std::cout << "*{info}* Scheduled start time has arrived. Starting..." << std::endl;
+            std::cout << "Scheduled start time has arrived. Starting..." << std::endl;
         }
         if( app.GetSchedule().After() ) {
             HLog("After scheduled stop, halting application");
-            std::cout << "*{info}* Scheduled stop has been reached. Will exit now" << std::endl;
+            std::cout << "Scheduled stop has been reached. Will exit now" << std::endl;
             return 0;
         }
 
         // Run initial receiver (if any configured)
         if( app.GetEnableProbes() ) {
             HLog("Probe run is starting");
-            std::cout << "*{info}* Probe run is starting" << std::endl;
+            std::cout << "Probe run is starting" << std::endl;
         }
         app.Run();
         if( app.GetEnableProbes() ) {
             HLog("Probe run has been completed. Will exit now");
-            std::cout << "*{info}* Probe run has been completed. Will exit now" << std::endl;
+            std::cout << "Probe run has been completed. Will exit now" << std::endl;
             return 0;
         }
 
@@ -87,14 +87,34 @@ int main(int argc, char** argv) {
 
         // If we have a schedule, non-interactive mode is selected
         if( app.GetSchedule().Active() ) {
-            std::cout << "*{info}* Running in non-interactive mode due to schedule" << std::endl;
+            std::cout << "Running in non-interactive mode due to schedule" << std::endl;
             while( !app.GetSchedule().After() ) {
                 sleep(1);
             }
-            std::cout << "*{info}* Scheduled stop time has been reached. Stopping..." << std::endl;
+            std::cout << "Scheduled stop time has been reached. Stopping..." << std::endl;
             app.Halt();
             return 0;
+        } else {
+            std::cout << "Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
         }
+
+        // Enter command mode
+        std::stringstream ss;
+        ss << "=====[ ";
+        ss << "Booma-console " << BOOMACONSOLE_MAJORVERSION << "." << BOOMACONSOLE_MINORVERSION << "." << BOOMACONSOLE_BUILDNO;
+        ss << "   (";
+        ss << "libbooma " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO;
+        ss << ", ";
+        ss << "Hardt " << getVersion();
+        ss << ")";
+        ss << " ]=====";
+        std::stringstream separator;
+        for( int i = 0; i < ss.str().length(); i++ ) {
+            separator << "=";
+        }
+        std::cout << separator.str() << std::endl;
+        std::cout << ss.str() << std::endl;
+        std::cout << separator.str() << std::endl;
 
         // Read commands
         char cmd;
@@ -102,7 +122,6 @@ int main(int argc, char** argv) {
         std::string opt;
         std::string lastOpt;
         int currentChannel = 0;
-        std::cout << "*{info}* Running in interactive mode. Press '?' or 'h' to get help." << std::endl;
         do {
             std::cout << ComposeInfoPrompt(&app);
             cmd = (char) std::cin.get();
