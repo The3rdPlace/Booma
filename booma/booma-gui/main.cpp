@@ -5,15 +5,16 @@
 #include "main.h"
 #include "boomaapplication.h"
 
+#include <FL/Fl.H>
+
 #include "mainwindow.h"
 
-BoomaApplication* boomaApp;
-Glib::RefPtr<Gtk::Application> app;
+MainWindow* mainWindow;
 
 void SetupSignalHandling()
 {
     struct sigaction action;
-    action.sa_handler = [](int) { boomaApp->Halt(false); app->quit(); };
+    action.sa_handler = [](int) { mainWindow->Exit(); };
     action.sa_flags = 0;
     sigemptyset (&action.sa_mask);
     sigaction (SIGINT, &action, NULL);
@@ -22,29 +23,24 @@ void SetupSignalHandling()
 
 int main(int argc, char** argv) {
 
-    // Initialize GTK and Create the  mainwindow
-    app = Gtk::Application::create("org.hardttoolkit.booma.booma-gui");
+    // Setup signal handling so that we can exit cleanly on ctrl+c
     SetupSignalHandling();
 
-    // Initialize the Booma application and start the main loop
-    int rc;
-    std::stringstream ss;
-    ss << "version " << BOOMAGUI_MAJORVERSION << "." << BOOMAGUI_MINORVERSION << "." << BOOMAGUI_BUILDNO;
+    // Create the mainwindow with the booma application
     try {
-        boomaApp = new BoomaApplication("Booma-Gui", ss.str(), argc, argv);
 
-        // Run initial receiver (if any configured)
-        boomaApp->Run();
+        std::stringstream ss;
+        ss << BOOMAGUI_MAJORVERSION << "." << BOOMAGUI_MINORVERSION << "." << BOOMAGUI_BUILDNO;
+        mainWindow = new MainWindow(new BoomaApplication("Booma-Gui", ss.str(), argc, argv));
 
         // Run the main event loop
-        HLog("Creating MainWindow");
-        MainWindow window(boomaApp);
-        rc = app->run(window);
-        HLog("MainWindow has exited");
+        Fl::run();
 
-        // Halt and delete the booma application
-        boomaApp->Halt();
-        delete boomaApp;
+        // Destroy the mainwindow
+        delete(mainWindow);
+
+        // Return for normal exit
+        return 0;
     }
     catch( BoomaReceiverException* receiverException ) {
         HError("Caught BoomaReceiverException: %s", receiverException->what());
@@ -54,13 +50,11 @@ int main(int argc, char** argv) {
     catch( BoomaException *boomaException ) {
         HError("Caught BoomaException: %s", boomaException->what());
         std::cout << "Caught unexpected internal exception (" << boomaException->What() << ")" << std::endl;
-        return 1;
+        return 2;
     }
     catch( ... ) {
         HError("Caught unknown exception");
         std::cout << "Caught unknown exception" << std::endl;
-        return 1;
+        return 3;
     }
-
-    return rc;
 }

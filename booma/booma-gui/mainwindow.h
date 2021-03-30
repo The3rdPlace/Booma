@@ -5,21 +5,42 @@
 #ifndef BOOMA_MAINWINDOW_H
 #define BOOMA_MAINWINDOW_H
 
-#include <gtkmm.h>
-#include <gtkmm/button.h>
-#include <gtkmm/window.h>
-
 #include "booma.h"
 #include "boomaapplication.h"
 
-class MainWindow : public Gtk::Window
-{
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Menu_Button.H>
+
+class MainWindow {
+
     private:
 
-        void SetTitle(BoomaApplication* app);
+        // Receiver
+        BoomaApplication* _app;
+
+        // Widgets
+        Fl_Window *_win;
+        Fl_Menu_Bar *_menubar;
+
+        // Compose GUI
+        void SetupMenus();
+
+        // Utility methods
+        char* GetTitle();
 
     public:
+
+        // Construction/Destruction
         MainWindow(BoomaApplication* app);
+        ~MainWindow();
+
+        // Menubar handling
+        void HandleMenuButton(char* name);
+
+        // Exit
+        void Exit();
 };
 
 #endif
