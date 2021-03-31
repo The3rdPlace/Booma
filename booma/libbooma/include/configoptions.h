@@ -24,7 +24,7 @@ class ConfigOptions {
         std::string _activeSection = "default";
 
         void PrintUsage(bool showSecretSettings = false);
-        void PrintAudioDevices();
+        void PrintAudioDevices(bool includeVirtual = false);
         void PrintRtlsdrDevices();
         std::string GetAudioDevice(int device);
         std::string GetRtlsdrDevice(int device);

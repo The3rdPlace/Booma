@@ -14,6 +14,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
 
     std::cout << tr("==[Information]==") << std::endl;
     std::cout << tr("Show a list of audio devices                             -c --cards") << std::endl;
+    std::cout << tr("Show a list of audio devices including virtual devices   -ac --allcards") << std::endl;
     std::cout << tr("Show a list of RTL-SDR devices                           -r --rtlsdrs") << std::endl;
     std::cout << tr("Show this help and exit                                  -h --help") << std::endl;
     std::cout << tr("Show version and exit                                    -v --version") << std::endl;
@@ -99,7 +100,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     }
 }
 
-void ConfigOptions::PrintAudioDevices() {
+void ConfigOptions::PrintAudioDevices(bool includeVirtual) {
 
     if( HSoundcard::AvailableDevices() == 0 )
     {
@@ -110,11 +111,13 @@ void ConfigOptions::PrintAudioDevices() {
     std::cout << std::endl;
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
-        std::cout << "Device: " << (*it).Device << std::endl;
-        std::cout << "        \"" << (*it).Name << "\"" << std::endl;
-        std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
-        std::cout << "        Outputs:  " << (*it).Outputs << std::endl;
-        std::cout << std::endl;
+        if( (*it).Name.find("(hw:") != std::string::npos || includeVirtual ) {
+            std::cout << "Device: " << (*it).Device << std::endl;
+            std::cout << "        \"" << (*it).Name << "\"" << std::endl;
+            std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
+            std::cout << "        Outputs:  " << (*it).Outputs << std::endl;
+            std::cout << std::endl;
+        }
     }
 }
 
@@ -196,6 +199,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Show available audio devices
         if( strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cards") == 0 ) {
             PrintAudioDevices();
+            exit(0);
+        }
+        if( strcmp(argv[i], "-ac") == 0 || strcmp(argv[i], "--allcards") == 0 ) {
+            PrintAudioDevices(true);
             exit(0);
         }
 
