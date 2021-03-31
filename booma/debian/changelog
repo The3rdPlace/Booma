@@ -1,3 +1,10 @@
+booma (1.1-22) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Use sequence numbers in front of dumpfile names
+
+ -- Mackie <henrik@hardttoolkit.org>  Wed, 31 Mar 2021 22:45:00 +0100
+
 booma (1.1-21) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
