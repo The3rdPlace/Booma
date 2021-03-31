@@ -155,6 +155,7 @@ class BoomaApplication {
         int GetOption(std::string name);
         bool SetOption(std::string name, std::string value);
         std::string GetOptionInfoString();
+        int GetOutputFilterWidth();
 
         // Bookmarks
         void SetBookmark(std::string name);

@@ -382,3 +382,7 @@ bool BoomaApplication::CreateConfigSection(std::string section) {
 bool BoomaApplication::DeleteConfigSection(std::string section) {
     return _opts->DeleteConfigSection(section);
 }
+
+int BoomaApplication::GetOutputFilterWidth() {
+    return _receiver->GetOutputFilterWidth();
+}

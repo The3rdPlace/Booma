@@ -40,7 +40,8 @@ std::string ComposeInfoPrompt(BoomaApplication* app) {
     " f=" + std::to_string(app->GetFrequency()) + (app->GetFrequencyAdjust() != 0 ? "(" + std::to_string(app->GetFrequencyAdjust()) + ")" : "") +
     " v=" + std::to_string(app->GetVolume()) +
     " g=" + std::to_string(app->GetRfGain()) +
-    " w=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
+    " iw=" + std::to_string(app->GetInputFilterWidth()) + "Hz" +
+    " ow=" + std::to_string(app->GetOutputFilterWidth()) + "Hz" +
     (app->GetShift() != 0 ? " shift=" + std::to_string(app->GetShift()) : "") +
     (app->GetDumpRf() ? " " : "") +
     (app->GetDumpRf() ? (app->GetEnableBuffers() ? "RF(b)" : "RF") : "") +

@@ -16,11 +16,12 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _frequencyAlignmentMixer(nullptr),
         _ifSplitter(nullptr),
         _signalLevel(nullptr),
-        _signalLevelWriter(nullptr) {
+        _signalLevelWriter(nullptr),
+        _outputFilterWidth(receiver->GetOutputFilterWidth()) {
 
     // Final output filter to remove high frequencies
     _outputFilterProbe = new HProbe<int16_t>("output_01_output_filter", opts->GetEnableProbes());
-    _outputFilter = new HFirFilter<int16_t>(receiver->GetLastWriterConsumer(), HLowpassKaiserBessel<int16_t>(4000, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
+    _outputFilter = new HFirFilter<int16_t>(receiver->GetLastWriterConsumer(), HLowpassKaiserBessel<int16_t>(_outputFilterWidth, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
 
     // Setup a splitter to split off audio dump
     HLog("Setting up output audio splitter");

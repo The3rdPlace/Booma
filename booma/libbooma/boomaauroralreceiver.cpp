@@ -84,15 +84,7 @@ BoomaAuroralReceiver::~BoomaAuroralReceiver() {
 }
 
 bool BoomaAuroralReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
-
-    // This receiver only operates from 0 - 10KHz
-    if( frequency >= 10000 ) {
-        HError("Unsupported frequency %ld, must be greater than  %d and less than %d", frequency, 0, 10000);
-        return false;
-    }
-
-    // Ready
-    return true;
+    return false;
 }
 
 void BoomaAuroralReceiver::OptionChanged(ConfigOptions* opts, std::string name, int value) {

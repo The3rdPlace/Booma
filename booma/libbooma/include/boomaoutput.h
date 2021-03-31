@@ -46,6 +46,9 @@ class BoomaOutput {
                     : _frequencyAlignmentMixer->Consumer();
         }
 
+        // Output filter
+        int _outputFilterWidth;
+
         bool IsWav(std::string filename);
 
     public:
@@ -59,6 +62,10 @@ class BoomaOutput {
         int GetSignalLevel();
         int GetSignalSum();
         int GetSignalMax();
+
+        int GetOutputFilterWidth() {
+            return _outputFilterWidth;
+        }
 };
 
 #endif

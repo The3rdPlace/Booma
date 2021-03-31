@@ -41,6 +41,10 @@ class BoomaAuroralReceiver : public BoomaReceiver {
         bool SetInternalFrequency(ConfigOptions* opts, int frequency);
         bool SetRfGain(int gain);
 
+        int GetOutputFilterWidth() {
+            return 10000;
+        }
+
     public:
 
         BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency);
