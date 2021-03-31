@@ -44,6 +44,7 @@ public:
         HBreaker<int16_t>* _rfBreaker;
         HBufferedWriter<int16_t>* _rfBuffer;
         HWriter<int16_t>* _rfWriter;
+        HDelay<int16_t>* _rfDelay;
 
         // Final consumer
         HWriterConsumer<int16_t>* _lastConsumer;

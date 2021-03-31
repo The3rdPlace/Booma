@@ -23,6 +23,7 @@ class BoomaOutput {
         HSplitter<int16_t>* _audioSplitter;
         HBreaker<int16_t>* _audioBreaker;
         HBufferedWriter<int16_t>* _audioBuffer;
+        HDelay<int16_t>* _audioDelay;
 
         // Signal level reporting
         HSplitter<int16_t>* _ifSplitter;

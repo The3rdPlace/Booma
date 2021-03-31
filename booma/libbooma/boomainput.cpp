@@ -24,7 +24,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _decimator(nullptr),
         _inputIqFirFilter(nullptr),
         _inputFirFilter(nullptr),
-        _inputFirFilterProbe(nullptr) {
+        _inputFirFilterProbe(nullptr),
+        _rfDelay(nullptr) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -66,7 +67,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter and RF optional output dump");
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
-    _rfBreaker = new HBreaker<int16_t>(_rfSplitter->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
+    _rfDelay = new HDelay<int16_t>(_rfSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
+    _rfBreaker = new HBreaker<int16_t>(_rfDelay->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
     _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpRfFileFormat() == WAV ) {
@@ -113,6 +115,7 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfSplitter);
     SAFE_DELETE(_rfBreaker);
     SAFE_DELETE(_rfBuffer);
+    SAFE_DELETE(_rfDelay);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {

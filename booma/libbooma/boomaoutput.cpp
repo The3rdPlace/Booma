@@ -26,7 +26,8 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     // Setup a splitter to split off audio dump
     HLog("Setting up output audio splitter");
     _audioSplitter = new HSplitter<int16_t>(_outputFilter->Consumer());
-    _audioBreaker = new HBreaker<int16_t>(_audioSplitter->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
+    _audioDelay = new HDelay<int16_t>(_audioSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
+    _audioBreaker = new HBreaker<int16_t>(_audioDelay->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
     _audioBuffer = new HBufferedWriter<int16_t>(_audioBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "OUTPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpAudioFileFormat() == WAV ) {
