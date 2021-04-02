@@ -65,6 +65,7 @@ MainWindow::MainWindow(BoomaApplication* app):
     _win = new Fl_Window(720, 486, GetTitle());
     SetupMenus();
     SetupControls();
+    SetupDisplays();
     _win->end();
     _win->show();
 
@@ -158,6 +159,11 @@ void MainWindow::SetupControls() {
     _channelSelector->callback(HandleChannelSelectorCallback);
 }
 
+void MainWindow::SetupDisplays() {
+
+    // RF Input waterfall
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 300, 200, "RF input");
+}
 
 /***********************************************
   Callback handlers

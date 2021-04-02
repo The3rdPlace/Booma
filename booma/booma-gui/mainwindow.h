@@ -7,6 +7,7 @@
 
 #include "booma.h"
 #include "boomaapplication.h"
+#include "waterfall.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
@@ -26,9 +27,11 @@ class MainWindow {
         // Receiver
         BoomaApplication* _app;
 
-        // Widgets
+        // Main windows and the menubar
         Fl_Window* _win;
         Fl_Menu_Bar* _menubar;
+
+        // Control widgets
         Fl_Input* _frequencyInput;
         Fl_Button* _frequencyInputSet;
         Fl_Button* _frequencyInputUp100;
@@ -37,9 +40,13 @@ class MainWindow {
         Fl_Button* _frequencyInputDown1Khz;
         Fl_Choice* _channelSelector;
 
+        // Display widgets
+        Waterfall* _rfInputWaterfall;
+
         // Compose GUI
         void SetupMenus();
         void SetupControls();
+        void SetupDisplays();
 
         // Utility methods
         char* GetTitle();
