@@ -3,19 +3,53 @@
 #include "booma.h"
 #include "mainwindow.h"
 
+/***********************************************
+  Static callbacks
+***********************************************/
+
+MainWindow* MainWindow::_instance;
+
 /**
  * Static callback for menu handling
  * @param w The menubar widget
  * @param data Pointer to the mainwindow
  */
 void HandleMenuButtonCallback(Fl_Widget* w, void* data) {
-    MainWindow* mainWindow = (MainWindow*) data;
-
     char name[80];
     ((Fl_Menu_Button*) w)->item_pathname(name, sizeof(name)-1);
-
-    mainWindow->HandleMenuButton(name);
+    MainWindow::Instance()->HandleMenuButton(name);
 }
+
+/**
+ * Static callback for frequency input buttons
+ * @param w Calling button
+ * @param data (Unused)
+ */
+void HandleFrequencyInputButtonsCallback(Fl_Widget *w) {
+    MainWindow::Instance()->HandleFrequencyInputButtons(w);
+}
+
+
+/**
+ * Static callback for frequency input events
+ * @param w Calling input field
+ * @param data (Unused)
+ */
+void HandleFrequencyInputCallback(Fl_Widget *w) {
+    MainWindow::Instance()->HandleFrequencyInput(w);
+}
+
+/**
+ * Static callback for channel selection events
+ * @param w
+ */
+void HandleChannelSelectorCallback(Fl_Widget* w) {
+    MainWindow::Instance()->HandleChannelSelector(w);
+}
+
+/***********************************************
+  Member functions
+***********************************************/
 
 /**
  * Construct the mainwindow
@@ -24,9 +58,13 @@ void HandleMenuButtonCallback(Fl_Widget* w, void* data) {
 MainWindow::MainWindow(BoomaApplication* app):
     _app(app) {
 
+    // Save current instance
+    _instance = this;
+
     // Create the window
     _win = new Fl_Window(720, 486, GetTitle());
     SetupMenus();
+    SetupControls();
     _win->end();
     _win->show();
 
@@ -79,6 +117,11 @@ char* MainWindow::GetTitle() {
     return title;
 }
 
+
+/***********************************************
+  Gui initialization
+***********************************************/
+
 /**
  * Create the menubar
  */
@@ -87,6 +130,38 @@ void MainWindow::SetupMenus() {
     _menubar->add("File/Quit", "^q", HandleMenuButtonCallback, (void*) this);
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
 }
+
+void MainWindow::SetupControls() {
+
+    // Frequency input
+    _frequencyInput = new Fl_Input(90, _win->h() - 40, 150, 30, "Frequency ");
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _frequencyInputSet = new Fl_Button(250, _win->h() - 40, 50, 30, "set");
+    _frequencyInputDown1Khz = new Fl_Button(320, _win->h() - 40, 30, 30, "<<");
+    _frequencyInputDown100 = new Fl_Button(350, _win->h() - 40, 30, 30, "<");
+    _frequencyInputUp100 = new Fl_Button(385, _win->h() - 40, 30, 30, ">");
+    _frequencyInputUp1Khz = new Fl_Button(415, _win->h() - 40, 30, 30, ">>");
+    _frequencyInput->callback(HandleFrequencyInputCallback);
+    _frequencyInput->when(FL_WHEN_ENTER_KEY);
+    _frequencyInputSet->callback(HandleFrequencyInputButtonsCallback);
+    _frequencyInputUp1Khz->callback(HandleFrequencyInputButtonsCallback);
+    _frequencyInputUp100->callback(HandleFrequencyInputButtonsCallback);
+    _frequencyInputDown100->callback(HandleFrequencyInputButtonsCallback);
+    _frequencyInputDown1Khz->callback(HandleFrequencyInputButtonsCallback);
+
+    // Channel selector
+    _channelSelector = new Fl_Choice(465, _win->h() - 40, 245, 30);
+    std::map<int, Channel*> channels = _app->GetChannels();
+    for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+        _channelSelector->add(((*it).second->Name).c_str());
+    }
+    _channelSelector->callback(HandleChannelSelectorCallback);
+}
+
+
+/***********************************************
+  Callback handlers
+***********************************************/
 
 /**
  * Handle clicks on menubuttons
@@ -101,4 +176,46 @@ void MainWindow::HandleMenuButton(char* name) {
         // Todo: Show proper splash
         std::cout << GetTitle() << std::endl;
     }
+}
+
+void MainWindow::HandleFrequencyInputButtons(Fl_Widget *w) {
+    if( w == _frequencyInputSet ) {
+        try
+        {
+            _app->SetFrequency(std::stol(_frequencyInput->value()));
+        }
+        catch(...)
+        { }
+        _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    }
+    if( w == _frequencyInputDown1Khz ) {
+        _app->ChangeFrequency(-1000);
+    }
+    if( w == _frequencyInputDown100 ) {
+        _app->ChangeFrequency(-100);
+    }
+    if( w == _frequencyInputUp100 ) {
+        _app->ChangeFrequency(100);
+    }
+    if( w == _frequencyInputUp1Khz ) {
+        _app->ChangeFrequency(1000);
+    }
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+}
+
+
+void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
+    try
+    {
+        _app->SetFrequency(std::stol(_frequencyInput->value()));
+    }
+    catch(...)
+    { }
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+}
+
+
+void MainWindow::HandleChannelSelector(Fl_Widget *w) {
+    _app->SetFrequency(_app->GetChannels().at(_channelSelector->value() + 1)->Frequency);
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 }
