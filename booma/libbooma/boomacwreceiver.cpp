@@ -115,26 +115,6 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
             OptionValue {"Left", "Shift IF passband to the left", -1},
             OptionValue {"Center", "Center IF passband", 0},
             OptionValue {"Right", "Shift IF passband to the right", 1}};
-        std::vector<OptionValue> passbandGainValues {
-            OptionValue {"0", "Passband gain factor 1", 1},
-            OptionValue {"1", "Passband gain factor 10", 10},
-            OptionValue {"2", "Passband gain factor 2", 20},
-            OptionValue {"3", "Passband gain factor 3", 30},
-            OptionValue {"4", "Passband gain factor 4", 40},
-            OptionValue {"5", "Passband gain factor 5", 50},
-            OptionValue {"6", "Passband gain factor 6", 60}};
-        std::vector<OptionValue> iqPassbandGainValues {
-            OptionValue {"0", "Passband gain factor 0.5", 0},
-            OptionValue {"1", "Passband gain factor 1", 1},
-            OptionValue {"2", "Passband gain factor 2", 2},
-            OptionValue {"3", "Passband gain factor 3", 3},
-            OptionValue {"4", "Passband gain factor 4", 4},
-            OptionValue {"5", "Passband gain factor 5", 5},
-            OptionValue {"6", "Passband gain factor 6", 6},
-            OptionValue {"7", "Passband gain factor 6", 7},
-            OptionValue {"8", "Passband gain factor 6", 8},
-            OptionValue {"9", "Passband gain factor 6", 9},
-            OptionValue {"10", "Passband gain factor 6", 10},};
 
         Option bandwidthOption {
             "Bandwidth",
@@ -154,25 +134,11 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
                 ifshiftValues,
                 0
         };
-        Option passbandGainOption {
-                "PassbandGain",
-                "Gain factor after preselect",
-                passbandGainValues,
-                4
-        };
-        Option iqPassbandGainOption {
-                "IQPassbandGain",
-                "Gain factor after iq-to-real conversion",
-                iqPassbandGainValues,
-                6
-        };
 
         // Register options
         RegisterOption(bandwidthOption);
         RegisterOption(beattoneOption);
         RegisterOption(ifshiftOption);
-        RegisterOption(passbandGainOption);
-        RegisterOption(iqPassbandGainOption);
     }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
