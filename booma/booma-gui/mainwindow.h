@@ -48,6 +48,9 @@ class MainWindow {
         void SetupControls();
         void SetupDisplays();
 
+        // Helper functions for setting up the GUI
+        void SetupOptionsMenu();
+
         // Internal menu handling
         void HandleMenuButtonReceiverMode(char* name, char* value);
         void HandleMenuButtonReceiverOptions(char* name, char* value);

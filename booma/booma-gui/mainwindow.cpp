@@ -143,6 +143,22 @@ void MainWindow::SetupMenus() {
                   FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
 
     // Options
+    SetupOptionsMenu();
+
+    // Help
+    _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
+}
+
+void MainWindow::SetupOptionsMenu() {
+
+    // If no options is available, show a disabled 'Options' submenu
+    if( _app->GetOptions()->begin() == _app->GetOptions()->end() ) {
+        _menubar->add("Receiver/Options", 0, HandleMenuButtonCallback, (void*) this,
+                      FL_MENU_INACTIVE);
+        return;
+    }
+
+    // Otherwise show available options
     for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
         std::vector<OptionValue> values = (*it).Values;
         for( std::vector<OptionValue>::iterator vit = values.begin(); vit != values.end(); vit++ ) {
@@ -150,9 +166,6 @@ void MainWindow::SetupMenus() {
                            FL_MENU_RADIO | ( (*vit).Value == (*it).CurrentValue ? FL_MENU_VALUE : 0) );
         }
     }
-
-    // Help
-    _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
 }
 
 /**
@@ -228,8 +241,31 @@ void MainWindow::HandleMenuButton(char* name) {
  * @param value Name of the button (part after 'Receiver/Mode/' aka The mode name
  */
 void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
-    //int n = _menubar->find_index("Receiver/Options/Bandwidth/50");
-    //_menubar->remove(n);
+
+    // Remove all options
+    for ( int i = 0; i < _menubar->size(); i++ ) {
+        const Fl_Menu_Item &item = _menubar->menu()[i];
+        if( item.label() != NULL && strcmp(item.label(), "Options") == 0 ) {
+            _menubar->remove(i);
+            break;
+        }
+    }
+
+    // Change receiver mode
+    if( strcmp(value, "AURORAL") == 0 ) {
+        _app->ChangeReceiver(ReceiverModeType::AURORAL);
+    } else if( strcmp(value, "AM") == 0 ) {
+        _app->ChangeReceiver(ReceiverModeType::AM);
+    } else if( strcmp(value, "CW") == 0 ) {
+        _app->ChangeReceiver(ReceiverModeType::CW);
+    } else if( strcmp(value, "SSB") == 0 ) {
+        _app->ChangeReceiver(ReceiverModeType::SSB);
+    } else {
+        HError("Unknown receiver mode '%s'", value);
+    }
+
+    // Add options for selected receiver
+    SetupOptionsMenu();
 }
 
 /**
