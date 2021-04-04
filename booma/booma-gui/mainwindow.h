@@ -49,6 +49,10 @@ class MainWindow {
         void SetupDisplays();
 
         // Helper functions for setting up the GUI
+        void SetupReceiverInputMenu();
+        void SetupReceiverOutputMenu();
+        void SetupReceiverFilters();
+        void SetupReceiverRfGainMenu();
         void SetupOptionsMenu();
 
         // Internal menu handling
