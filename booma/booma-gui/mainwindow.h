@@ -48,6 +48,10 @@ class MainWindow {
         void SetupControls();
         void SetupDisplays();
 
+        // Internal menu handling
+        void HandleMenuButtonReceiverMode(char* name, char* value);
+        void HandleMenuButtonReceiverOptions(char* name, char* value);
+
         // Utility methods
         char* GetTitle();
 

@@ -128,10 +128,36 @@ char* MainWindow::GetTitle() {
  */
 void MainWindow::SetupMenus() {
     _menubar = new Fl_Menu_Bar(0, 0, _win->w(), 25);
+
+    // File
     _menubar->add("File/Quit", "^q", HandleMenuButtonCallback, (void*) this);
+
+    // Receiver
+    _menubar->add("Receiver/Mode/AURORAL", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AURORAL ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/AM", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AM ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/CW", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::CW ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/SSB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
+
+    // Options
+    for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
+        std::vector<OptionValue> values = (*it).Values;
+        for( std::vector<OptionValue>::iterator vit = values.begin(); vit != values.end(); vit++ ) {
+            _menubar->add( ("Receiver/Options/" + (*it).Name + "/" + (*vit).Name).c_str(), 0, HandleMenuButtonCallback, (void*) this,
+                           FL_MENU_RADIO | ( (*vit).Value == (*it).CurrentValue ? FL_MENU_VALUE : 0) );
+        }
+    }
+
+    // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
 }
 
+/**
+ * Setup controls in the main window
+ */
 void MainWindow::SetupControls() {
 
     // Frequency input
@@ -159,6 +185,9 @@ void MainWindow::SetupControls() {
     _channelSelector->callback(HandleChannelSelectorCallback);
 }
 
+/**
+ * Setup display widgets in the main window
+ */
 void MainWindow::SetupDisplays() {
 
     // RF Input waterfall
@@ -178,9 +207,59 @@ void MainWindow::HandleMenuButton(char* name) {
     if( strcmp(name, "File/Quit") == 0 ) {
         Exit();
     }
-    if( strcmp(name, "Help/Help") == 0 ) {
+    else if( strncmp(name, "Receiver/Mode/", 14) == 0 ) {
+        HandleMenuButtonReceiverMode(name, &name[14]);
+    }
+    else if( strncmp(name, "Receiver/Options/", 17) == 0 ) {
+        HandleMenuButtonReceiverOptions(name, &name[17]);
+    }
+    else if( strcmp(name, "Help/Help") == 0 ) {
         // Todo: Show proper splash
         std::cout << GetTitle() << std::endl;
+    }
+    else {
+        HError("Unknown menubutton '%s' clicked", name);
+    }
+}
+
+/**
+ * Handle click on any of the 'Receiver/Mode/xx' menubuttons
+ * @param name Full name of menubutton clicked
+ * @param value Name of the button (part after 'Receiver/Mode/' aka The mode name
+ */
+void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
+    //int n = _menubar->find_index("Receiver/Options/Bandwidth/50");
+    //_menubar->remove(n);
+}
+
+/**
+ * Handle click on any of the 'Receiver/Options/xx' menubuttons
+ * @param name Full name of menubutton clicked
+ * @param value Value of the selected option
+ */
+void MainWindow::HandleMenuButtonReceiverOptions(char* name, char* value) {
+
+    // Set the selected radio button
+    const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
+
+    // Split into option and value
+    char* sep = strchr(value, '/');
+    char option[50] = {0};
+    char newValue[50] = {0};
+    strncpy(option, value, sep - value);
+    strncpy(newValue, sep + 1, strlen(sep + 1));
+
+    // Find the new option value
+    for( std::vector<Option>::iterator  it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
+        if( strcmp((*it).Name.c_str(), option) == 0 ) {
+            std::cout << "IS " << (*it).Name << std::endl;
+            for( std::vector<OptionValue>::iterator vit = (*it).Values.begin(); vit != (*it).Values.end(); vit++ ) {
+                if( strcmp((*vit).Name.c_str(), newValue) == 0 ) {
+                    _app->SetOption(option, (*vit).Name);
+                    return;
+                }
+            }
+        }
     }
 }
 
