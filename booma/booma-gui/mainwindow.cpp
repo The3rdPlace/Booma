@@ -131,27 +131,36 @@ void MainWindow::SetupMenus() {
     _menubar = new Fl_Menu_Bar(0, 0, _win->w(), 25);
 
     // File
-    _menubar->add("File/Quit", "^q", HandleMenuButtonCallback, (void*) this);
+    SetupFileMenu();
 
     // Receiver
     SetupReceiverInputMenu();
     SetupReceiverOutputMenu();
-    SetupReceiverFilters();
+    SetupReceiverInputFilterMenu();
+    SetupReceiverOutputFilterMenu();
     SetupReceiverRfGainMenu();
-    _menubar->add("Receiver/Mode/AURORAL", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AURORAL ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Mode/AM", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AM ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Mode/CW", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::CW ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Mode/SSB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
+    SetupReceiverModeMenu();
 
     // Options
     SetupOptionsMenu();
 
     // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
+}
+
+void MainWindow::SetupFileMenu() {
+
+    // Standard items
+    _menubar->add("File/Quit", "^q", HandleMenuButtonCallback, (void*) this);
+
+    // Manage configurations
+    std::vector<std::string> configSections = _app->GetConfigSections();
+    for( int i = 0; i < configSections.size(); i++ ) {
+        _menubar->add(("File/Configurations/Delete " + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
+                      (_app->GetConfigSection() == configSections.at(i) ? FL_MENU_INACTIVE : 0) |
+                      (i == configSections.size() - 1 ? FL_MENU_DIVIDER : 0));
+    }
+    _menubar->add("File/Configurations/Add configuration", 0, HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverInputMenu() {
@@ -162,9 +171,8 @@ void MainWindow::SetupReceiverInputMenu() {
                 (_app->GetConfigSection() == configSections.at(i) ? FL_MENU_VALUE : 0) |
                 (i == configSections.size() - 1 ? FL_MENU_DIVIDER : 0));
     }
-    _menubar->add("Receiver/Input/Add new input", 0, HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Receiver/Input/Edit active configuration", 0, HandleMenuButtonCallback, (void*) this);
 }
-
 
 void MainWindow::SetupReceiverOutputMenu() {
     // Todo: Hook this up
@@ -172,7 +180,7 @@ void MainWindow::SetupReceiverOutputMenu() {
                   FL_MENU_RADIO | FL_MENU_VALUE);
 }
 
-void MainWindow::SetupReceiverFilters() {
+void MainWindow::SetupReceiverInputFilterMenu() {
 
     // Todo: Hook this up
 
@@ -195,6 +203,11 @@ void MainWindow::SetupReceiverFilters() {
         _menubar->add(("Receiver/Filters/IF filter width/" + std::to_string(_app->GetInputFilterWidth()) + " Hz").c_str(), 0, HandleMenuButtonCallback, (void*) this,
                       FL_MENU_RADIO | FL_MENU_VALUE);
     }
+}
+
+void MainWindow::SetupReceiverOutputFilterMenu() {
+
+    // Todo: Hook this up
 
     // Define some usefull defaults for the output filter cutoff frequency
     _menubar->add("Receiver/Filters/Output filter cutoff/1 KHz", 0, HandleMenuButtonCallback, (void*) this,
@@ -251,7 +264,21 @@ void MainWindow::SetupReceiverRfGainMenu() {
     }
 }
 
+void MainWindow::SetupReceiverModeMenu() {
+    _menubar->add("Receiver/Mode/AURORAL", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AURORAL ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/AM", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AM ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/CW", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::CW ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Mode/SSB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
+}
+
 void MainWindow::SetupOptionsMenu() {
+
+    //RemoveMenuSubItems("Receiver/Options/*");
+    RemoveMenuSubItems("Receiver/Options");
 
     // If no options is available, show a disabled 'Options' submenu
     if( _app->GetOptions()->begin() == _app->GetOptions()->end() ) {
@@ -322,6 +349,12 @@ void MainWindow::HandleMenuButton(char* name) {
     if( strcmp(name, "File/Quit") == 0 ) {
         Exit();
     }
+    else if( strncmp(name, "File/Configurations/", 20) == 0 ) {
+        HandleMenuButtonFileConfigurations(name, &name[20]);
+    }
+    else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
+        HandleMenuButtonReceiverInput(name, &name[15]);
+    }
     else if( strncmp(name, "Receiver/Mode/", 14) == 0 ) {
         HandleMenuButtonReceiverMode(name, &name[14]);
     }
@@ -338,20 +371,31 @@ void MainWindow::HandleMenuButton(char* name) {
 }
 
 /**
+ * Handle click on any of the 'Receiver/Input/xx' menubuttons
+ * @param name Full name of menubutton clicked
+ * @param value Name of the button (part after 'Receiver/Input/' aka The input name
+ */
+void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
+
+    // Handle 'Edit' button
+    if( strcmp(value, "Edit") == 0 ) {
+        EditReceiverInput(_app->GetConfigSection().c_str());
+        return;
+    }
+
+    // Change configuration
+    _app->SetConfigSection(value);
+
+    // Update the menu
+    SetupReceiverInputMenu();
+}
+
+/**
  * Handle click on any of the 'Receiver/Mode/xx' menubuttons
  * @param name Full name of menubutton clicked
  * @param value Name of the button (part after 'Receiver/Mode/' aka The mode name
  */
 void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
-
-    // Remove all options
-    for ( int i = 0; i < _menubar->size(); i++ ) {
-        const Fl_Menu_Item &item = _menubar->menu()[i];
-        if( item.label() != NULL && strcmp(item.label(), "Options") == 0 ) {
-            _menubar->remove(i);
-            break;
-        }
-    }
 
     // Change receiver mode
     if( strcmp(value, "AURORAL") == 0 ) {
@@ -390,7 +434,6 @@ void MainWindow::HandleMenuButtonReceiverOptions(char* name, char* value) {
     // Find the new option value
     for( std::vector<Option>::iterator  it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
         if( strcmp((*it).Name.c_str(), option) == 0 ) {
-            std::cout << "IS " << (*it).Name << std::endl;
             for( std::vector<OptionValue>::iterator vit = (*it).Values.begin(); vit != (*it).Values.end(); vit++ ) {
                 if( strcmp((*vit).Name.c_str(), newValue) == 0 ) {
                     _app->SetOption(option, (*vit).Name);
@@ -398,6 +441,14 @@ void MainWindow::HandleMenuButtonReceiverOptions(char* name, char* value) {
                 }
             }
         }
+    }
+}
+
+void MainWindow::HandleMenuButtonFileConfigurations(char* name, char* value) {
+    if( strncmp(value, "Add", 3) == 0 ) {
+        AddReceiverInput();
+    } else if( strncmp(value, "Delete ", 7) == 0 ) {
+        DeleteReceiverInput(&value[7]);
     }
 }
 
@@ -441,4 +492,89 @@ void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
 void MainWindow::HandleChannelSelector(Fl_Widget *w) {
     _app->SetFrequency(_app->GetChannels().at(_channelSelector->value() + 1)->Frequency);
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+}
+
+void MainWindow::EditReceiverInput(const char* name) {
+    // Todo: Edit receiver input
+}
+
+void MainWindow::AddReceiverInput() {
+    // Todo: Add new receiver input
+}
+
+void MainWindow::DeleteReceiverInput(const char* name) {
+
+    // We cannot delete the section if no other sections exists
+    std::vector<std::string> configurations = _app->GetConfigSections();
+    if( configurations.size() == 1 ) {
+        HError("Can not delete the last configuration section");
+        return;
+    }
+
+    // We cannot delete the active configuration
+    if( _app->GetConfigSection() == name ) {
+        HError("Not allowed to delete the active configuration");
+        return;
+    }
+
+    // Delete the configuration
+    _app->DeleteConfigSection(name);
+}
+
+void MainWindow::RemoveMenuSubItems(const char *name) {
+    const char* head = name;
+    const Fl_Menu_Item* submenu = _menubar->menu();
+
+    // Find the (sub)menu containing the items to be deleted
+    while( *head != '\0' ) {
+
+        // Get name of config section
+        char section[50] = {0};
+        const char *sep = strchr(head, '/');
+        if (sep == NULL) {
+            break;
+        }
+        strncpy(section, head, sep - head);
+
+        // Try to locate this section
+        bool found = false;
+        for ( int i = 0; i < submenu->size(); i++ ) {
+            const Fl_Menu_Item& item = submenu->first()[i];
+            if (item.label() != NULL && strcmp(item.label(), section) == 0) {
+                submenu = &item;
+                found = true;
+                break;
+            }
+        }
+        if( found == false ) {
+            return;
+        }
+
+        // Next section/item
+        head = sep + 1;
+    }
+
+    // Set search pattern
+    char pattern[50];
+    strcpy(pattern, head);
+    if( pattern[strlen(pattern) - 1] == '*' ) {
+        pattern[strlen(pattern) - 1] = '\0';
+    }
+
+    // Remove any matching items in the selected submenu
+    int i = 1;
+    while( i < submenu->size() ) {
+        const Fl_Menu_Item& item = submenu->first()[i];
+        if (item.label() != NULL && strncmp(item.label(), pattern, strlen(pattern)) == 0) {
+            for ( int i = 0; i < _menubar->size(); i++ ) {
+                const Fl_Menu_Item &mitem = _menubar->menu()[i];
+                if( &mitem == &item ) {
+                    _menubar->remove(i);
+                    break;
+                }
+            }
+        } else {
+            i++;
+        }
+    }
 }

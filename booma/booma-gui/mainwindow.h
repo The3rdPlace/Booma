@@ -49,18 +49,29 @@ class MainWindow {
         void SetupDisplays();
 
         // Helper functions for setting up the GUI
+        void SetupFileMenu();
         void SetupReceiverInputMenu();
         void SetupReceiverOutputMenu();
-        void SetupReceiverFilters();
+        void SetupReceiverInputFilterMenu();
+        void SetupReceiverOutputFilterMenu();
+        void SetupReceiverModeMenu();
         void SetupReceiverRfGainMenu();
         void SetupOptionsMenu();
 
         // Internal menu handling
+        void HandleMenuButtonReceiverInput(char* name, char* value);
         void HandleMenuButtonReceiverMode(char* name, char* value);
         void HandleMenuButtonReceiverOptions(char* name, char* value);
+        void HandleMenuButtonFileConfigurations(char* name, char* value);
+
+        // Configurations (inputs)
+        void EditReceiverInput(const char* name);
+        void AddReceiverInput();
+        void DeleteReceiverInput(const char* name);
 
         // Utility methods
         char* GetTitle();
+        void RemoveMenuSubItems(const char *name);
 
     public:
 
