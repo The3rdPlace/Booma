@@ -404,11 +404,13 @@ int BoomaApplication::GetOutputDevice() {
 }
 
 void BoomaApplication::SetOutputAudioDevice(int card) {
-    _opts->SetOutputDevice(card);
-    ChangeReceiver();
+    _opts->SetOutputAudioDevice(card);
+    _opts->SetOutputFilename("");
+    Reconfigure();
 }
 
 void BoomaApplication::SetOutputFilename(std::string filename) {
     _opts->SetOutputFilename(filename);
-    ChangeReceiver();
+    _opts->SetOutputAudioDevice(-1);
+    Reconfigure();
 }

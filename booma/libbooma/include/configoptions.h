@@ -371,7 +371,7 @@ class ConfigOptions {
             return true;
         }
 
-        void SetOutputDevice(int card) {
+        void SetOutputAudioDevice(int card) {
             _values.at(_section)->_outputAudioDevice = card;
         }
 
