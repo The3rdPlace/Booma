@@ -9,7 +9,8 @@
 
 #include "mainwindow.h"
 
-MainWindow* mainWindow;
+MainWindow* mainWindow = nullptr;
+BoomaApplication* app = nullptr;
 
 void SetupSignalHandling()
 {
@@ -31,13 +32,15 @@ int main(int argc, char** argv) {
 
         std::stringstream ss;
         ss << BOOMAGUI_MAJORVERSION << "." << BOOMAGUI_MINORVERSION << "." << BOOMAGUI_BUILDNO;
-        mainWindow = new MainWindow(new BoomaApplication("Booma-Gui", ss.str(), argc, argv));
+        app = new BoomaApplication("Booma-Gui", ss.str(), argc, argv);
+        mainWindow = new MainWindow(app);
 
         // Run the main event loop
         Fl::run();
 
-        // Destroy the mainwindow
+        // Destroy the mainwindow and booma application
         delete(mainWindow);
+        delete(app);
 
         // Return for normal exit
         return 0;
@@ -45,16 +48,34 @@ int main(int argc, char** argv) {
     catch( BoomaReceiverException* receiverException ) {
         HError("Caught BoomaReceiverException: %s", receiverException->what());
         std::cout << "Fatal receiver error (" << receiverException->What() << ")" << std::endl;
+        if( mainWindow != nullptr ) {
+            delete(mainWindow);
+        }
+        if( app != nullptr ) {
+            delete(app);
+        }
         return 1;
     }
     catch( BoomaException *boomaException ) {
         HError("Caught BoomaException: %s", boomaException->what());
         std::cout << "Caught unexpected internal exception (" << boomaException->What() << ")" << std::endl;
+        if( mainWindow != nullptr ) {
+            delete(mainWindow);
+        }
+        if( app != nullptr ) {
+            delete(app);
+        }
         return 2;
     }
     catch( ... ) {
         HError("Caught unknown exception");
         std::cout << "Caught unknown exception" << std::endl;
+        if( mainWindow != nullptr ) {
+            delete(mainWindow);
+        }
+        if( app != nullptr ) {
+            delete(app);
+        }
         return 3;
     }
 }
