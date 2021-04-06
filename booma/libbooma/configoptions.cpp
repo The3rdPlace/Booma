@@ -13,8 +13,9 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
-    std::cout << tr("Show a list of audio devices                             -c --cards") << std::endl;
-    std::cout << tr("Show a list of audio devices including virtual devices   -ac --allcards") << std::endl;
+    std::cout << tr("Show a list of hardware audio devices                    -c --cards") << std::endl;
+    std::cout << tr("Show a list of all audio devices                         -ac --allcards") << std::endl;
+    std::cout << tr("Show a list of virtual audio devices                     -vc --allcards") << std::endl;
     std::cout << tr("Show a list of RTL-SDR devices                           -r --rtlsdrs") << std::endl;
     std::cout << tr("Show this help and exit                                  -h --help") << std::endl;
     std::cout << tr("Show version and exit                                    -v --version") << std::endl;
@@ -100,18 +101,19 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     }
 }
 
-void ConfigOptions::PrintAudioDevices(bool includeVirtual) {
+void ConfigOptions::PrintAudioDevices(bool hardwareDevices, bool virtualDevices) {
 
     if( HSoundcard::AvailableDevices() == 0 )
     {
         std::cout << "There is no soundcards available on this system" << std::endl; 
         return;
     }
+
     std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
     std::cout << std::endl;
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
-        if( (*it).Name.find("(hw:") != std::string::npos || includeVirtual ) {
+        if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
             std::cout << "Device: " << (*it).Device << std::endl;
             std::cout << "        \"" << (*it).Name << "\"" << std::endl;
             std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
@@ -127,6 +129,7 @@ std::string ConfigOptions::GetAudioDevice(int device) {
     {
         return "(no devices)";
     }
+
     std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
@@ -138,11 +141,13 @@ std::string ConfigOptions::GetAudioDevice(int device) {
 }
 
 void ConfigOptions::PrintRtlsdrDevices() {
+
     if( HRtl2832::AvailableDevices() == 0)
     {
         std::cout << "There is no RTL-SDR devices connected to this system" << std::endl;
         return;
     }
+
     std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
     std::cout << std::endl;
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
@@ -167,10 +172,12 @@ void ConfigOptions::PrintRtlsdrDevices() {
 }
 
 std::string ConfigOptions::GetRtlsdrDevice(int device) {
+
     if( HRtl2832::AvailableDevices() == 0)
     {
         return "(no devices)";
     }
+
     std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
@@ -179,6 +186,46 @@ std::string ConfigOptions::GetRtlsdrDevice(int device) {
         }
     }
     return "(not found)";
+}
+
+std::map<int, std::string> ConfigOptions::GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs) {
+    std::map<int, std::string> cards;
+
+    if( HSoundcard::AvailableDevices() == 0 )
+    {
+        HLog("There is no soundcards available on this system");
+        return cards;
+    }
+
+    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
+    std::cout << std::endl;
+    for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
+            if( inputs && (*it).Inputs > 0 || outputs && (*it).Outputs > 0 ) {
+                cards.insert(std::pair<int, std::string>((*it).Device, (*it).Name));
+            }
+        }
+    }
+    return cards;
+}
+
+std::map<int, std::string> ConfigOptions::GetRtlsdrDevices() {
+    std::map<int, std::string> devices;
+
+    if( HRtl2832::AvailableDevices() == 0)
+    {
+        HLog("There is no RTL-SDR devices connected to this system");
+        return devices;
+    }
+
+    std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
+    std::cout << std::endl;
+    for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        devices.insert(std::pair<int, std::string>((*it).Device, (*it).Vendor + ": " + (*it).Product));
+    }
+    return devices;
 }
 
 bool ConfigOptions::IsVerbose(int argc, char** argv) {
@@ -205,11 +252,15 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
         // Show available audio devices
         if( strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cards") == 0 ) {
-            PrintAudioDevices();
+            PrintAudioDevices(true, false);
             exit(0);
         }
         if( strcmp(argv[i], "-ac") == 0 || strcmp(argv[i], "--allcards") == 0 ) {
-            PrintAudioDevices(true);
+            PrintAudioDevices(true, true);
+            exit(0);
+        }
+        if( strcmp(argv[i], "-vc") == 0 || strcmp(argv[i], "--virtualcards") == 0 ) {
+            PrintAudioDevices(false, true);
             exit(0);
         }
 

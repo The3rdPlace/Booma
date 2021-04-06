@@ -386,3 +386,29 @@ bool BoomaApplication::DeleteConfigSection(std::string section) {
 int BoomaApplication::GetOutputFilterWidth() {
     return _receiver->GetOutputFilterWidth();
 }
+
+std::map<int, std::string> BoomaApplication::GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs) {
+    return _opts->GetAudioDevices(hardwareDevices, virtualDevices, inputs, outputs);
+}
+
+std::map<int, std::string> BoomaApplication::GetRtlsdrDevices() {
+    return _opts->GetRtlsdrDevices();
+}
+
+std::string BoomaApplication::GetOutputFilename() {
+    return _opts->GetOutputFilename();
+}
+
+int BoomaApplication::GetOutputDevice() {
+    return _opts->GetOutputAudioDevice();
+}
+
+void BoomaApplication::SetOutputAudioDevice(int card) {
+    _opts->SetOutputDevice(card);
+    ChangeReceiver();
+}
+
+void BoomaApplication::SetOutputFilename(std::string filename) {
+    _opts->SetOutputFilename(filename);
+    ChangeReceiver();
+}

@@ -172,7 +172,7 @@ void MainWindow::SetupConfigurationMenu() {
 void MainWindow::SetupReceiverInputMenu() {
 
     RemoveMenuSubItems("Receiver/Input/*");
-    
+
     std::vector<std::string> configSections = _app->GetConfigSections();
     for( int i = 0; i < configSections.size(); i++ ) {
         _menubar->add(("Receiver/Input/" + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
@@ -180,13 +180,32 @@ void MainWindow::SetupReceiverInputMenu() {
                 (_app->GetConfigSection() == configSections.at(i) ? FL_MENU_VALUE : 0) |
                 (i == configSections.size() - 1 ? FL_MENU_DIVIDER : 0));
     }
-    _menubar->add("Receiver/Input/Edit active configuration", 0, HandleMenuButtonCallback, (void*) this);
+
+    _menubar->add("Receiver/Input/Edit active input", 0, HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverOutputMenu() {
     // Todo: Hook this up
-    _menubar->add("Receiver/Output/USB soundcard 1", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | FL_MENU_VALUE);
+
+    RemoveMenuSubItems("Receiver/Output/*");
+
+    std::map<int, std::string> hardwareCards = _app->GetAudioDevices(true, false, false, true);
+    for( std::map<int, std::string>::iterator it = hardwareCards.begin(); it != hardwareCards.end(); ) {
+        _menubar->add(("Receiver/Output/phycial card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
+                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0) | (++it == hardwareCards.end() ? FL_MENU_DIVIDER : 0));
+    }
+
+    std::map<int, std::string> virtualCards = _app->GetAudioDevices(false, true, false, true);
+    for( std::map<int, std::string>::iterator it = virtualCards.begin(); it != virtualCards.end(); ) {
+        _menubar->add(("Receiver/Output/Virtual card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
+                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0) | (++it == virtualCards.end() ? FL_MENU_DIVIDER : 0));
+    }
+
+    _menubar->add("Receiver/Output/Silence", 0, HandleMenuButtonCallback, (void *) this,
+                  FL_MENU_RADIO | (_app->GetOutputDevice() == -1 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER);
+
+    _menubar->add("Receiver/Output/File", 0, HandleMenuButtonCallback, (void *) this,
+                  FL_MENU_RADIO | (_app->GetOutputFilename() != "" ? FL_MENU_VALUE : 0));
 }
 
 void MainWindow::SetupReceiverInputFilterMenu() {

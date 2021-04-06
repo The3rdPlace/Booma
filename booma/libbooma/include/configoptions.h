@@ -24,10 +24,8 @@ class ConfigOptions {
         std::string _activeSection = "default";
 
         void PrintUsage(bool showSecretSettings = false);
-        void PrintAudioDevices(bool includeVirtual = false);
+        void PrintAudioDevices(bool hardwareDevices = true, bool virtualDevices = false);
         void PrintRtlsdrDevices();
-        std::string GetAudioDevice(int device);
-        std::string GetRtlsdrDevice(int device);
 
         bool ReadStoredConfig(std::string configname, bool isBookmark);
         void WriteStoredConfig(std::string configname, bool isBookmark);
@@ -47,6 +45,10 @@ class ConfigOptions {
 
         ~ConfigOptions();
 
+        std::string GetAudioDevice(int device);
+        std::string GetRtlsdrDevice(int device);
+        std::map<int, std::string> GetAudioDevices(bool hardwareDevices = true, bool virtualDevices = false, bool inputs = true, bool outputs = true);
+        std::map<int, std::string> GetRtlsdrDevices();
         static bool IsVerbose(int argc, char** argv);
 
         int GetOutputAudioDevice() {
@@ -367,6 +369,14 @@ class ConfigOptions {
 
             _values.erase(it);
             return true;
+        }
+
+        void SetOutputDevice(int card) {
+            _values.at(_section)->_outputAudioDevice = card;
+        }
+
+        void SetOutputFilename(std::string filename) {
+            _values.at(_section)->_outputFilename = filename;
         }
     };
 

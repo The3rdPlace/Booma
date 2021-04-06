@@ -136,6 +136,10 @@ class BoomaApplication {
         std::string GetRemoteServer();
         int GetRemoteDataPort();
         int GetRemoteCommandPort();
+        std::string GetOutputFilename();
+        int GetOutputDevice();
+        void SetOutputAudioDevice(int card);
+        void SetOutputFilename(std::string filename);
 
         // Public reporting functions for spectrum and signallevel
         int GetSignalLevel();
@@ -156,6 +160,8 @@ class BoomaApplication {
         bool SetOption(std::string name, std::string value);
         std::string GetOptionInfoString();
         int GetOutputFilterWidth();
+        std::map<int, std::string> GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs);
+        std::map<int, std::string> GetRtlsdrDevices();
 
         // Bookmarks
         void SetBookmark(std::string name);
