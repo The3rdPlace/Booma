@@ -133,6 +133,9 @@ void MainWindow::SetupMenus() {
     // File
     SetupFileMenu();
 
+    // Configuration
+    SetupConfigurationMenu();
+
     // Receiver
     SetupReceiverInputMenu();
     SetupReceiverOutputMenu();
@@ -149,21 +152,27 @@ void MainWindow::SetupMenus() {
 }
 
 void MainWindow::SetupFileMenu() {
-
-    // Standard items
     _menubar->add("File/Quit", "^q", HandleMenuButtonCallback, (void*) this);
+}
 
-    // Manage configurations
+void MainWindow::SetupConfigurationMenu() {
+
+    RemoveMenuSubItems("Configuration/Inputs/*");
+
     std::vector<std::string> configSections = _app->GetConfigSections();
     for( int i = 0; i < configSections.size(); i++ ) {
-        _menubar->add(("File/Configurations/Delete " + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
+        _menubar->add(("Configuration/Inputs/Delete " + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
                       (_app->GetConfigSection() == configSections.at(i) ? FL_MENU_INACTIVE : 0) |
                       (i == configSections.size() - 1 ? FL_MENU_DIVIDER : 0));
     }
-    _menubar->add("File/Configurations/Add configuration", 0, HandleMenuButtonCallback, (void*) this);
+
+    _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverInputMenu() {
+
+    RemoveMenuSubItems("Receiver/Input/*");
+    
     std::vector<std::string> configSections = _app->GetConfigSections();
     for( int i = 0; i < configSections.size(); i++ ) {
         _menubar->add(("Receiver/Input/" + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
@@ -349,8 +358,8 @@ void MainWindow::HandleMenuButton(char* name) {
     if( strcmp(name, "File/Quit") == 0 ) {
         Exit();
     }
-    else if( strncmp(name, "File/Configurations/", 20) == 0 ) {
-        HandleMenuButtonFileConfigurations(name, &name[20]);
+    else if( strncmp(name, "Configuration/Inputs/", 21) == 0 ) {
+        HandleMenuButtonConfigurationInputs(name, &name[21]);
     }
     else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
         HandleMenuButtonReceiverInput(name, &name[15]);
@@ -378,7 +387,7 @@ void MainWindow::HandleMenuButton(char* name) {
 void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
 
     // Handle 'Edit' button
-    if( strcmp(value, "Edit") == 0 ) {
+    if( strncmp(value, "Edit ", 5) == 0 ) {
         EditReceiverInput(_app->GetConfigSection().c_str());
         return;
     }
@@ -444,7 +453,7 @@ void MainWindow::HandleMenuButtonReceiverOptions(char* name, char* value) {
     }
 }
 
-void MainWindow::HandleMenuButtonFileConfigurations(char* name, char* value) {
+void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
     if( strncmp(value, "Add", 3) == 0 ) {
         AddReceiverInput();
     } else if( strncmp(value, "Delete ", 7) == 0 ) {
@@ -496,10 +505,12 @@ void MainWindow::HandleChannelSelector(Fl_Widget *w) {
 
 void MainWindow::EditReceiverInput(const char* name) {
     // Todo: Edit receiver input
+    std::cout << "NOT IMPLEMENTED: Edit receiver input" << std::endl;
 }
 
 void MainWindow::AddReceiverInput() {
     // Todo: Add new receiver input
+    std::cout << "NOT IMPLEMENTED: Add receiver input" << std::endl;
 }
 
 void MainWindow::DeleteReceiverInput(const char* name) {
@@ -519,6 +530,10 @@ void MainWindow::DeleteReceiverInput(const char* name) {
 
     // Delete the configuration
     _app->DeleteConfigSection(name);
+
+    // Refresh the Configuration/Inputs menu
+    SetupConfigurationMenu();
+    SetupReceiverInputMenu();
 }
 
 void MainWindow::RemoveMenuSubItems(const char *name) {

@@ -50,6 +50,7 @@ class MainWindow {
 
         // Helper functions for setting up the GUI
         void SetupFileMenu();
+        void SetupConfigurationMenu();
         void SetupReceiverInputMenu();
         void SetupReceiverOutputMenu();
         void SetupReceiverInputFilterMenu();
@@ -62,7 +63,7 @@ class MainWindow {
         void HandleMenuButtonReceiverInput(char* name, char* value);
         void HandleMenuButtonReceiverMode(char* name, char* value);
         void HandleMenuButtonReceiverOptions(char* name, char* value);
-        void HandleMenuButtonFileConfigurations(char* name, char* value);
+        void HandleMenuButtonConfigurationInputs(char* name, char* value);
 
         // Configurations (inputs)
         void EditReceiverInput(const char* name);
