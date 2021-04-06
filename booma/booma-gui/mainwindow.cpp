@@ -1,4 +1,5 @@
 #include <hardt.h>
+#include <iomanip>
 #include "main.h"
 #include "booma.h"
 #include "mainwindow.h"
@@ -82,7 +83,6 @@ MainWindow::~MainWindow() {
     _app->Halt();
 
     // Cleanup
-    delete(_app);
     // Todo: remove own widgets
 }
 
@@ -93,9 +93,6 @@ void MainWindow::Exit() {
 
     // Halt the receiver
     _app->Halt();
-
-    // Cleanup
-    delete(_app);
 
     // Close window
     exit(0);
@@ -185,24 +182,23 @@ void MainWindow::SetupReceiverInputMenu() {
 }
 
 void MainWindow::SetupReceiverOutputMenu() {
-    // Todo: Hook this up
 
     RemoveMenuSubItems("Receiver/Output/*");
 
     std::map<int, std::string> hardwareCards = _app->GetAudioDevices(true, false, false, true);
-    for( std::map<int, std::string>::iterator it = hardwareCards.begin(); it != hardwareCards.end(); ) {
-        _menubar->add(("Receiver/Output/phycial card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
-                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0) | (++it == hardwareCards.end() ? FL_MENU_DIVIDER : 0));
+    for( std::map<int, std::string>::iterator it = hardwareCards.begin(); it != hardwareCards.end(); it++) {
+        _menubar->add(("Receiver/Output/Physical card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
+                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0));
     }
 
     std::map<int, std::string> virtualCards = _app->GetAudioDevices(false, true, false, true);
-    for( std::map<int, std::string>::iterator it = virtualCards.begin(); it != virtualCards.end(); ) {
+    for( std::map<int, std::string>::iterator it = virtualCards.begin(); it != virtualCards.end(); it++) {
         _menubar->add(("Receiver/Output/Virtual card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
-                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0) | (++it == virtualCards.end() ? FL_MENU_DIVIDER : 0));
+                      FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0));
     }
 
     _menubar->add("Receiver/Output/Silence", 0, HandleMenuButtonCallback, (void *) this,
-                  FL_MENU_RADIO | (_app->GetOutputDevice() == -1 ? FL_MENU_VALUE : 0) | FL_MENU_DIVIDER);
+                  FL_MENU_RADIO | (_app->GetOutputDevice() == -1 && _app->GetOutputFilename() == "" ? FL_MENU_VALUE : 0));
 
     _menubar->add("Receiver/Output/File", 0, HandleMenuButtonCallback, (void *) this,
                   FL_MENU_RADIO | (_app->GetOutputFilename() != "" ? FL_MENU_VALUE : 0));
@@ -305,8 +301,7 @@ void MainWindow::SetupReceiverModeMenu() {
 
 void MainWindow::SetupOptionsMenu() {
 
-    //RemoveMenuSubItems("Receiver/Options/*");
-    RemoveMenuSubItems("Receiver/Options");
+    RemoveMenuSubItems("Receiver/Options/*");
 
     // If no options is available, show a disabled 'Options' submenu
     if( _app->GetOptions()->begin() == _app->GetOptions()->end() ) {
@@ -383,6 +378,9 @@ void MainWindow::HandleMenuButton(char* name) {
     else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
         HandleMenuButtonReceiverInput(name, &name[15]);
     }
+    else if( strncmp(name, "Receiver/Output/", 16) == 0 ) {
+        HandleMenuButtonReceiverOutput(name, &name[16]);
+    }
     else if( strncmp(name, "Receiver/Mode/", 14) == 0 ) {
         HandleMenuButtonReceiverMode(name, &name[14]);
     }
@@ -416,6 +414,49 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
 
     // Update the menu
     SetupReceiverInputMenu();
+    _app->Run();
+}
+
+/**
+ * Handle click on any of the 'Receiver/Output/xx' menubuttons
+ * @param name Full name of menubutton clicked
+ * @param value Name of the button (part after 'Receiver/Output/' aka The output device
+ */
+void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
+
+    // No output
+    if( strncmp(value, "Silence", 7) == 0 ) {
+        _app->SetOutputAudioDevice(-1);
+    }
+
+    // Write output audio to a file
+    else if( strncmp(value, "File", 4) == 0 ) {
+
+        auto tstamp = std::time(nullptr);
+        auto tm = *std::localtime(&tstamp);
+        std::ostringstream oss;
+        oss << std::put_time(&tm, "AUDIO_%d-%m-%Y_%H-%M-%S.wav");
+
+        _app->SetOutputFilename(oss.str());
+    }
+
+    // Physical and virtual audio cards
+    else if( strncmp(value, "Physical card ", 14) == 0 ) {
+        int card = atoi(&value[14]);
+        _app->SetOutputAudioDevice(card);
+    } else if( strncmp(value, "Virtual card ", 13) == 0 ) {
+        int card = atoi(&value[13]);
+        _app->SetOutputAudioDevice(card);
+    }
+
+    // Unknown menu item
+    else {
+        HError("Unknown card or device '%s'", value);
+    }
+
+    // Update the menu
+    SetupReceiverOutputMenu();
+    _app->Run();
 }
 
 /**
@@ -607,7 +648,10 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
                     break;
                 }
             }
-        } else {
+        } else if( item.label() == NULL ) {
+            break;
+        }
+        else {
             i++;
         }
     }
