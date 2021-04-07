@@ -137,8 +137,6 @@ void MainWindow::SetupMenus() {
     SetupReceiverInputMenu();
     SetupReceiverOutputMenu();
     SetupReceiverInputFilterMenu();
-    SetupReceiverOutputFilterMenu();
-    SetupReceiverRfGainMenu();
     SetupReceiverModeMenu();
 
     // Options
@@ -206,8 +204,6 @@ void MainWindow::SetupReceiverOutputMenu() {
 
 void MainWindow::SetupReceiverInputFilterMenu() {
 
-    // Todo: Hook this up
-
     // Define some usefull defaults for the IF filter
     _menubar->add("Receiver/Filters/IF filter width/500 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 500 ? FL_MENU_VALUE : 0));
@@ -225,65 +221,6 @@ void MainWindow::SetupReceiverInputFilterMenu() {
             _app->GetInputFilterWidth() != 3000 && _app->GetInputFilterWidth() != 5000 &&
             _app->GetInputFilterWidth() != 10000 ) {
         _menubar->add(("Receiver/Filters/IF filter width/" + std::to_string(_app->GetInputFilterWidth()) + " Hz").c_str(), 0, HandleMenuButtonCallback, (void*) this,
-                      FL_MENU_RADIO | FL_MENU_VALUE);
-    }
-}
-
-void MainWindow::SetupReceiverOutputFilterMenu() {
-
-    // Todo: Hook this up
-
-    // Define some usefull defaults for the output filter cutoff frequency
-    _menubar->add("Receiver/Filters/Output filter cutoff/1 KHz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetOutputFilterWidth() == 1000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/Output filter cutoff/3 KHz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetOutputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/Output filter cutoff/5 KHz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetOutputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
-
-    // Allow an arbitrary value for the output filter cutoff frequency from manual configuration
-    if( _app->GetOutputFilterWidth() != 1000 && _app->GetOutputFilterWidth() != 3000 &&
-        _app->GetOutputFilterWidth() != 5000 ) {
-        _menubar->add(("Receiver/Filters/Output filter cutoff/" + std::to_string(_app->GetOutputFilterWidth()) + " Hz").c_str(), 0, HandleMenuButtonCallback, (void*) this,
-                      FL_MENU_RADIO | FL_MENU_VALUE);
-    }
-}
-
-void MainWindow::SetupReceiverRfGainMenu() {
-
-    // Todo: Hook this  up
-    
-    // Define some usefull defaults for rf gain
-    _menubar->add("Receiver/RF gain/auto", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 0 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/-9 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == -8 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/-6 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == -4 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/-3 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == -2 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/0 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 1 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/3 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 2 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/6 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 4 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/9 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 8 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/12 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 16 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/15 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 32 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/RF gain/18 DB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetRfGain() == 64 ? FL_MENU_VALUE : 0));
-
-
-    // Allow an arbitrary value for the output filter cutoff frequency from manual configuration
-    if( _app->GetRfGain() != 0 && _app->GetRfGain() != -8 && _app->GetRfGain() != -4 &&
-            _app->GetRfGain() != -2 && _app->GetRfGain() != 0 && _app->GetRfGain() != 2 &&
-            _app->GetRfGain() != 4 && _app->GetRfGain() != 8 && _app->GetRfGain() != 16 &&
-            _app->GetRfGain() != 32 && _app->GetRfGain() != 64 ) {
-        _menubar->add(("Receiver/RF gain/(" + std::to_string(_app->GetRfGain()) + ")").c_str(), 0, HandleMenuButtonCallback, (void*) this,
                       FL_MENU_RADIO | FL_MENU_VALUE);
     }
 }
@@ -386,6 +323,9 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Receiver/Options/", 17) == 0 ) {
         HandleMenuButtonReceiverOptions(name, &name[17]);
+    }
+    else if( strncmp(name, "Receiver/Filters/IF filter width/", 33) == 0 ) {
+        HandleMenuButtonReceiverIfFilterWidth(name, &name[33]);
     }
     else if( strcmp(name, "Help/Help") == 0 ) {
         // Todo: Show proper splash
@@ -519,6 +459,15 @@ void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
     } else if( strncmp(value, "Delete ", 7) == 0 ) {
         DeleteReceiverInput(&value[7]);
     }
+}
+
+void MainWindow::HandleMenuButtonReceiverIfFilterWidth(char* name, char* value) {
+
+    // Set the selected radio button
+    const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
+
+    // Set width (width comes in KHz)
+    _app->SetInputFilterWidth(atoi(value) * 1000);
 }
 
 void MainWindow::HandleFrequencyInputButtons(Fl_Widget *w) {

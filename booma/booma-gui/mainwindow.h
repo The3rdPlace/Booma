@@ -54,9 +54,7 @@ class MainWindow {
         void SetupReceiverInputMenu();
         void SetupReceiverOutputMenu();
         void SetupReceiverInputFilterMenu();
-        void SetupReceiverOutputFilterMenu();
         void SetupReceiverModeMenu();
-        void SetupReceiverRfGainMenu();
         void SetupOptionsMenu();
 
         // Internal menu handling
@@ -65,6 +63,7 @@ class MainWindow {
         void HandleMenuButtonReceiverMode(char* name, char* value);
         void HandleMenuButtonReceiverOptions(char* name, char* value);
         void HandleMenuButtonConfigurationInputs(char* name, char* value);
+        void HandleMenuButtonReceiverIfFilterWidth(char* name, char* value);
 
         // Configurations (inputs)
         void EditReceiverInput(const char* name);

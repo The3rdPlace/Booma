@@ -158,13 +158,13 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
                 "PassbandGain",
                 "Gain factor after preselect",
                 passbandGainValues,
-                40
+                2
         };
         Option iqPassbandGainOption {
                 "IQPassbandGain",
                 "Gain factor after iq-to-real conversion",
                 iqPassbandGainValues,
-                6
+                4
         };
 
         // Register options
