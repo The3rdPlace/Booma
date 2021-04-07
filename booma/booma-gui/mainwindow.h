@@ -16,6 +16,7 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_Slider.H>
 
 class MainWindow {
 
@@ -39,6 +40,12 @@ class MainWindow {
         Fl_Button* _frequencyInputUp1Khz;
         Fl_Button* _frequencyInputDown1Khz;
         Fl_Choice* _channelSelector;
+        Fl_Slider* _gainSlider;
+        Fl_Slider* _volumeSlider;
+
+        // Dynamic labels
+        char _gainLabel[50];
+        char _volumeLabel[50];
 
         // Display widgets
         Waterfall* _rfInputWaterfall;
@@ -90,7 +97,8 @@ class MainWindow {
         void HandleFrequencyInputButtons(Fl_Widget *w);
         void HandleFrequencyInput(Fl_Widget *w);
         void HandleChannelSelector(Fl_Widget *w);
-
+        void HandleGainSlider();
+        void HandleVolumeSlider();
 
     // Exit
         void Exit();

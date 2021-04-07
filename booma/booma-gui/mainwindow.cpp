@@ -48,6 +48,22 @@ void HandleChannelSelectorCallback(Fl_Widget* w) {
     MainWindow::Instance()->HandleChannelSelector(w);
 }
 
+/**
+ * Static callback for gain slider events
+ * @param w
+ */
+void HandleGainSliderCallback(Fl_Widget* w) {
+    MainWindow::Instance()->HandleGainSlider();
+}
+
+/**
+ * Static callback for gain slider events
+ * @param w
+ */
+void HandleVolumeSliderCallback(Fl_Widget* w) {
+    MainWindow::Instance()->HandleVolumeSlider();
+}
+
 /***********************************************
   Member functions
 ***********************************************/
@@ -285,6 +301,18 @@ void MainWindow::SetupControls() {
         _channelSelector->add(((*it).second->Name).c_str());
     }
     _channelSelector->callback(HandleChannelSelectorCallback);
+
+    // Gain and volume sliders
+    strcpy(_gainLabel, ("RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")").c_str());
+    _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 10, 150, 30, _gainLabel);
+    _gainSlider->bounds(-10, 100);
+    _gainSlider->scrollvalue(_app->GetRfGain(), 1, -10, 111);
+    _gainSlider->callback(HandleGainSliderCallback);
+    strcpy(_volumeLabel, ("Volume (" + std::to_string(_app->GetVolume()) + ")").c_str());
+    _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 80, 150, 30, _volumeLabel);
+    _volumeSlider->bounds(0, 30);
+    _volumeSlider->scrollvalue(_app->GetVolume(), 1, 0, 31);
+    _volumeSlider->callback(HandleVolumeSliderCallback);
 }
 
 /**
@@ -293,7 +321,7 @@ void MainWindow::SetupControls() {
 void MainWindow::SetupDisplays() {
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 300, 200, "RF input");
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _win->w() - 180, 200, "RF input");
 }
 
 /***********************************************
@@ -510,6 +538,19 @@ void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
 void MainWindow::HandleChannelSelector(Fl_Widget *w) {
     _app->SetFrequency(_app->GetChannels().at(_channelSelector->value() + 1)->Frequency);
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+}
+
+void MainWindow::HandleGainSlider() {
+    strcpy(_gainLabel, ("   RF Gain (" + ((int) _gainSlider->value() == 0 ? "auto" : std::to_string((int) _gainSlider->value())) + ")   ").c_str());
+    _gainSlider->label(_gainLabel);
+    _gainSlider->redraw_label();
+    _app->SetRfGain(_gainSlider->value());
+}
+
+void MainWindow::HandleVolumeSlider() {
+    strcpy(_volumeLabel, ("   Volume (" + std::to_string((int) _volumeSlider->value()) + ")   ").c_str());
+    _volumeSlider->label(_volumeLabel);
+    _app->SetVolume(_volumeSlider->value());
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
