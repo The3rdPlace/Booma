@@ -273,6 +273,26 @@ void MainWindow::SetupOptionsMenu() {
     }
 }
 
+int MapFromGainSliderValue(long value) {
+    if( value < -10 ) {
+        return value + 10;
+    } else if( value > 10 ) {
+        return value - 10;
+    } else {
+        return 0;
+    }
+}
+
+long MapToGainSliderValue(int value) {
+    if( value < 0 ) {
+        return value -10;
+    } else if( value > 0 ) {
+        return value + 10;
+    } else {
+        return 0;
+    }
+}
+
 /**
  * Setup controls in the main window
  */
@@ -305,8 +325,8 @@ void MainWindow::SetupControls() {
     // Gain and volume sliders
     strcpy(_gainLabel, ("RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")").c_str());
     _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 10, 150, 30, _gainLabel);
-    _gainSlider->bounds(-10, 100);
-    _gainSlider->scrollvalue(_app->GetRfGain(), 1, -10, 111);
+    _gainSlider->bounds(-20, 110);
+    _gainSlider->scrollvalue(MapToGainSliderValue(_app->GetRfGain()), 1, -20, 131);
     _gainSlider->callback(HandleGainSliderCallback);
     strcpy(_volumeLabel, ("Volume (" + std::to_string(_app->GetVolume()) + ")").c_str());
     _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 80, 150, 30, _volumeLabel);
@@ -541,10 +561,9 @@ void MainWindow::HandleChannelSelector(Fl_Widget *w) {
 }
 
 void MainWindow::HandleGainSlider() {
-    strcpy(_gainLabel, ("   RF Gain (" + ((int) _gainSlider->value() == 0 ? "auto" : std::to_string((int) _gainSlider->value())) + ")   ").c_str());
+    strcpy(_gainLabel, ("   RF Gain (" + (MapFromGainSliderValue(_gainSlider->value()) == 0 ? "auto" : std::to_string(MapFromGainSliderValue(_gainSlider->value()))) + ")   ").c_str());
     _gainSlider->label(_gainLabel);
-    _gainSlider->redraw_label();
-    _app->SetRfGain(_gainSlider->value());
+    _app->SetRfGain(MapFromGainSliderValue(_gainSlider->value()));
 }
 
 void MainWindow::HandleVolumeSlider() {
