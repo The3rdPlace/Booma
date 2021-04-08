@@ -19,6 +19,7 @@ class InputDialog {
 
     private:
 
+        static InputDialog* _instance;
         BoomaApplication* _app;
 
         Fl_Window* _win;
@@ -41,20 +42,28 @@ class InputDialog {
         Fl_Radio_Round_Button* _isGenerator;
         Fl_Input* _localGeneratorFrequency;
         Fl_Radio_Round_Button* _isRemote;
+        Fl_Group* _remoteInputTypeGroup;
         Fl_Input* _remoteHost;
         Fl_Input* _remoteDataPort;
         Fl_Input* _remoteCommandPort;
-        Fl_Group* _remoteInputTypeGroup;
-        Fl_Radio_Round_Button* _isRemoteAudioDevice;
-        Fl_Radio_Round_Button* _isRemoteRtlsdrDevice;
-        Fl_Radio_Round_Button* _isRemotePcmFile;
-        Fl_Radio_Round_Button* _isRemoteWavFile;
-        Fl_Radio_Round_Button* _isRemoteSilence;
-        Fl_Radio_Round_Button* _isRemoteGenerator;
+        Fl_Group* _originalInputTypeGroup;
+        Fl_Radio_Round_Button* _isOriginalAudioDevice;
+        Fl_Radio_Round_Button* _isOriginalRtlsdrDevice;
+        Fl_Radio_Round_Button* _isOriginalPcmFile;
+        Fl_Radio_Round_Button* _isOriginalWavFile;
+        Fl_Radio_Round_Button* _isOriginalSilence;
+        Fl_Radio_Round_Button* _isOriginalGenerator;
+        Fl_Group* _inputSourceDataTypeGroup;
+        Fl_Radio_Round_Button* _inputSourceDatatypeReal;
+        Fl_Radio_Round_Button* _inputSourceDatatypeIq;
+        Fl_Radio_Round_Button* _inputSourceDatatypeI;
+        Fl_Radio_Round_Button* _inputSourceDatatypeQ;
+        Fl_Button* _cancelButton;
+        Fl_Button* _saveButton;
 
         void LoadState();
-        void UpdateState();
         void SaveState();
+        void UpdateState();
 
     public:
 
@@ -62,6 +71,17 @@ class InputDialog {
         ~InputDialog();
 
         void Show();
+
+        static InputDialog* GetInstance() {
+            return _instance;
+        }
+
+        void Cancel();
+        void Save();
+
+        void Update() {
+            UpdateState();
+        }
 };
 
 

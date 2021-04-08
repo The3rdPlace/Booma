@@ -224,6 +224,10 @@ int BoomaApplication::GetAudioSpectrum(double* spectrum) {
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {
+    return _opts->GetInputSourceType();
+}
+
+InputSourceType BoomaApplication::GetOriginalInputSourceType() {
     return _opts->GetOriginalInputSourceType();
 }
 

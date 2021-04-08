@@ -128,6 +128,7 @@ class BoomaApplication {
 
         // Public control functions that would require a receiver restart after modifications
         InputSourceType GetInputSourceType();
+        InputSourceType GetOriginalInputSourceType();
         InputSourceDataType GetInputSourceDataType();
         int GetInputDevice();
         std::string GetPcmFile();
