@@ -42,8 +42,9 @@ class ConfigOptions {
     public:
 
         ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
-
         ~ConfigOptions();
+
+        void SyncStoredConfig();
 
         std::string GetAudioDevice(int device);
         std::string GetRtlsdrDevice(int device);

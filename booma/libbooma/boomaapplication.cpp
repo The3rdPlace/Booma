@@ -426,3 +426,7 @@ int BoomaApplication::GetInputSampleRate() {
 int BoomaApplication::GetOutputSampleRate() {
     return _opts->GetOutputSampleRate();
 }
+
+void BoomaApplication::SyncConfiguration() {
+    _opts->SyncStoredConfig();
+}

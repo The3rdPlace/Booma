@@ -970,6 +970,10 @@ ConfigOptions::~ConfigOptions() {
     }
 }
 
+void ConfigOptions::SyncStoredConfig() {
+    WriteStoredConfig(CONFIGNAME, false);
+}
+
 void ConfigOptions::RemoveStoredConfig(std::string configname) {
 
     // Get the users homedirectory

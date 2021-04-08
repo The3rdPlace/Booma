@@ -558,10 +558,11 @@ void MainWindow::EditReceiverInput(const char* name) {
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
     if( dlg->Show() ) {
         _app->ChangeReceiver();
+        _app->SyncConfiguration();
     }
     delete(dlg);
     _app->Run();
-    
+
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
 }
@@ -571,6 +572,7 @@ void MainWindow::AddReceiverInput() {
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
     if( dlg->Show() ) {
         _app->ChangeReceiver();
+        _app->SyncConfiguration();
     }
     delete(dlg);
     _app->Run();

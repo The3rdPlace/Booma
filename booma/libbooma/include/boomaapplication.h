@@ -185,6 +185,9 @@ class BoomaApplication {
         bool CreateConfigSection(std::string section);
         bool DeleteConfigSection(std::string section);
 
+        // Configuration
+        void SyncConfiguration();
+
     private:
 
         // Configuration and state
