@@ -26,6 +26,7 @@ class InputDialog {
 
         Mode _mode;
         std::string _configuration;
+        bool _changed;
 
         Fl_Input* _name;
 
@@ -60,6 +61,8 @@ class InputDialog {
         Fl_Radio_Round_Button* _inputSourceDatatypeQ;
         Fl_Button* _cancelButton;
         Fl_Button* _saveButton;
+        Fl_Input* _deviceRate;
+        Fl_Input* _outputRate;
 
         void LoadState();
         void SaveState();
@@ -70,7 +73,7 @@ class InputDialog {
         InputDialog(BoomaApplication* app, Mode mode);
         ~InputDialog();
 
-        void Show();
+        bool Show();
 
         static InputDialog* GetInstance() {
             return _instance;

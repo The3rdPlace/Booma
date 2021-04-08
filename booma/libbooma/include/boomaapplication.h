@@ -118,7 +118,7 @@ class BoomaApplication {
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
 
-        int GetSampleRate() {
+        int GetDefaultSampleRate() {
             return SAMPLERATE;
         }
 
@@ -163,6 +163,8 @@ class BoomaApplication {
         int GetOutputFilterWidth();
         std::map<int, std::string> GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs);
         std::map<int, std::string> GetRtlsdrDevices();
+        int GetInputSampleRate();
+        int GetOutputSampleRate();
 
         // Bookmarks
         void SetBookmark(std::string name);

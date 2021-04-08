@@ -16,7 +16,8 @@ void HandleRadioButtonCallback(Fl_Widget* w, void* data) {
 
 InputDialog::InputDialog(BoomaApplication* app, Mode mode):
     _app(app),
-    _mode(mode) {
+    _mode(mode),
+    _changed(false) {
     InputDialog::_instance = this;
 }
 
@@ -29,18 +30,18 @@ InputDialog::~InputDialog() {
 #define YMINUS (((y -1) * height) + 10)
 #define Y ((y * height) + 10)
 
-void InputDialog::Show() {
+bool InputDialog::Show() {
 
     int x = 10;
     const int ix = 150;
     int y = 0;
     const int width = 30;
-    const int fwidth = 120;
+    const int fwidth = 160;
     const int height = 30;
     const int fheight = 25;
 
-    // Create window
-    _win = new Fl_Window(630, 500);
+    // Create window  630
+    _win = new Fl_Window(595, 500);
     _win->set_modal();
     _win->label(_mode == EDIT ? "Edit input" : "Add new input");
 
@@ -113,13 +114,13 @@ void InputDialog::Show() {
     _originalInputTypeGroup->end();
 
     // Name of configuration
-    x += 370;
+    x += 410;
     y = 0;
-    _name = new Fl_Input(380, YINC, fwidth * 2, fheight, "Name: ");
+    _name = new Fl_Input(420, YINC, fwidth, fheight, "Name: ");
 
     // Sample type
     y++;
-    _inputSourceDataTypeGroup = new Fl_Group(x, Y, 290, 120);
+    _inputSourceDataTypeGroup = new Fl_Group(x, Y, 255, 120);
     _inputSourceDatatypeReal = new Fl_Radio_Round_Button(x, YINC, width, height, "Realvalued samples");
     _inputSourceDatatypeIq = new Fl_Radio_Round_Button(x, YINC, width, height, "IQ samples");
     _inputSourceDatatypeI = new Fl_Radio_Round_Button(x, YINC, width, height, "I channel samples");
@@ -134,7 +135,13 @@ void InputDialog::Show() {
     _inputSourceDatatypeQ->callback(HandleRadioButtonCallback);
     _inputSourceDataTypeGroup->end();
 
+    // Sample rate for input- and output device
+    y++;
+    _deviceRate = new Fl_Input(x, YINC, fwidth, height, "Input rate");
+    _outputRate = new Fl_Input(x, YINC, fwidth, height, "Output rate");
+
     y = 15;
+    x -= 80;
     _cancelButton = new Fl_Button(x - 10, Y, 4 * width, height, "Cancel");
     _cancelButton->callback(HandleCancelButtonCallback);
     _saveButton = new Fl_Button(x + (4 * width), Y, 4 * width, height, (_mode == EDIT ? "Save" : "Create"));
@@ -142,15 +149,16 @@ void InputDialog::Show() {
 
     // Set initial data content and state
     LoadState();
-    _remoteInputTypeGroup->set_active();
 
     // Done setting up the gui
     _win->end();
     _win->show();
 
-    _originalInputTypeGroup->clear_active();
     // Wait for the dialog to be closed
     while (_win->shown()) Fl::wait();
+
+    // Signal if the configuration was changed or not
+    return _changed;
 }
 
 void InputDialog::LoadState() {
@@ -181,88 +189,248 @@ void InputDialog::LoadState() {
     switch(_app->GetInputSourceType()) {
         case NETWORK:
             _isRemote->setonly();
-            _remoteInputTypeGroup->set_active();
-            _originalInputTypeGroup->set_active();
             break;
         case AUDIO_DEVICE:
             _isAudioDevice->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->clear_active();
+            _localAudioDevice->value(std::to_string(_app->GetInputDevice()).c_str());
+            _localRtlsdrDevice->value(std::to_string(_app->GetInputDevice()).c_str());
             break;
         case InputSourceType::RTLSDR:
             _isRtlsdrDevice->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->clear_active();
+            _localAudioDevice->value(std::to_string(_app->GetInputDevice()).c_str());
+            _localRtlsdrDevice->value(std::to_string(_app->GetInputDevice()).c_str());
             break;
         case InputSourceType::PCM_FILE:
             _isPcmFile->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->set_active();
             break;
         case InputSourceType::WAV_FILE:
             _isWavFile->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->set_active();
             break;
         case InputSourceType::SILENCE:
             _isSilence->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->clear_active();
             break;
         case InputSourceType::SIGNAL_GENERATOR:
             _isGenerator->setonly();
-            _remoteInputTypeGroup->clear_active();
-            _originalInputTypeGroup->clear_active();
             break;
         default:
             HError("Unknown input source type %d", _app->GetInputSourceType());
     }
+
+    // Various settings
+    _localPcmFilename->value(_app->GetPcmFile().c_str());
+    _localWavFilename->value(_app->GetWavFile().c_str());
+    _localGeneratorFrequency->value(std::to_string(_app->GetSignalGeneratorFrequency()).c_str());
+    _remoteHost->value(_app->GetRemoteServer().c_str());
+    _remoteDataPort->value(std::to_string(_app->GetRemoteDataPort()).c_str());
+    _remoteCommandPort->value(std::to_string(_app->GetRemoteCommandPort()).c_str());
+    _deviceRate->value(std::to_string(_app->GetInputSampleRate()).c_str());
+    _outputRate->value(std::to_string(_app->GetOutputSampleRate()).c_str());
+
+    // Original input type (if none is set, that's perfectly allright. We may not need it)
+    switch(_app->GetOriginalInputSourceType()) {
+        case AUDIO_DEVICE:
+            _isOriginalAudioDevice->setonly();
+            break;
+        case RTLSDR:
+            _isOriginalRtlsdrDevice->setonly();
+            break;
+        case PCM_FILE:
+            _isOriginalPcmFile->setonly();
+            break;
+        case WAV_FILE:
+            _isOriginalWavFile->setonly();
+            break;
+        case SILENCE:
+            _isOriginalSilence->setonly();
+            break;
+        case SIGNAL_GENERATOR:
+            _isOriginalGenerator->setonly();
+            break;
+        default:
+            break;
+    }
+
+    // Input sample type
+    switch(_app->GetInputSourceDataType()) {
+        case REAL_INPUT_SOURCE_DATA_TYPE:
+            _inputSourceDatatypeReal->setonly();
+            break;
+        case IQ_INPUT_SOURCE_DATA_TYPE:
+            _inputSourceDatatypeIq->setonly();
+            break;
+        case I_INPUT_SOURCE_DATA_TYPE:
+            _inputSourceDatatypeI->setonly();
+            break;
+        case Q_INPUT_SOURCE_DATA_TYPE:
+            _inputSourceDatatypeQ->setonly();
+            break;
+        default:
+            break;
+    }
+
+    // Update gui state
+    UpdateState();
 }
 
 void InputDialog::UpdateState() {
-std::cout << "UPDATESTATE()" << std::endl;
-std::cout << "isremote = " << (_isRemote->value() == 0 ? "0" : "1") << std::endl;
+
     // Local or remote input ?
     if( _isRemote->value() == 1 ) {
-        std::cout << "HERE"  << std::endl;
         _remoteInputTypeGroup->set_active();
         _originalInputTypeGroup->set_active();
         _inputSourceDataTypeGroup->set_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->set_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isAudioDevice->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->clear_active();
         _inputSourceDataTypeGroup->clear_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->set_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isRtlsdrDevice->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->clear_active();
         _inputSourceDataTypeGroup->clear_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->set_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isPcmFile->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->set_active();
         _inputSourceDataTypeGroup->set_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->set_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isWavFile->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->set_active();
         _inputSourceDataTypeGroup->set_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->set_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isSilence->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->clear_active();
         _inputSourceDataTypeGroup->clear_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->clear_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
     if( _isGenerator->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
         _originalInputTypeGroup->clear_active();
         _inputSourceDataTypeGroup->clear_active();
+        _remoteInputTypeGroup->redraw();
+        _originalInputTypeGroup->redraw();
+        _inputSourceDataTypeGroup->redraw();
+
+        _localAudioDevice->clear_active();
+        _localRtlsdrDevice->clear_active();
+        _localPcmFilename->clear_active();
+        _localWavFilename->clear_active();
+        _localGeneratorFrequency->set_active();
+        _remoteHost->clear_active();
+        _localAudioDevice->redraw();
+        _localRtlsdrDevice->redraw();
+        _localPcmFilename->redraw();
+        _localWavFilename->redraw();
+        _localGeneratorFrequency->redraw();
+        _remoteHost->redraw();
     }
 }
 
 void InputDialog::SaveState() {
+    if( _mode == EDIT ) {
 
+    } else {
+
+    }
+    _changed = true;
 }
 
 void InputDialog::Cancel() {
@@ -270,10 +438,6 @@ void InputDialog::Cancel() {
 }
 
 void InputDialog::Save() {
-    if( _mode == EDIT ) {
-
-    } else {
-
-    }
+    SaveState();
     _win->hide();
 }

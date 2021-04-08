@@ -555,7 +555,10 @@ void MainWindow::HandleVolumeSlider() {
 
 void MainWindow::EditReceiverInput(const char* name) {
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
-    dlg->Show();
+    if( dlg->Show() ) {
+        _app->ChangeReceiver();
+        _app->Run();
+    }
     delete(dlg);
 
     SetupReceiverInputMenu();
@@ -564,7 +567,10 @@ void MainWindow::EditReceiverInput(const char* name) {
 
 void MainWindow::AddReceiverInput() {
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
-    dlg->Show();
+    if( dlg->Show() ) {
+        _app->ChangeReceiver();
+        _app->Run();
+    }
     delete(dlg);
 
     SetupReceiverInputMenu();

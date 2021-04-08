@@ -418,3 +418,11 @@ void BoomaApplication::SetOutputFilename(std::string filename) {
     _opts->SetOutputAudioDevice(-1);
     Reconfigure();
 }
+
+int BoomaApplication::GetInputSampleRate() {
+    return _opts->GetInputSampleRate();
+}
+
+int BoomaApplication::GetOutputSampleRate() {
+    return _opts->GetOutputSampleRate();
+}
