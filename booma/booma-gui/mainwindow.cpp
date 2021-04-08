@@ -3,6 +3,7 @@
 #include "main.h"
 #include "booma.h"
 #include "mainwindow.h"
+#include "inputdialog.h"
 
 /***********************************************
   Static callbacks
@@ -270,26 +271,6 @@ void MainWindow::SetupOptionsMenu() {
             _menubar->add( ("Receiver/Options/" + (*it).Name + "/" + (*vit).Name).c_str(), 0, HandleMenuButtonCallback, (void*) this,
                            FL_MENU_RADIO | ( (*vit).Value == (*it).CurrentValue ? FL_MENU_VALUE : 0) );
         }
-    }
-}
-
-int MapFromGainSliderValue(long value) {
-    if( value < -10 ) {
-        return value + 10;
-    } else if( value > 10 ) {
-        return value - 10;
-    } else {
-        return 0;
-    }
-}
-
-long MapToGainSliderValue(int value) {
-    if( value < 0 ) {
-        return value -10;
-    } else if( value > 0 ) {
-        return value + 10;
-    } else {
-        return 0;
     }
 }
 
@@ -573,13 +554,21 @@ void MainWindow::HandleVolumeSlider() {
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
-    // Todo: Edit receiver input
-    std::cout << "NOT IMPLEMENTED: Edit receiver input" << std::endl;
+    InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
+    dlg->Show();
+    delete(dlg);
+
+    SetupReceiverInputMenu();
+    SetupConfigurationMenu();
 }
 
 void MainWindow::AddReceiverInput() {
-    // Todo: Add new receiver input
-    std::cout << "NOT IMPLEMENTED: Add receiver input" << std::endl;
+    InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
+    dlg->Show();
+    delete(dlg);
+
+    SetupReceiverInputMenu();
+    SetupConfigurationMenu();
 }
 
 void MainWindow::DeleteReceiverInput(const char* name) {
@@ -663,5 +652,25 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
         else {
             i++;
         }
+    }
+}
+
+int MainWindow::MapFromGainSliderValue(long value) {
+    if( value < -10 ) {
+        return value + 10;
+    } else if( value > 10 ) {
+        return value - 10;
+    } else {
+        return 0;
+    }
+}
+
+long MainWindow::MapToGainSliderValue(int value) {
+    if( value < 0 ) {
+        return value -10;
+    } else if( value > 0 ) {
+        return value + 10;
+    } else {
+        return 0;
     }
 }

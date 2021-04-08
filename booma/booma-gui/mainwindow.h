@@ -1,7 +1,3 @@
-//
-// Created by henrik on 2021-03-25.
-//
-
 #ifndef BOOMA_MAINWINDOW_H
 #define BOOMA_MAINWINDOW_H
 
@@ -80,6 +76,8 @@ class MainWindow {
         // Utility methods
         char* GetTitle();
         void RemoveMenuSubItems(const char *name);
+        int MapFromGainSliderValue(long value);
+        long MapToGainSliderValue(int value);
 
     public:
 
