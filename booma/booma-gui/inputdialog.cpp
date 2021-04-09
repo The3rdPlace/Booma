@@ -149,6 +149,8 @@ bool InputDialog::Show() {
     x += 410;
     y = 0;
     _name = new Fl_Input(420, YINC, fwidth, fheight, "Name: ");
+    _name->callback(HandleChoiceCallback);
+    _name->when(FL_WHEN_CHANGED);
 
     // Sample type
     y++;
@@ -572,6 +574,13 @@ void InputDialog::UpdateState() {
         }
         _saveButton->redraw();
     }
+
+    if( !std::string(_name->value()).empty() ) {
+        _saveButton->set_active();
+    } else {
+        _saveButton->clear_active();
+    }
+    _saveButton->redraw();
 }
 
 void InputDialog::SaveState() {
