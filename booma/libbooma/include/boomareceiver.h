@@ -140,6 +140,9 @@ class BoomaReceiver {
             return _frequency;
         }
 
+        virtual long GetDefaultFrequency(ConfigOptions* opts) = 0;
+        virtual bool IsFrequencySupported(ConfigOptions* opts, long frequency) = 0;
+
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _decoder->Consumer();
         }

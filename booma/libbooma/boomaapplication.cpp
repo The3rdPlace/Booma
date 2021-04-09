@@ -228,7 +228,7 @@ InputSourceType BoomaApplication::GetInputSourceType() {
 }
 
 bool BoomaApplication::SetInputSourceType(InputSourceType inputSourceType) {
-    return _opts->GetInputSourceType();
+    return _opts->SetInputSourceType(inputSourceType);
 }
 
 InputSourceType BoomaApplication::GetOriginalInputSourceType() {
@@ -296,11 +296,11 @@ bool BoomaApplication::SetRemoteDataPort(int portnumber) {
 }
 
 int BoomaApplication::GetRemoteCommandPort() {
-    return _opts->GetRemoteDataPort();
+    return _opts->GetRemoteCommandPort();
 }
 
 bool BoomaApplication::SetRemoteCommandPort(int portnumber) {
-    return _opts->SetRemoteDataPort(portnumber);
+    return _opts->SetRemoteCommandPort(portnumber);
 }
 
 HTimer BoomaApplication::GetSchedule() {

@@ -180,6 +180,7 @@ bool InputDialog::Show() {
     _cancelButton->callback(HandleCancelButtonCallback);
     _saveButton = new Fl_Button(x + (4 * width), Y, 4 * width, height, (_mode == EDIT ? "Save" : "Create"));
     _saveButton->callback(HandleSaveButtonCallback);
+    _saveButton->clear_active();
 
     // Set initial data content and state
     LoadState();
@@ -587,12 +588,10 @@ void InputDialog::UpdateState() {
         _saveButton->redraw();
     }
 
-    if( !std::string(_name->value()).empty() ) {
-        _saveButton->set_active();
-    } else {
+    if( _saveButton->active() && std::string(_name->value()).empty() ) {
         _saveButton->clear_active();
+        _saveButton->redraw();
     }
-    _saveButton->redraw();
 }
 
 void InputDialog::Cancel() {
@@ -654,6 +653,7 @@ void InputDialog::SaveState() {
     // Input source type
     if( _isRemote->value() ) {
         _app->SetInputSourceType(NETWORK);
+
     }
     if( _isAudioDevice->value() ) {
         _app->SetInputSourceType(AUDIO_DEVICE);
@@ -706,7 +706,7 @@ void InputDialog::SaveState() {
         _app->SetOutputSampleRate(_outputRates.at(_outputRate->value()));
     }
 
-    // Input source type
+    // Original input source type
     if( _isOriginalAudioDevice->value() ) {
         _app->SetOriginalInputSourceType(AUDIO_DEVICE);
     }

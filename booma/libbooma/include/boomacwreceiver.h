@@ -68,6 +68,14 @@ class BoomaCwReceiver : public BoomaReceiver {
             return GetOption("Ifshift") * (_bandpassWidths[GetOption("Bandwidth")] / 4);
         }
 
+        long GetDefaultFrequency(ConfigOptions* opts) {
+            return (opts->GetOutputSampleRate() / 2) / 2;
+        }
+
+        bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
+            return frequency < (opts->GetOutputSampleRate() / 2);
+        }
+
     public:
 
         BoomaCwReceiver(ConfigOptions* opts, int initialFrequency);

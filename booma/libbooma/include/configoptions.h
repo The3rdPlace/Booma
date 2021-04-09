@@ -62,6 +62,7 @@ class ConfigOptions {
 
         bool SetInputSourceType(InputSourceType inputSourceType) {
             _values.at(_section)->_inputSourceType = inputSourceType;
+            _values.at(_section)->_isRemoteHead = (inputSourceType == NETWORK);
             return true;
         }
 

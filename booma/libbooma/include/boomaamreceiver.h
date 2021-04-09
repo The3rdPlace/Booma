@@ -46,6 +46,14 @@ private:
 
     void OptionChanged(ConfigOptions* opts, std::string name, int value) {}
 
+    long GetDefaultFrequency(ConfigOptions* opts) {
+        return (opts->GetOutputSampleRate() / 2) / 2;
+    }
+
+    bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
+        return frequency < (opts->GetOutputSampleRate() / 2);
+    }
+
 public:
 
     BoomaAmReceiver(ConfigOptions* opts, int initialFrequency);

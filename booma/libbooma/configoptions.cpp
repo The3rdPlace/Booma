@@ -1130,24 +1130,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     _section = _activeSection;
     configStream.close();
 
-    // Set flags
-    if( _values.at(_section)->_inputDevice > -1 ) {
-        _values.at(_section)->_isRemoteHead = false;
-        _values.at(_section)->_useRemoteHead = false;
-        HLog("Has input device from stored config, use local input");
-    }
-    else if( _values.at(_section)->_inputDevice == -1 && _values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
-        _values.at(_section)->_useRemoteHead = true;
-        _values.at(_section)->_isRemoteHead = false;
-        HLog("Has remote port but no remote server, use remote head");
-    }
-    else if( _values.at(_section)->_inputDevice == -1 && !_values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
-        _values.at(_section)->_useRemoteHead = false;
-        _values.at(_section)->_isRemoteHead = true;
-        _values.at(_section)->_inputSourceType = NETWORK;
-        HLog("Has remote port and remote server, is remote head");
-    }
-
     // Read a stored config
     return true;
 }

@@ -414,7 +414,7 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
         int card = atoi(&value[5]);
         _app->SetOutputAudioDevice(card);
     }
-    
+
     // Unknown menu item
     else {
         HError("Unknown card or device '%s'", value);

@@ -45,6 +45,14 @@ class BoomaAuroralReceiver : public BoomaReceiver {
             return 10000;
         }
 
+        long GetDefaultFrequency(ConfigOptions* opts) {
+            return 5000;
+        }
+
+        bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
+            return frequency < 10000;
+        }
+
     public:
 
         BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency);

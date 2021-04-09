@@ -37,7 +37,19 @@ class BoomaApplication {
             } else {
                 HLog("Starting normal run");
                 _current = new std::thread( [this]()  {
-                    _input->Run();
+                    try {
+                        _input->Run();
+                    } catch( BoomaConfigurationException e ) {
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( BoomaInputException e ) {
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( BoomaReceiverException e ) {
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( HException e ) {
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.type(), e.what());
+                    } catch( ... ) {
+                        HError("Caught unknown exception from Run()");
+                    }
                     _isTerminated = true;
                     _isRunning = false;
                     _current = NULL;

@@ -81,7 +81,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     HLog("Setting optional zero shift");
     HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
 
-
     // Add inputfilter
     HLog("Setting 1.st. IF (input) filter");
     _lastConsumer = SetInputFilter(opts, shift);

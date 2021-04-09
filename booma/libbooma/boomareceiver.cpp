@@ -153,6 +153,12 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
         SetOption(opts, (*it).first, (*it).second);
     }
 
+    // Check that the initial frequency is supported
+    if( !IsFrequencySupported(opts, opts->GetFrequency()) ) {
+        HLog("Configured frequency %ld is not valid for this receiver. Using default frequency %ld", opts->GetFrequency(), GetDefaultFrequency(opts));
+        opts->SetFrequency(GetDefaultFrequency(opts));
+    }
+
     // Add receiver gain/agc
     _gainValue = opts->GetRfGain();
     _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
