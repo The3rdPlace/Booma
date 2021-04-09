@@ -263,12 +263,22 @@ class ConfigOptions {
             return _values.at(_section)->_rtlsdrOffset;
         }
 
-        int GetRtlsdrAdjust() {
+        long GetRtlsdrAdjust() {
             return _values.at(_section)->_rtlsdrAdjust;
         }
 
-        int GetShift() {
+        bool SetRtlsdrAdjust(long adjust) {
+            _values.at(_section)->_rtlsdrAdjust = adjust;
+            return true;
+        }
+
+        long GetShift() {
             return _values.at(_section)->_shift;
+        }
+
+        bool SetShift(long shift) {
+            _values.at(_section)->_shift = shift;
+            return true;
         }
 
         std::string GetDumpFileSuffix() {

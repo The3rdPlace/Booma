@@ -383,7 +383,7 @@ int BoomaApplication::GetInputFilterWidth() {
     return _opts->GetInputFilterWidth();
 }
 
-int BoomaApplication::GetShift() {
+long BoomaApplication::GetShift() {
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetShift();
     } else {
@@ -391,12 +391,29 @@ int BoomaApplication::GetShift() {
     }
 }
 
-int BoomaApplication::GetFrequencyAdjust() {
+long BoomaApplication::GetRealShift() {
+    return _opts->GetShift();
+}
+
+bool BoomaApplication::SetShift(long shift) {
+    return _opts->SetShift(shift);
+}
+
+long BoomaApplication::GetFrequencyAdjust() {
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetRtlsdrAdjust();
     } else {
         return 0;
     }
+}
+
+long BoomaApplication::GetRealFrequencyAdjust() {
+    return _opts->GetRtlsdrAdjust();
+}
+
+bool BoomaApplication::SetFrequencyAdjust(long adjust) {
+    _opts->SetRtlsdrAdjust(adjust);
+    return true;
 }
 
 std::vector<std::string> BoomaApplication::GetConfigSections() {

@@ -559,6 +559,7 @@ void MainWindow::EditReceiverInput(const char* name) {
     }
     delete(dlg);
     _app->Run();
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
@@ -573,6 +574,7 @@ void MainWindow::AddReceiverInput() {
     }
     delete(dlg);
     _app->Run();
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 
     SetupReceiverInputMenu();
     SetupConfigurationMenu();

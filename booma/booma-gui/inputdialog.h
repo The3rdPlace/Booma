@@ -12,6 +12,7 @@
 #include <FL/Fl_Radio_Round_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Native_File_Chooser.H>
+#include <FL/Fl_Check_Button.H>
 
 class InputDialog {
 
@@ -67,6 +68,8 @@ class InputDialog {
         Fl_Button* _saveButton;
         Fl_Choice* _deviceRate;
         Fl_Choice* _outputRate;
+        Fl_Input* _converterFrequency;
+        Fl_Input* _frequencyAdjust;
 
         void LoadState();
         void SaveState();

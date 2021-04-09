@@ -109,8 +109,12 @@ class BoomaApplication {
         bool ChangeFrequency(int stepSize);
 
         // Get frequency shift and frequency adjustments for rtl-sdr dongles
-        int GetShift();
-        int GetFrequencyAdjust();
+        long GetShift();
+        bool SetShift(long shift);
+        long GetRealShift();
+        long GetFrequencyAdjust();
+        long GetRealFrequencyAdjust();
+        bool SetFrequencyAdjust(long adjust);
 
         // Set 1.st IF filter width
         bool SetInputFilterWidth(int width);

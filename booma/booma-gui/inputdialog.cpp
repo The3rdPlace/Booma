@@ -45,7 +45,7 @@ InputDialog::~InputDialog() {
 bool InputDialog::Show() {
 
     int x = 10;
-    const int ix = 150;
+    int ix = 150;
     int y = 0;
     const int width = 30;
     const int fwidth = 160;
@@ -173,6 +173,11 @@ bool InputDialog::Show() {
     y++;
     _deviceRate = new Fl_Choice(x, YINC, fwidth, height, "Input rate");
     _outputRate = new Fl_Choice(x, YINC, fwidth, height, "Output rate");
+
+    // Use of converter
+    y++;
+    _converterFrequency = new Fl_Input(x + (fwidth / 2), YINC, fwidth / 2, height, "Upconverter frequency");
+    _frequencyAdjust = new Fl_Input(x + (fwidth / 2), YINC, fwidth / 2, height, "Frequency adjust");
 
     y = 15;
     x -= 80;
@@ -362,6 +367,10 @@ void InputDialog::LoadState() {
     } else {
         _inputSourceDatatypeReal->setonly();
     }
+
+    // Upconverter
+    _converterFrequency->value(std::to_string(_app->GetRealShift()).c_str());
+    _frequencyAdjust->value(std::to_string(_app->GetRealFrequencyAdjust()).c_str());
 
     // Update gui state
     UpdateState();
@@ -739,4 +748,8 @@ void InputDialog::SaveState() {
     if( _inputSourceDatatypeQ->value() ) {
         _app->SetInputSourceDataType(Q_INPUT_SOURCE_DATA_TYPE);
     }
+
+    // Converter
+    _app->SetShift(atol(_converterFrequency->value()));
+    _app->SetFrequencyAdjust(atol(_frequencyAdjust->value()));
 }
