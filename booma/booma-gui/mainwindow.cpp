@@ -224,13 +224,13 @@ void MainWindow::SetupReceiverInputFilterMenu() {
     // Define some usefull defaults for the IF filter
     _menubar->add("Receiver/Filters/IF filter width/500 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 500 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/1 KHz", 0, HandleMenuButtonCallback, (void*) this,
+    _menubar->add("Receiver/Filters/IF filter width/1000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 1000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/3 KHz", 0, HandleMenuButtonCallback, (void*) this,
+    _menubar->add("Receiver/Filters/IF filter width/3000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/5 KHz", 0, HandleMenuButtonCallback, (void*) this,
+    _menubar->add("Receiver/Filters/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/10 KHz", 0, HandleMenuButtonCallback, (void*) this,
+    _menubar->add("Receiver/Filters/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 10000 ? FL_MENU_VALUE : 0));
 
     // Allow an arbitrary value for the IF filter from manual configuration
@@ -492,8 +492,8 @@ void MainWindow::HandleMenuButtonReceiverIfFilterWidth(char* name, char* value) 
     // Set the selected radio button
     const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
 
-    // Set width (width comes in KHz)
-    _app->SetInputFilterWidth(atoi(value) * 1000);
+    // Set width (width comes in Hz)
+    _app->SetInputFilterWidth(atoi(value));
 }
 
 void MainWindow::HandleFrequencyInputButtons(Fl_Widget *w) {
