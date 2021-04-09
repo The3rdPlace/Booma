@@ -336,12 +336,18 @@ void InputDialog::UpdateState() {
 
     // Local or remote input ?
     if( _isRemote->value() == 1 ) {
-        _remoteInputTypeGroup->set_active();
-        _originalInputTypeGroup->set_active();
-        _inputSourceDataTypeGroup->set_active();
-        _remoteInputTypeGroup->redraw();
-        _originalInputTypeGroup->redraw();
-        _inputSourceDataTypeGroup->redraw();
+        if( _remoteInputTypeGroup->active() == 0 ) {
+            _remoteInputTypeGroup->set_active();
+            _remoteInputTypeGroup->redraw();
+        }
+        if( _originalInputTypeGroup->active() == 0 ) {
+            _originalInputTypeGroup->set_active();
+            _originalInputTypeGroup->redraw();
+        }
+        if( _inputSourceDataTypeGroup->active() == 0 ) {
+            _inputSourceDataTypeGroup->set_active();
+            _inputSourceDataTypeGroup->redraw();
+        }
 
         _localAudioDevice->clear_active();
         _localRtlsdrDevice->clear_active();
@@ -435,11 +441,15 @@ void InputDialog::UpdateState() {
     }
     if( _isPcmFile->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
-        _originalInputTypeGroup->set_active();
-        _inputSourceDataTypeGroup->set_active();
         _remoteInputTypeGroup->redraw();
-        _originalInputTypeGroup->redraw();
-        _inputSourceDataTypeGroup->redraw();
+        if( _originalInputTypeGroup->active() == 0 ) {
+            _originalInputTypeGroup->set_active();
+            _originalInputTypeGroup->redraw();
+        }
+        if( _inputSourceDataTypeGroup->active() == 0 ) {
+            _inputSourceDataTypeGroup->set_active();
+            _inputSourceDataTypeGroup->redraw();
+        }
 
         _localAudioDevice->clear_active();
         _localRtlsdrDevice->clear_active();
@@ -467,11 +477,15 @@ void InputDialog::UpdateState() {
     }
     if( _isWavFile->value() == 1 ) {
         _remoteInputTypeGroup->clear_active();
-        _originalInputTypeGroup->set_active();
-        _inputSourceDataTypeGroup->set_active();
         _remoteInputTypeGroup->redraw();
-        _originalInputTypeGroup->redraw();
-        _inputSourceDataTypeGroup->redraw();
+        if( _originalInputTypeGroup->active() == 0 ) {
+            _originalInputTypeGroup->set_active();
+            _originalInputTypeGroup->redraw();
+        }
+        if( _inputSourceDataTypeGroup->active() == 0 ) {
+            _inputSourceDataTypeGroup->set_active();
+            _inputSourceDataTypeGroup->redraw();
+        }
 
         _localAudioDevice->clear_active();
         _localRtlsdrDevice->clear_active();
