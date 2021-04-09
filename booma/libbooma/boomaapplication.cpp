@@ -259,24 +259,48 @@ std::string BoomaApplication::GetPcmFile() {
     return _opts->GetPcmFile();
 }
 
+bool BoomaApplication::SetPcmFile(std::string filename) {
+    return _opts->SetPcmFile(filename);
+}
+
 std::string BoomaApplication::GetWavFile() {
     return _opts->GetWavFile();
+}
+
+bool BoomaApplication::SetWavFile(std::string filename) {
+    return _opts->SetWavFile(filename);
 }
 
 int BoomaApplication::GetSignalGeneratorFrequency() {
     return _opts->GetSignalGeneratorFrequency();
 }
 
+bool BoomaApplication::SetSignalGeneratorFrequency(int frequency) {
+    return _opts->SetSignalGeneratorFrequency(frequency);
+}
+
 std::string BoomaApplication::GetRemoteServer() {
     return _opts->GetRemoteServer();
+}
+
+bool BoomaApplication::SetRemoteServer(std::string server) {
+    return _opts->SetRemoteServer(server);
 }
 
 int BoomaApplication::GetRemoteDataPort() {
     return _opts->GetRemoteDataPort();
 }
 
+bool BoomaApplication::SetRemoteDataPort(int portnumber) {
+    return _opts->SetRemoteDataPort(portnumber);
+}
+
 int BoomaApplication::GetRemoteCommandPort() {
     return _opts->GetRemoteDataPort();
+}
+
+bool BoomaApplication::SetRemoteCommandPort(int portnumber) {
+    return _opts->SetRemoteDataPort(portnumber);
 }
 
 HTimer BoomaApplication::GetSchedule() {

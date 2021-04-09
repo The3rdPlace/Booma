@@ -118,12 +118,27 @@ class ConfigOptions {
             return _values.at(_section)->_remoteServer;
         }
 
+        bool SetRemoteServer(std::string server) {
+            _values.at(_section)->_remoteServer = server;
+            return true;
+        }
+
         int GetRemoteDataPort() {
             return _values.at(_section)->_remoteDataPort;
         }
 
+        bool SetRemoteDataPort(int portnumber) {
+            _values.at(_section)->_remoteDataPort = portnumber;
+            return true;
+        }
+
         int GetRemoteCommandPort() {
             return _values.at(_section)->_remoteCommandPort;
+        }
+
+        bool SetRemoteCommandPort(int portnumber) {
+            _values.at(_section)->_remoteCommandPort = portnumber;
+            return true;
         }
 
         bool GetUseRemoteHead() {
@@ -178,6 +193,11 @@ class ConfigOptions {
             return _values.at(_section)->_signalGeneratorFrequency;
         }
 
+        bool SetSignalGeneratorFrequency(int frequency) {
+            _values.at(_section)->_signalGeneratorFrequency = frequency;
+            return true;
+        }
+
         int GetInputSampleRate() {
             return _values.at(_section)->_inputSampleRate;
         }
@@ -200,8 +220,18 @@ class ConfigOptions {
             return _values.at(_section)->_pcmFile;
         }
 
+        bool SetPcmFile(std::string filename) {
+            _values.at(_section)->_pcmFile = filename;
+            return true;
+        }
+
         std::string GetWavFile() {
             return _values.at(_section)->_wavFile;
+        }
+
+        bool SetWavFile(std::string filename) {
+            _values.at(_section)->_wavFile = filename;
+            return true;
         }
 
         bool GetEnableProbes() {

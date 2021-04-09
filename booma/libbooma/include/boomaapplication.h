@@ -136,11 +136,17 @@ class BoomaApplication {
         int GetInputDevice();
         bool SetInputDevice(int device);
         std::string GetPcmFile();
+        bool SetPcmFile(std::string filename);
         std::string GetWavFile();
+        bool SetWavFile(std::string filename);
         int GetSignalGeneratorFrequency();
+        bool SetSignalGeneratorFrequency(int frequency);
         std::string GetRemoteServer();
+        bool SetRemoteServer(std::string server);
         int GetRemoteDataPort();
+        bool SetRemoteDataPort(int portnumber);
         int GetRemoteCommandPort();
+        bool SetRemoteCommandPort(int portnumber);
         std::string GetOutputFilename();
         int GetOutputDevice();
         void SetOutputAudioDevice(int card);

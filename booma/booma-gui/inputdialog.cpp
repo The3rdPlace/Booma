@@ -255,7 +255,7 @@ void InputDialog::LoadState() {
     // Hardware input devices
     std::map<int, std::string> devices = _app->GetAudioDevices(true, true, true, false);
     for( std::map<int, std::string>::iterator it = devices.begin(); it != devices.end(); it++ ) {
-        _localAudioDevice->add((*it).second.c_str());
+        _localAudioDevice->add(("Card " + std::to_string((*it).first) + ": " + (*it).second).c_str());
         if( _mode == EDIT ) {
             if( (*it).first == _app->GetInputDevice() ) {
                 _localAudioDevice->value((*it).first - 1);
@@ -264,7 +264,7 @@ void InputDialog::LoadState() {
     }
     devices = _app->GetRtlsdrDevices();
     for( std::map<int, std::string>::iterator it = devices.begin(); it != devices.end(); it++ ) {
-        _localRtlsdrDevice->add((*it).second.c_str());
+        _localRtlsdrDevice->add(("Device " + std::to_string((*it).first) + ": " + (*it).second).c_str());
         if( _mode == EDIT ) {
             if( (*it).first == _app->GetInputDevice() ) {
                 _localRtlsdrDevice->value((*it).first - 1);
@@ -683,14 +683,20 @@ void InputDialog::SaveState() {
     }
 
     // Various settings
-    /*if( _mode == EDIT ) {
-        _localPcmFilename->value(_app->GetPcmFile().c_str());
-        _localWavFilename->value(_app->GetWavFile().c_str());
-        _localGeneratorFrequency->value(std::to_string(_app->GetSignalGeneratorFrequency()).c_str());
-        _remoteHost->value(_app->GetRemoteServer().c_str());
-        _remoteDataPort->value(std::to_string(_app->GetRemoteDataPort()).c_str());
-        _remoteCommandPort->value(std::to_string(_app->GetRemoteCommandPort()).c_str());
-    }*/
+    if( _isPcmFile->value() ) {
+        _app->SetPcmFile(_localPcmFilename->value());
+    }
+    if( _isWavFile->value() ) {
+        _app->SetWavFile(_localWavFilename->value());
+    }
+    if( _isGenerator->value() ) {
+        _app->SetSignalGeneratorFrequency(atoi(_localGeneratorFrequency->value()));
+    }
+    if( _isRemote->value() ) {
+        _app->SetRemoteServer(_remoteHost->value());
+        _app->SetRemoteDataPort(atoi(_remoteDataPort->value()));
+        _app->SetRemoteCommandPort(atoi(_remoteCommandPort->value()));
+    }
 
     // Samplerates
     if( _deviceRate->value() >= 0 ) {

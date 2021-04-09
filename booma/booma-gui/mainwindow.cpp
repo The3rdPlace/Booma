@@ -202,13 +202,13 @@ void MainWindow::SetupReceiverOutputMenu() {
 
     std::map<int, std::string> hardwareCards = _app->GetAudioDevices(true, false, false, true);
     for( std::map<int, std::string>::iterator it = hardwareCards.begin(); it != hardwareCards.end(); it++) {
-        _menubar->add(("Receiver/Output/Physical card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
+        _menubar->add(("Receiver/Output/Card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
                       FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0));
     }
 
     std::map<int, std::string> virtualCards = _app->GetAudioDevices(false, true, false, true);
     for( std::map<int, std::string>::iterator it = virtualCards.begin(); it != virtualCards.end(); it++) {
-        _menubar->add(("Receiver/Output/Virtual card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
+        _menubar->add(("Receiver/Output/Card "  + std::to_string((*it).first) + ": " + (*it).second).c_str(), 0, HandleMenuButtonCallback, (void *) this,
                       FL_MENU_RADIO | (_app->GetOutputDevice() == (*it).first ? FL_MENU_VALUE : 0));
     }
 
@@ -410,14 +410,11 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
     }
 
     // Physical and virtual audio cards
-    else if( strncmp(value, "Physical card ", 14) == 0 ) {
-        int card = atoi(&value[14]);
-        _app->SetOutputAudioDevice(card);
-    } else if( strncmp(value, "Virtual card ", 13) == 0 ) {
-        int card = atoi(&value[13]);
+    else if( strncmp(value, "Card ", 5) == 0 ) {
+        int card = atoi(&value[5]);
         _app->SetOutputAudioDevice(card);
     }
-
+    
     // Unknown menu item
     else {
         HError("Unknown card or device '%s'", value);
