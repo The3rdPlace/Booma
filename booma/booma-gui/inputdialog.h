@@ -10,6 +10,7 @@
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Radio_Round_Button.H>
+#include <FL/Fl_Choice.H>
 
 class InputDialog {
 
@@ -61,12 +62,33 @@ class InputDialog {
         Fl_Radio_Round_Button* _inputSourceDatatypeQ;
         Fl_Button* _cancelButton;
         Fl_Button* _saveButton;
-        Fl_Input* _deviceRate;
-        Fl_Input* _outputRate;
+        Fl_Choice* _deviceRate;
+        Fl_Choice* _outputRate;
 
         void LoadState();
         void SaveState();
         void UpdateState();
+
+        std::vector<int> _deviceRates = {
+                H_SAMPLE_RATE_44K1,
+                H_SAMPLE_RATE_48K,
+                H_SAMPLE_RATE_96K,
+                H_SAMPLE_RATE_192K,
+                H_SAMPLE_RATE_960K,
+                H_SAMPLE_RATE_1M152K,
+                H_SAMPLE_RATE_1M440K,
+                H_SAMPLE_RATE_1M600K,
+                H_SAMPLE_RATE_1M800K,
+                H_SAMPLE_RATE_1M920K,
+                H_SAMPLE_RATE_2M400K,
+                H_SAMPLE_RATE_2M880K
+        };
+
+        std::vector<int> _outputRates = {
+                H_SAMPLE_RATE_44K1,
+                H_SAMPLE_RATE_48K,
+                H_SAMPLE_RATE_96K
+        };
 
     public:
 

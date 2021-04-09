@@ -137,8 +137,8 @@ bool InputDialog::Show() {
 
     // Sample rate for input- and output device
     y++;
-    _deviceRate = new Fl_Input(x, YINC, fwidth, height, "Input rate");
-    _outputRate = new Fl_Input(x, YINC, fwidth, height, "Output rate");
+    _deviceRate = new Fl_Choice(x, YINC, fwidth, height, "Input rate");
+    _outputRate = new Fl_Choice(x, YINC, fwidth, height, "Output rate");
 
     y = 15;
     x -= 80;
@@ -223,8 +223,24 @@ void InputDialog::LoadState() {
     _remoteHost->value(_app->GetRemoteServer().c_str());
     _remoteDataPort->value(std::to_string(_app->GetRemoteDataPort()).c_str());
     _remoteCommandPort->value(std::to_string(_app->GetRemoteCommandPort()).c_str());
-    _deviceRate->value(std::to_string(_app->GetInputSampleRate()).c_str());
-    _outputRate->value(std::to_string(_app->GetOutputSampleRate()).c_str());
+
+    // Samplerates
+    int i = 0;
+    for( std::vector<int>::iterator it = _deviceRates.begin(); it != _deviceRates.end(); it++ ) {
+        _deviceRate->add(std::to_string((*it)).c_str());
+        if( (*it) == _app->GetInputSampleRate()) {
+            _deviceRate->value(i);
+        }
+        i++;
+    }
+    i = 0;
+    for( std::vector<int>::iterator it = _outputRates.begin(); it != _outputRates.end(); it++ ) {
+        _outputRate->add(std::to_string((*it)).c_str());
+        if( (*it) == _app->GetOutputSampleRate()) {
+            _outputRate->value(i);
+        }
+        i++;
+    }
 
     // Original input type (if none is set, that's perfectly allright. We may not need it)
     switch(_app->GetOriginalInputSourceType()) {
