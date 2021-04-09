@@ -11,6 +11,7 @@
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Radio_Round_Button.H>
 #include <FL/Fl_Choice.H>
+#include <FL/Fl_Native_File_Chooser.H>
 
 class InputDialog {
 
@@ -33,13 +34,15 @@ class InputDialog {
 
         Fl_Group* _inputTypeGroup;
         Fl_Radio_Round_Button* _isAudioDevice;
-        Fl_Input* _localAudioDevice;
+        Fl_Choice* _localAudioDevice;
         Fl_Radio_Round_Button* _isRtlsdrDevice;
-        Fl_Input* _localRtlsdrDevice;
+        Fl_Choice* _localRtlsdrDevice;
         Fl_Radio_Round_Button* _isPcmFile;
         Fl_Input* _localPcmFilename;
+        Fl_Button* _selectPcmFilename;
         Fl_Radio_Round_Button* _isWavFile;
         Fl_Input* _localWavFilename;
+        Fl_Button* _selectWavFilename;
         Fl_Radio_Round_Button* _isSilence;
         Fl_Radio_Round_Button* _isGenerator;
         Fl_Input* _localGeneratorFrequency;
@@ -68,6 +71,8 @@ class InputDialog {
         void LoadState();
         void SaveState();
         void UpdateState();
+
+        std::string SelectFile(std::string filter);
 
         std::vector<int> _deviceRates = {
                 H_SAMPLE_RATE_44K1,
@@ -107,6 +112,9 @@ class InputDialog {
         void Update() {
             UpdateState();
         }
+
+        void SelectPcmFile();
+        void SelectWavFile();
 };
 
 
