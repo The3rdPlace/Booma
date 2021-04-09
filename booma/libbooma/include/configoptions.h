@@ -60,18 +60,38 @@ class ConfigOptions {
             return _values.at(_section)->_inputSourceType;
         }
 
+        bool SetInputSourceType(InputSourceType inputSourceType) {
+            _values.at(_section)->_inputSourceType = inputSourceType;
+            return true;
+        }
+
         InputSourceType GetOriginalInputSourceType() {
             return _values.at(_section)->_originalInputSourceType == NO_INPUT_SOURCE_TYPE
             ? _values.at(_section)->_inputSourceType
             : _values.at(_section)->_originalInputSourceType;
         }
 
+        bool SetOriginalInputSourceType(InputSourceType originalInputSourceType) {
+            _values.at(_section)->_originalInputSourceType = originalInputSourceType;
+            return true;
+        }
+
         InputSourceDataType GetInputSourceDataType() {
             return _values.at(_section)->_inputSourceDataType;
         }
 
+        bool SetInputSourceDataType(InputSourceDataType inputSourceDataType) {
+            _values.at(_section)->_inputSourceDataType = inputSourceDataType;
+            return true;
+        }
+
         int GetInputDevice() {
             return _values.at(_section)->_inputDevice;
+        }
+
+        bool SetInputDevice(int device) {
+            _values.at(_section)->_inputDevice = device;
+            return true;
         }
 
         long int GetFrequency() {
@@ -166,12 +186,14 @@ class ConfigOptions {
             return _values.at(_section)->_outputSampleRate;
         }
 
-        void SetInputSampleRate(int sampleRate) {
+        bool SetInputSampleRate(int sampleRate) {
             _values.at(_section)->_inputSampleRate = sampleRate;
+            return true;
         }
 
-        void SetOutputSampleRate(int sampleRate) {
+        bool SetOutputSampleRate(int sampleRate) {
             _values.at(_section)->_outputSampleRate = sampleRate;
+            return true;
         }
 
         std::string GetPcmFile() {
@@ -353,6 +375,22 @@ class ConfigOptions {
 
             HLog("Set section %s as active", _section.c_str()   );
             _section = section;
+            return true;
+        }
+
+        bool RenameConfigSection(std::string newname) {
+            if( _values.find(newname) != _values.end() ) {
+                HLog("Config section %s exists", newname.c_str());
+                return false;
+            }
+
+            // Clone current settings
+            ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
+            _values.insert(std::pair<std::string, ConfigOptionValues*>(newname, newValues));
+            std::map<std::string, ConfigOptionValues*>::iterator old = _values.find(_section);
+            _values.erase(old);
+            HLog("Renamed section '%s' to '%s'", _section.c_str(), newname.c_str());
+            _section = newname;
             return true;
         }
 

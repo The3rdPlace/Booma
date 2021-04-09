@@ -227,16 +227,32 @@ InputSourceType BoomaApplication::GetInputSourceType() {
     return _opts->GetInputSourceType();
 }
 
+bool BoomaApplication::SetInputSourceType(InputSourceType inputSourceType) {
+    return _opts->GetInputSourceType();
+}
+
 InputSourceType BoomaApplication::GetOriginalInputSourceType() {
     return _opts->GetOriginalInputSourceType();
+}
+
+bool BoomaApplication::SetOriginalInputSourceType(InputSourceType originalInputSourceType) {
+    return _opts->SetOriginalInputSourceType(originalInputSourceType);
 }
 
 InputSourceDataType BoomaApplication::GetInputSourceDataType() {
     return _opts->GetInputSourceDataType();
 }
 
+bool BoomaApplication::SetInputSourceDataType(InputSourceDataType inputSourceDataType) {
+    return _opts->SetInputSourceDataType(inputSourceDataType);
+}
+
 int BoomaApplication::GetInputDevice() {
     return _opts->GetInputDevice();
+}
+
+bool BoomaApplication::SetInputDevice(int device) {
+    return _opts->SetInputDevice(device);
 }
 
 std::string BoomaApplication::GetPcmFile() {
@@ -383,6 +399,14 @@ bool BoomaApplication::CreateConfigSection(std::string section) {
     return false;
 }
 
+bool BoomaApplication::RenameConfigSection(std::string newname) {
+    if( _opts->RenameConfigSection(newname) ) {
+        Reconfigure();
+        return true;
+    }
+    return false;
+}
+
 bool BoomaApplication::DeleteConfigSection(std::string section) {
     return _opts->DeleteConfigSection(section);
 }
@@ -423,8 +447,16 @@ int BoomaApplication::GetInputSampleRate() {
     return _opts->GetInputSampleRate();
 }
 
+bool BoomaApplication::SetInputSampleRate(int rate) {
+    return _opts->SetInputSampleRate(rate);
+}
+
 int BoomaApplication::GetOutputSampleRate() {
     return _opts->GetOutputSampleRate();
+}
+
+bool BoomaApplication::SetOutputSampleRate(int rate) {
+    return _opts->SetOutputSampleRate(rate);
 }
 
 void BoomaApplication::SyncConfiguration() {

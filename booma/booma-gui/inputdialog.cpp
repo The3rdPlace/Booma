@@ -595,15 +595,6 @@ void InputDialog::UpdateState() {
     _saveButton->redraw();
 }
 
-void InputDialog::SaveState() {
-    if( _mode == EDIT ) {
-
-    } else {
-
-    }
-    _changed = true;
-}
-
 void InputDialog::Cancel() {
     _win->hide();
 }
@@ -645,5 +636,101 @@ std::string InputDialog::SelectFile(std::string filter) {
             return std::string();
         default:
             return std::string(chooser.filename());
+    }
+}
+
+void InputDialog::SaveState() {
+
+    if( _mode == ADD ) {
+        // Todo: create new configuration
+    }
+    _changed = true;
+
+    // Configuration name
+    if( _name->value() != _app->GetConfigSection() ) {
+        _app->RenameConfigSection(_name->value());
+    }
+
+    // Input source type
+    if( _isRemote->value() ) {
+        _app->SetInputSourceType(NETWORK);
+    }
+    if( _isAudioDevice->value() ) {
+        _app->SetInputSourceType(AUDIO_DEVICE);
+    }
+    if( _isRtlsdrDevice->value() ) {
+        _app->SetInputSourceType(RTLSDR);
+    }
+    if( _isPcmFile->value() ) {
+        _app->SetInputSourceType(PCM_FILE);
+    }
+    if( _isWavFile->value() ) {
+        _app->SetInputSourceType(WAV_FILE);
+    }
+    if( _isSilence->value() ) {
+        _app->SetInputSourceType(SILENCE);
+    }
+    if( _isGenerator->value() ) {
+        _app->SetInputSourceType(SIGNAL_GENERATOR);
+    }
+
+    // Input device (audio or rtlsdr)
+    if( _isAudioDevice->value() && _localAudioDevice->value() >= 0 ) {
+        _app->SetInputDevice(_localAudioDevice->value());
+    }
+    if( _isRtlsdrDevice->value() && _localRtlsdrDevice->value() >= 0 ) {
+        _app->SetInputDevice(_localRtlsdrDevice->value());
+    }
+
+    // Various settings
+    /*if( _mode == EDIT ) {
+        _localPcmFilename->value(_app->GetPcmFile().c_str());
+        _localWavFilename->value(_app->GetWavFile().c_str());
+        _localGeneratorFrequency->value(std::to_string(_app->GetSignalGeneratorFrequency()).c_str());
+        _remoteHost->value(_app->GetRemoteServer().c_str());
+        _remoteDataPort->value(std::to_string(_app->GetRemoteDataPort()).c_str());
+        _remoteCommandPort->value(std::to_string(_app->GetRemoteCommandPort()).c_str());
+    }*/
+
+    // Samplerates
+    if( _deviceRate->value() >= 0 ) {
+       _app->SetInputSampleRate(_deviceRates.at(_deviceRate->value()));
+    }
+    if( _outputRate->value() >= 0 ) {
+        _app->SetOutputSampleRate(_outputRates.at(_outputRate->value()));
+    }
+
+    // Input source type
+    if( _isOriginalAudioDevice->value() ) {
+        _app->SetOriginalInputSourceType(AUDIO_DEVICE);
+    }
+    if( _isOriginalRtlsdrDevice->value() ) {
+        _app->SetOriginalInputSourceType(RTLSDR);
+    }
+    if( _isOriginalPcmFile->value() ) {
+        _app->SetOriginalInputSourceType(PCM_FILE);
+    }
+    if( _isOriginalWavFile->value() ) {
+        _app->SetOriginalInputSourceType(WAV_FILE);
+    }
+    if( _isOriginalSilence->value() ) {
+        _app->SetOriginalInputSourceType(SILENCE);
+    }
+    if( _isOriginalGenerator->value() ) {
+        _app->SetOriginalInputSourceType(SIGNAL_GENERATOR);
+    }
+
+    // Input sample type
+    if( _inputSourceDatatypeReal->value() ) {
+        _app->SetInputSourceDataType(REAL_INPUT_SOURCE_DATA_TYPE);
+    }
+    if( _inputSourceDatatypeIq->value() ) {
+        _app->SetInputSourceDataType(IQ_INPUT_SOURCE_DATA_TYPE);
+    }
+    if( _inputSourceDatatypeI->value() ) {
+        _app->SetInputSourceDataType(I_INPUT_SOURCE_DATA_TYPE);
+    }
+    if( _inputSourceDatatypeQ->value() ) {
+        _app->SetInputSourceDataType(Q_INPUT_SOURCE_DATA_TYPE);
     }
 }

@@ -128,9 +128,13 @@ class BoomaApplication {
 
         // Public control functions that would require a receiver restart after modifications
         InputSourceType GetInputSourceType();
+        bool SetInputSourceType(InputSourceType inputSourceType);
         InputSourceType GetOriginalInputSourceType();
+        bool SetOriginalInputSourceType(InputSourceType originalInputSourceType);
         InputSourceDataType GetInputSourceDataType();
+        bool SetInputSourceDataType(InputSourceDataType inputSourceDataType);
         int GetInputDevice();
+        bool SetInputDevice(int device);
         std::string GetPcmFile();
         std::string GetWavFile();
         int GetSignalGeneratorFrequency();
@@ -164,7 +168,9 @@ class BoomaApplication {
         std::map<int, std::string> GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs);
         std::map<int, std::string> GetRtlsdrDevices();
         int GetInputSampleRate();
+        bool SetInputSampleRate(int rate);
         int GetOutputSampleRate();
+        bool SetOutputSampleRate(int rate);
 
         // Bookmarks
         void SetBookmark(std::string name);
@@ -184,6 +190,7 @@ class BoomaApplication {
         bool SetConfigSection(std::string section);
         bool CreateConfigSection(std::string section);
         bool DeleteConfigSection(std::string section);
+        bool RenameConfigSection(std::string newname);
 
         // Configuration
         void SyncConfiguration();
