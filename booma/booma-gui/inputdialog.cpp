@@ -55,7 +55,9 @@ bool InputDialog::Show() {
     // Create window  630
     _win = new Fl_Window(595, 500);
     _win->set_modal();
-    _win->label(_mode == EDIT ? "Edit input" : "Add new input");
+    char title[256];
+    strcpy(title, ("Edit input \"" + _app->GetConfigSection() + "\"").c_str());
+    _win->label(_mode == EDIT ? title : "Add new input");
 
     // Select input type
     _inputTypeGroup = new Fl_Group(10, Y, 300, 210);
@@ -369,8 +371,13 @@ void InputDialog::LoadState() {
     }
 
     // Upconverter
-    _converterFrequency->value(std::to_string(_app->GetRealShift()).c_str());
-    _frequencyAdjust->value(std::to_string(_app->GetRealFrequencyAdjust()).c_str());
+    if( _mode == EDIT ) {
+        _converterFrequency->value(std::to_string(_app->GetRealShift()).c_str());
+        _frequencyAdjust->value(std::to_string(_app->GetRealFrequencyAdjust()).c_str());
+    } else {
+        _converterFrequency->value("0");
+        _frequencyAdjust->value("0");
+    }
 
     // Update gui state
     UpdateState();
@@ -650,7 +657,7 @@ std::string InputDialog::SelectFile(std::string filter) {
 void InputDialog::SaveState() {
 
     if( _mode == ADD ) {
-        // Todo: create new configuration
+        _app->CreateConfigSection(_name->value(), false, false);
     }
     _changed = true;
 

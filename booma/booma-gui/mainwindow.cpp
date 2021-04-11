@@ -304,15 +304,15 @@ void MainWindow::SetupControls() {
     _channelSelector->callback(HandleChannelSelectorCallback);
 
     // Gain and volume sliders
-    strcpy(_gainLabel, ("RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")").c_str());
     _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 10, 150, 30, _gainLabel);
     _gainSlider->bounds(-20, 110);
     _gainSlider->scrollvalue(MapToGainSliderValue(_app->GetRfGain()), 1, -20, 131);
+    SetGainSliderLabel();
     _gainSlider->callback(HandleGainSliderCallback);
-    strcpy(_volumeLabel, ("Volume (" + std::to_string(_app->GetVolume()) + ")").c_str());
     _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 80, 150, 30, _volumeLabel);
     _volumeSlider->bounds(0, 30);
     _volumeSlider->scrollvalue(_app->GetVolume(), 1, 0, 31);
+    SetVolumeSliderLabel();
     _volumeSlider->callback(HandleVolumeSliderCallback);
 }
 
@@ -383,6 +383,15 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
 
     // Update the menu
     SetupReceiverInputMenu();
+    SetupConfigurationMenu();
+
+    _volumeSlider->value(_app->GetVolume());
+    _gainSlider->value(MapToGainSliderValue(_app->GetRfGain()));
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _volumeSlider->redraw();
+    _gainSlider->redraw();
+    SetGainSliderLabel();
+    SetVolumeSliderLabel();
     _app->Run();
 }
 
@@ -539,15 +548,13 @@ void MainWindow::HandleChannelSelector(Fl_Widget *w) {
 }
 
 void MainWindow::HandleGainSlider() {
-    strcpy(_gainLabel, ("   RF Gain (" + (MapFromGainSliderValue(_gainSlider->value()) == 0 ? "auto" : std::to_string(MapFromGainSliderValue(_gainSlider->value()))) + ")   ").c_str());
-    _gainSlider->label(_gainLabel);
     _app->SetRfGain(MapFromGainSliderValue(_gainSlider->value()));
+    SetGainSliderLabel();
 }
 
 void MainWindow::HandleVolumeSlider() {
-    strcpy(_volumeLabel, ("   Volume (" + std::to_string((int) _volumeSlider->value()) + ")   ").c_str());
-    _volumeSlider->label(_volumeLabel);
     _app->SetVolume(_volumeSlider->value());
+    SetVolumeSliderLabel();
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
@@ -558,14 +565,23 @@ void MainWindow::EditReceiverInput(const char* name) {
         _app->SyncConfiguration();
     }
     delete(dlg);
-    _app->Run();
+
+    _volumeSlider->value(MapToGainSliderValue(_app->GetVolume()));
+    _gainSlider->value(_app->GetRfGain());
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _volumeSlider->redraw();
+    _gainSlider->redraw();
 
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
+
+    _app->Run();
 }
 
 void MainWindow::AddReceiverInput() {
+    int outputDevice = _app->GetOutputDevice();
+    int volume = _app->GetVolume();
+
     _app->Halt();
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
     if( dlg->Show() ) {
@@ -573,11 +589,20 @@ void MainWindow::AddReceiverInput() {
         _app->SyncConfiguration();
     }
     delete(dlg);
-    _app->Run();
-    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 
+    _app->SetOutputAudioDevice(outputDevice);
+    _app->SetVolume(volume);
+    _volumeSlider->value(MapToGainSliderValue(volume));
+    _gainSlider->value(_app->GetRfGain());
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _volumeSlider->redraw();
+    _gainSlider->redraw();
+
+    SetupReceiverOutputMenu();
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
+
+    _app->Run();
 }
 
 void MainWindow::DeleteReceiverInput(const char* name) {
@@ -682,4 +707,14 @@ long MainWindow::MapToGainSliderValue(int value) {
     } else {
         return 0;
     }
+}
+
+void MainWindow::SetGainSliderLabel() {
+    strcpy(_gainLabel, ("  RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")  ").c_str());
+    _gainSlider->label(_gainLabel);
+}
+
+void MainWindow::SetVolumeSliderLabel() {
+    strcpy(_volumeLabel, ("  Volume (" + std::to_string(_app->GetVolume()) + ")  ").c_str());
+    _volumeSlider->label(_volumeLabel);
 }

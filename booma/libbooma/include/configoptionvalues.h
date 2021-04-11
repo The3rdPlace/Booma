@@ -95,7 +95,7 @@ enum DumpFileFormatType {
         int _outputSampleRate = H_SAMPLE_RATE_48K;
     
         // Output audio device
-        int _outputAudioDevice = 0;
+        int _outputAudioDevice = -1;
         std::string _outputFilename = "";
     
         // Input device- and datatype
@@ -104,7 +104,7 @@ enum DumpFileFormatType {
         InputSourceDataType _inputSourceDataType = NO_INPUT_SOURCE_DATA_TYPE;
     
         // Input device
-        int _inputDevice = 0;
+        int _inputDevice = -1;
     
         // RTL-SDR and IQ/I/Q specific settings
         long int _rtlsdrAdjust = 0;
@@ -127,10 +127,9 @@ enum DumpFileFormatType {
     
         // First stage gain (default 0 = auto)
         int _rfGain = 0;
-        int _rfAgcLevel = 500;
-    
+
         // Output volume
-        int _volume = 20;
+        int _volume = 10;
     
         // Dump pcm and audio
         bool _dumpRf = false;
@@ -158,18 +157,20 @@ enum DumpFileFormatType {
     
         // Decimation settings
         int _decimatorGain = 0; // = auto
-        int _decimatorAgcLevel = 1000;
     
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
+        // Also these are not stored, so they must be set upon each startup
         int _rtlsdrOffset = 6000;
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
         int _rtlsdrGain = 0;
         int _firFilterSize = 51;
         int _inputFilterWidth = 3000;
+        int _rfAgcLevel = 500;
+        int _decimatorAgcLevel = 1000;
 
-         // Memory channels
+        // Memory channels
          std::vector<Channel*> _channels;
 };
 

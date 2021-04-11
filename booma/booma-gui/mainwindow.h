@@ -78,6 +78,8 @@ class MainWindow {
         void RemoveMenuSubItems(const char *name);
         int MapFromGainSliderValue(long value);
         long MapToGainSliderValue(int value);
+        void SetGainSliderLabel();
+        void SetVolumeSliderLabel();
 
     public:
 

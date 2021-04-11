@@ -77,7 +77,8 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << std::endl;
 
     if( showSecretSettings ) {
-        std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
+        std::cout << tr("==[Internal settings, try to leave untouched!!]==") << std::endl;
+        std::cout << tr("=========(These settings are NOT stored)=========") << std::endl;
         std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -rtlf factor") << std::endl;
@@ -307,7 +308,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Config sections
         if (strcmp(argv[i], "-config") == 0 && i < argc - 1) {
             if (!SetConfigSection(argv[i + 1])) {
-                if (!CreateConfigSection(argv[i + 1])) {
+                if (!CreateConfigSection(argv[i + 1], false, false)) {
                     std::cout << "Could not create config section '" << argv[i + 1] << "'" << std::endl;
                     exit(1);
                 }
@@ -1065,6 +1066,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
         // Check for section name
         if( opt[0] == '[' && opt[opt.length() - 1] == ']' ) {
             _section = opt.substr(1, opt.length() - 2);
+            std::replace(_section.begin(), _section.end(), '_', ' ');
             HLog("Next config section is '%s'", _section.c_str());
 
             if (_values.find(_section) == _values.end()) {
@@ -1107,12 +1109,8 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
                 if (name == "pcmFile") _values.at(_section)->_pcmFile = value;
                 if (name == "wavFile") _values.at(_section)->_wavFile = value;
                 if (name == "reservedBuffers") _values.at(_section)->_reservedBuffers = atoi(value.c_str());
-                if (name == "rtlsdrCorrection") _values.at(_section)->_rtlsdrCorrection = atoi(value.c_str());
-                if (name == "rtlsdrOffset") _values.at(_section)->_rtlsdrOffset = atoi(value.c_str());
-                if (name == "rtlsdrCorrectionFactor") _values.at(_section)->_rtlsdrCorrectionFactor = atoi(value.c_str());
                 if (name == "rtlsdrAdjust") _values.at(_section)->_rtlsdrAdjust = atoi(value.c_str());
                 if (name == "shift") _values.at(_section)->_shift = atoi(value.c_str());
-                if (name == "rfagclevel") _values.at(_section)->_rfAgcLevel = atoi(value.c_str());
                 if (name == "channels") _values.at(_section)->_channels = ReadChannels(configname, value);
                 if (name == "isRemoteHead") _values.at(_section)->_isRemoteHead = (value == "true" ? true : false);
             }
@@ -1189,7 +1187,9 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
     for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
 
         // Section name
-        configStream << "[" << (*it).first << "]" << std::endl;
+        std::string name = (*it).first;
+        std::replace(name.begin(), name.end(), ' ', '_');
+        configStream << "[" << name << "]" << std::endl;
 
         // Write config settings
         if (!isBookmark) {
@@ -1209,12 +1209,8 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
             configStream << "pcmFile=" << _values.at((*it).first)->_pcmFile << std::endl;
             configStream << "wavFile=" << _values.at((*it).first)->_wavFile << std::endl;
             configStream << "reservedBuffers=" << _values.at((*it).first)->_reservedBuffers << std::endl;
-            configStream << "rtlsdrCorrection=" << _values.at((*it).first)->_rtlsdrCorrection << std::endl;
-            configStream << "rtlsdrOffset=" << _values.at((*it).first)->_rtlsdrOffset << std::endl;
-            configStream << "rtlsdrCorrectionFactor" << _values.at((*it).first)->_rtlsdrCorrectionFactor << std::endl;
             configStream << "rtlsdrAdjust=" << _values.at((*it).first)->_rtlsdrAdjust << std::endl;
             configStream << "shift=" << _values.at((*it).first)->_shift << std::endl;
-            configStream << "rfagclevel=" << _values.at((*it).first)->_rfAgcLevel << std::endl;
             configStream << "channels=" << WriteChannels(configname, (*it).first, _values.at(_section)->_channels) << std::endl;
             configStream << "isRemoteHead=" << (_values.at((*it).first)->_isRemoteHead ? "true" : "false") << std::endl;
         }

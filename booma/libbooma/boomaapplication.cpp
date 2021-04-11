@@ -432,8 +432,8 @@ bool BoomaApplication::SetConfigSection(std::string section) {
     return false;
 }
 
-bool BoomaApplication::CreateConfigSection(std::string section) {
-    if( _opts->CreateConfigSection(section) ) {
+bool BoomaApplication::CreateConfigSection(std::string section, bool cloneOldSettings, bool replaceDefault) {
+    if( _opts->CreateConfigSection(section, cloneOldSettings, replaceDefault) ) {
         Reconfigure();
         return true;
     }

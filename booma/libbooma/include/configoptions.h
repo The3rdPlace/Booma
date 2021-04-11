@@ -397,18 +397,23 @@ class ConfigOptions {
             return true;
         }
 
-        bool CreateConfigSection(std::string section) {
+        bool CreateConfigSection(std::string section, bool cloneOldSettings, bool replaceDefault) {
             if( _values.find(section) != _values.end() ) {
                 HLog("Config section %s exists", section.c_str());
                 return false;
             }
 
             // Clone current settings
-            ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
-            _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            if( cloneOldSettings ) {
+                ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
+                _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            } else {
+                ConfigOptionValues* newValues = new ConfigOptionValues();
+                _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            }
 
             // Replace current 'default' section ?
-            if( _section == "default" ) {
+            if( _section == "default" && replaceDefault ) {
                 std::map<std::string, ConfigOptionValues*>::iterator old = _values.find(_section);
                 _values.erase(old);
                 HLog("Erase old 'default' config section");

@@ -210,7 +210,7 @@ class BoomaApplication {
         std::vector<std::string> GetConfigSections();
         std::string GetConfigSection();
         bool SetConfigSection(std::string section);
-        bool CreateConfigSection(std::string section);
+        bool CreateConfigSection(std::string section, bool cloneOldSettings = true, bool replaceDefault = true);
         bool DeleteConfigSection(std::string section);
         bool RenameConfigSection(std::string newname);
 
