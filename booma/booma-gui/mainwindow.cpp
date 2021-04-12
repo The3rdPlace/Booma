@@ -94,18 +94,21 @@ MainWindow::MainWindow(BoomaApplication* app):
     // Start display threads
     Fl::lock();
     _signalLevelThread = new std::thread( [this]()  {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             UpdateSignalLevelDisplay();
         }
     } );
     _rfSpectrumThread = new std::thread( [this]()  {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             UpdateRfSpectrumDisplay();
         }
     } );
     _afSpectrumThread = new std::thread( [this]()  {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             UpdateAfSpectrumDisplay();
@@ -160,6 +163,7 @@ void MainWindow::Dispose() {
     delete _volumeSlider;
     delete _rfInputWaterfall;
     delete _signalLevelSlider;
+    delete _rfSpectrum;
 }
 
 /**
@@ -376,7 +380,8 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _win->w() - 180, 200, "RF input");
+    _rfSpectrum = new double[_app->GetRfFftSize()];
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _win->w() - 180, 200, "RF input", _app->GetRfFftSize());
 }
 
 /***********************************************
@@ -811,7 +816,7 @@ void MainWindow::SetVolumeSliderLabel() {
     _volumeSlider->label(_volumeLabel);
 }
 
-void MainWindow::UpdateSignalLevelDisplay() {
+inline void MainWindow::UpdateSignalLevelDisplay() {
     const char* levels[12] = { "      S0      ", "      S1      ", "      S2      ", "      S3      ", "      S4      ", "      S5      ", "      S6      ", "      S7      ", "      S8      ", "      S9      ", " S9 +10dB ", " S9 +20dB " };
 
     static int initialize = 0;
@@ -905,10 +910,13 @@ void MainWindow::UpdateSignalLevelDisplay() {
     }
 }
 
-void MainWindow::UpdateRfSpectrumDisplay() {
-    // Todo: Update display
+inline void MainWindow::UpdateRfSpectrumDisplay() {
+    _app->GetRfSpectrum(_rfSpectrum);
+    _rfInputWaterfall->Refresh(_rfSpectrum);
+    _rfInputWaterfall->redraw();
+    Fl::awake();
 }
 
-void MainWindow::UpdateAfSpectrumDisplay() {
+inline void MainWindow::UpdateAfSpectrumDisplay() {
     // Todo: Update display
 }

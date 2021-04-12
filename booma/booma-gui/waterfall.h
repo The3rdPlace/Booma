@@ -9,12 +9,16 @@ class Waterfall : public Fl_Widget {
 
         void draw();
 
+        int _n;
+        Fl_Offscreen _ofscr;
+        double* _fft;
+
     public:
 
-        Waterfall(int X, int Y, int W, int H, const char *L)
-            : Fl_Widget(X, Y, W, H, L) {
+        Waterfall(int X, int Y, int W, int H, const char *L, int n);
+        ~Waterfall();
 
-        }
+        void Refresh(double* fft);
 };
 
 #endif

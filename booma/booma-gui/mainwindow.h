@@ -47,6 +47,9 @@ class MainWindow {
         Waterfall* _rfInputWaterfall;
         Fl_Slider* _signalLevelSlider;
 
+        // Displays
+        double* _rfSpectrum;
+
         // Compose GUI
         void SetupMenus();
         void SetupControls();
@@ -87,9 +90,9 @@ class MainWindow {
         std::thread* _rfSpectrumThread;
         std::thread* _afSpectrumThread;
         bool _threadsRunning = true;
-        void UpdateSignalLevelDisplay();
-        void UpdateRfSpectrumDisplay();
-        void UpdateAfSpectrumDisplay();
+        inline void UpdateSignalLevelDisplay();
+        inline void UpdateRfSpectrumDisplay();
+        inline void UpdateAfSpectrumDisplay();
 
         // Halting and cleaning up
         void Dispose();
