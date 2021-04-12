@@ -47,9 +47,6 @@ class MainWindow {
         Waterfall* _rfInputWaterfall;
         Fl_Slider* _signalLevelSlider;
 
-        // Displays
-        double* _rfSpectrum;
-
         // Compose GUI
         void SetupMenus();
         void SetupControls();

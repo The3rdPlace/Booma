@@ -7,18 +7,34 @@ class Waterfall : public Fl_Widget {
 
     private:
 
-        void draw();
-
         int _n;
         Fl_Offscreen _ofscr;
         double* _fft;
+        uchar* _screen;
+
+        int _gw;
+        int _gh;
+
+        int gw() {
+            return _gw;
+        }
+
+        int hw() {
+            return _gh;
+        }
 
     public:
 
         Waterfall(int X, int Y, int W, int H, const char *L, int n);
         ~Waterfall();
 
-        void Refresh(double* fft);
+        void draw();
+
+        double* GetFftBuffer() {
+            return _fft;
+        }
+
+        void Refresh();
 };
 
 #endif

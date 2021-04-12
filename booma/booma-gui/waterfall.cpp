@@ -2,67 +2,46 @@
 
 #include <FL/Fl.H>
 #include <iostream>
+#include <math.h>
 
 Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n)
     : Fl_Widget(X, Y, W, H, L),
-    _n(n) {
+    _n(n),
+    _gw(W),
+    _gh(H) {
     _fft = new double[_n];
+    memset((void*) _fft, 0, _n * sizeof(double));
+    _screen = new uchar[_gw * (_gh - 1) * 3];
+    memset((void*) _screen, 0, _gw * (_gh - 1) * 3);
 }
 
 Waterfall::~Waterfall() {
     delete[] _fft;
+    delete[] _screen;
 }
 
 void Waterfall::draw() {
-    /*fl_draw_box(FL_BORDER_BOX, x(), y(), w(), h(), FL_RED);
-    fl_color(FL_BLACK);
-    fl_draw("RF waterfall", 20, 60);
-    fl_color(FL_WHITE);
-    fl_rectf(40, 80, 120, 120);*/
 
-    uchar* buffer = new uchar[120*120*3*4];
-    fl_read_image(buffer, 40, 80, 120, 119);
-
-    _ofscr = fl_create_offscreen(120, 120);
+    // Move waterfall downwards
+    memmove((void*) &_screen[_gw * 1 * 3], (void*) _screen, _gw * (_gh - 1) * 3);
+    _ofscr = fl_create_offscreen(_gw, _gh);
     fl_begin_offscreen(_ofscr);
-//memset((void*) buffer, 55, sizeof(uchar) * 120*120*3);
-    fl_draw_image(buffer, 0, 1, 120, 119);
+    fl_draw_image(_screen, 0, 1, _gw, (_gh - 1));
 
-    for( int i = 0; i < 100; i += 4) {
-        fl_color(FL_RED);
+    // Draw new waterfall line
+    for( int i = 0; i < _n && i < _gw; i++ ) {
+        int c = _fft[i] / 10;
+        fl_color(fl_rgb_color(c));
         fl_point(0 + i, 0);
-        fl_color(FL_GREEN);
-        fl_point(1 + i + 2, 0);
-
+        _screen[i * 3] = _screen[(i * 3) + 1] = _screen[(i * 3) + 2] = c;
     }
 
-
+    // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
-    fl_copy_offscreen(40, 80, 120, 120, _ofscr, 0, 0);
-
+    fl_copy_offscreen(x(), y(), _gw, _gh, _ofscr, 0, 0);
     fl_delete_offscreen(_ofscr);
-
-    delete[] buffer;
-    //fl_color(FL_WHITE);
-    //fl_rectf(0, 0, 120, 120);
-    std::cout << "draw" << std::endl;
-
 }
 
-void Waterfall::Refresh(double* fft) {
-    memcpy((void*) _fft, (void*) fft, sizeof(double) * _n);
-    /*std::cout << "refresh" << std::endl;
-    Fl::lock();
-    draw();
-    Fl::unlock();
-    Fl::awake();*/
-/*
-    _ofscr = fl_create_offscreen(120, 120);
-    fl_begin_offscreen(_ofscr);
-
-    fl_end_offscreen();
-    fl_copy_offscreen(20, 20, 120, 120, _ofscr, 0, 0);
-
-    fl_delete_offscreen(_ofscr);
-*/
+void Waterfall::Refresh() {
+    redraw();
 }
