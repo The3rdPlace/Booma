@@ -45,6 +45,7 @@ class MainWindow {
 
         // Display widgets
         Waterfall* _rfInputWaterfall;
+        Fl_Slider* _signalLevelSlider;
 
         // Compose GUI
         void SetupMenus();
@@ -80,6 +81,18 @@ class MainWindow {
         long MapToGainSliderValue(int value);
         void SetGainSliderLabel();
         void SetVolumeSliderLabel();
+
+        // Display threads
+        std::thread* _signalLevelThread;
+        std::thread* _rfSpectrumThread;
+        std::thread* _afSpectrumThread;
+        bool _threadsRunning = true;
+        void UpdateSignalLevelDisplay();
+        void UpdateRfSpectrumDisplay();
+        void UpdateAfSpectrumDisplay();
+
+        // Halting and cleaning up
+        void Dispose();
 
     public:
 

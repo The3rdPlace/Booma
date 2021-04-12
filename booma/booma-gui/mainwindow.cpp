@@ -1,5 +1,9 @@
 #include <hardt.h>
 #include <iomanip>
+
+#include <chrono>
+#include <thread>
+
 #include "main.h"
 #include "booma.h"
 #include "mainwindow.h"
@@ -87,6 +91,27 @@ MainWindow::MainWindow(BoomaApplication* app):
     _win->end();
     _win->show();
 
+    // Start display threads
+    Fl::lock();
+    _signalLevelThread = new std::thread( [this]()  {
+        while( _threadsRunning ) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            UpdateSignalLevelDisplay();
+        }
+    } );
+    _rfSpectrumThread = new std::thread( [this]()  {
+        while( _threadsRunning ) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            UpdateRfSpectrumDisplay();
+        }
+    } );
+    _afSpectrumThread = new std::thread( [this]()  {
+        while( _threadsRunning ) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            UpdateAfSpectrumDisplay();
+        }
+    } );
+
     // Start the receiver
     _app->Run();
 }
@@ -95,24 +120,46 @@ MainWindow::MainWindow(BoomaApplication* app):
  * Destruct the mainwindow
  */
 MainWindow::~MainWindow() {
-
-    // Halt the receiver
-    _app->Halt();
-
-    // Cleanup
-    // Todo: remove own widgets
+    Dispose();
 }
 
 /**
  * Stop receiver and exit the mainwindow - effectively closing the application
  */
 void MainWindow::Exit() {
-
-    // Halt the receiver
-    _app->Halt();
+    Dispose();
 
     // Close window
+    HLog("Calling exit(0)");
     exit(0);
+}
+
+void MainWindow::Dispose() {
+    // Halt display threads
+    HLog("Halting display threads");
+    _threadsRunning = false;
+    _signalLevelThread->join();
+    _rfSpectrumThread->join();
+    _afSpectrumThread->join();
+
+    // Halt the receiver
+    HLog("Halting the receiver");
+    _app->Halt();
+
+    // Cleanup
+    HLog("Cleaning up resources");
+    delete _menubar;
+    delete _frequencyInput;
+    delete _frequencyInputSet;
+    delete _frequencyInputUp100;
+    delete _frequencyInputDown100;
+    delete _frequencyInputUp1Khz;
+    delete _frequencyInputDown1Khz;
+    delete _channelSelector;
+    delete _gainSlider;
+    delete _volumeSlider;
+    delete _rfInputWaterfall;
+    delete _signalLevelSlider;
 }
 
 /**
@@ -321,6 +368,13 @@ void MainWindow::SetupControls() {
  */
 void MainWindow::SetupDisplays() {
 
+    // Signallevel reporting
+    _signalLevelSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 160, _menubar->h() + 150, 150, 30, "S0");
+    _signalLevelSlider->bounds(0, 11);
+    _signalLevelSlider->set_output();
+    _signalLevelSlider->scrollvalue(0, 1,0, 12);
+    _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+
     // RF Input waterfall
     _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _win->w() - 180, 200, "RF input");
 }
@@ -440,22 +494,60 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
  * @param value Name of the button (part after 'Receiver/Mode/' aka The mode name
  */
 void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
-
-    // Change receiver mode
-    if( strcmp(value, "AURORAL") == 0 ) {
-        _app->ChangeReceiver(ReceiverModeType::AURORAL);
-    } else if( strcmp(value, "AM") == 0 ) {
-        _app->ChangeReceiver(ReceiverModeType::AM);
-    } else if( strcmp(value, "CW") == 0 ) {
-        _app->ChangeReceiver(ReceiverModeType::CW);
-    } else if( strcmp(value, "SSB") == 0 ) {
-        _app->ChangeReceiver(ReceiverModeType::SSB);
-    } else {
-        HError("Unknown receiver mode '%s'", value);
+    char fallback[16];
+    switch(_app->GetReceiver()) {
+        case AURORAL:
+            strcpy(fallback, "AURORAL");
+            break;
+        case AM:
+            strcpy(fallback, "AM");
+            break;
+        case CW:
+            strcpy(fallback, "CW");
+            break;
+        case SSB:
+            strcpy(fallback, "SSB");
+            break;
+        default:
+            HError("No receiver mode set");
+            throw new BoomaReceiverException("No receiver mode set");
     }
+
+    char requested[16];
+    strcpy(requested, value);
+
+    bool created = false;
+    do {
+        try {
+            // Change receiver mode
+            if (strcmp(requested, "AURORAL") == 0) {
+                created = _app->ChangeReceiver(ReceiverModeType::AURORAL);
+            } else if (strcmp(requested, "AM") == 0) {
+                created = _app->ChangeReceiver(ReceiverModeType::AM);
+            } else if (strcmp(requested, "CW") == 0) {
+                created = _app->ChangeReceiver(ReceiverModeType::CW);
+            } else if (strcmp(requested, "SSB") == 0) {
+                created = _app->ChangeReceiver(ReceiverModeType::SSB);
+            } else {
+                HError("Unknown receiver mode '%s'", requested);
+                throw new BoomaReceiverException("Unknown receiver mode");
+            }
+
+            if( !created ) {
+                HError("Receiver creation failed, falling back to %s", fallback);
+                strcpy(requested, fallback);
+            }
+        }
+        catch ( ... ) {
+            HError("Caught unknown exception while changing receiver");
+            throw new BoomaReceiverException("Caught unknown exception while changing receiver");
+        }
+    } while(!created);
 
     // Add options for selected receiver
     SetupOptionsMenu();
+
+    _app->Run();
 }
 
 /**
@@ -717,4 +809,106 @@ void MainWindow::SetGainSliderLabel() {
 void MainWindow::SetVolumeSliderLabel() {
     strcpy(_volumeLabel, ("  Volume (" + std::to_string(_app->GetVolume()) + ")  ").c_str());
     _volumeSlider->label(_volumeLabel);
+}
+
+void MainWindow::UpdateSignalLevelDisplay() {
+    const char* levels[12] = { "      S0      ", "      S1      ", "      S2      ", "      S3      ", "      S4      ", "      S5      ", "      S6      ", "      S7      ", "      S8      ", "      S9      ", " S9 +10dB ", " S9 +20dB " };
+
+    static int initialize = 0;
+    if( initialize < 25 ) {
+        _signalLevelSlider->label(levels[0]);
+        _signalLevelSlider->scrollvalue(0, 1,0, 12);
+        _signalLevelSlider->color(FL_GRAY, FL_GRAY);
+        initialize++;
+        return;
+    }
+
+    int level = _app->GetSignalLevel();
+    static int previousLevel = 0;
+    if( level != previousLevel ) {
+        switch( _app->GetSignalLevel() ) {
+            case 0:
+                _signalLevelSlider->label(levels[0]);
+                _signalLevelSlider->scrollvalue(0, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GRAY);
+                break;
+            case 1:
+                _signalLevelSlider->label(levels[1]);
+                _signalLevelSlider->scrollvalue(1, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
+                break;
+            case 2:
+                _signalLevelSlider->label(levels[2]);
+                _signalLevelSlider->scrollvalue(2, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
+                break;
+            case 3:
+                _signalLevelSlider->label(levels[3]);
+                _signalLevelSlider->scrollvalue(3, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 4:
+                _signalLevelSlider->label(levels[4]);
+                _signalLevelSlider->scrollvalue(4, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 5:
+                _signalLevelSlider->label(levels[5]);
+                _signalLevelSlider->scrollvalue(5, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 6:
+                _signalLevelSlider->label(levels[6]);
+                _signalLevelSlider->scrollvalue(6, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 7:
+                _signalLevelSlider->label(levels[7]);
+                _signalLevelSlider->scrollvalue(7, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 8:
+                _signalLevelSlider->label(levels[8]);
+                _signalLevelSlider->scrollvalue(8, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 9:
+                _signalLevelSlider->label(levels[9]);
+                _signalLevelSlider->scrollvalue(9, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+                break;
+            case 10:
+                _signalLevelSlider->label(levels[10]);
+                _signalLevelSlider->scrollvalue(10, 1,0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_DARK_YELLOW);
+                break;
+            case 11:
+                _signalLevelSlider->label(levels[11]);
+                _signalLevelSlider->scrollvalue(11, 1, 0, 12);
+                _signalLevelSlider->color(FL_GRAY, FL_RED);
+                break;
+            default:
+                if( level > 11) {
+                    std::cout << "Unexpected S value " << level << "\n";
+                    _signalLevelSlider->label(levels[11]);
+                    _signalLevelSlider->scrollvalue(11, 1, 0, 12);
+                    _signalLevelSlider->color(FL_GRAY, FL_RED);
+                } else {
+                    _signalLevelSlider->label(levels[0]);
+                    _signalLevelSlider->scrollvalue(0, 1,0, 12);
+                    _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
+                }
+                break;
+        }
+        previousLevel = level;
+        Fl::awake();
+    }
+}
+
+void MainWindow::UpdateRfSpectrumDisplay() {
+    // Todo: Update display
+}
+
+void MainWindow::UpdateAfSpectrumDisplay() {
+    // Todo: Update display
 }
