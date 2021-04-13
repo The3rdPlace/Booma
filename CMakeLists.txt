@@ -64,6 +64,6 @@ else()
 endif()
 
 ADD_CUSTOM_TARGET( distclean
-COMMAND sudo rm -r -f ../dist
-COMMAND sudo rm -r -f booma
+    COMMAND sudo rm -r -f ../dist
+    COMMAND sudo rm -r -f booma
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

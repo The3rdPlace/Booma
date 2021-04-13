@@ -11,6 +11,7 @@ class Waterfall : public Fl_Widget {
         Fl_Offscreen _ofscr;
         double* _fft;
         uchar* _screen;
+        uchar _colorMap[256];
 
         int _gw;
         int _gh;
@@ -21,6 +22,12 @@ class Waterfall : public Fl_Widget {
 
         int hw() {
             return _gh;
+        }
+
+        inline int colorMap(int value) {
+            int k = value / 10 ;
+            int j = k > 255 ? 255 : k;
+            return _colorMap[j];
         }
 
     public:

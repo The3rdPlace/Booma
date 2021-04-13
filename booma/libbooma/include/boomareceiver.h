@@ -84,7 +84,7 @@ class BoomaReceiver {
             _rfFftWindow(nullptr),
             _rfFftWriter(nullptr),
             _rfSpectrum(nullptr),
-            _rfFftSize(256),
+            _rfFftSize(1024),
             _audioFft(nullptr),
             _audioFftWindow(nullptr),
             _audioFftWriter(nullptr),
