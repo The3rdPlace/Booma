@@ -33,6 +33,12 @@ int main(int argc, char** argv) {
         std::stringstream ss;
         ss << BOOMAGUI_MAJORVERSION << "." << BOOMAGUI_MINORVERSION << "." << BOOMAGUI_BUILDNO;
         app = new BoomaApplication("Booma-Gui", ss.str(), argc, argv);
+
+        // Todo: For strange reasons, the input filter fails to initialize properly
+        //       when having a default input filter size of 0 (=off)
+        app->SetInputFilterWidth(app->GetInputFilterWidth());
+
+        // Create the mainwindow
         mainWindow = new MainWindow(app);
 
         // Run the main event loop
