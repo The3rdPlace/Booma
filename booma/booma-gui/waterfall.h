@@ -25,7 +25,7 @@ class Waterfall : public Fl_Widget {
         }
 
         inline int colorMap(int value) {
-            int k = value / 10 ;
+            int k = value / 20 ;
             int j = k > 255 ? 255 : k;
             return _colorMap[j];
         }

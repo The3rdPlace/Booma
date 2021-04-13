@@ -93,19 +93,15 @@ bool BoomaApplication::InitializeReceiver() {
         // Create receiver
         switch( _opts->GetReceiverModeType() ) {
             case CW:
-                SetInputFilterWidth(500);
                 _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AM:
-                SetInputFilterWidth(5000);
                 _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AURORAL:
-                SetInputFilterWidth(10000);
                 _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency());
                 break;
             case SSB:
-                SetInputFilterWidth(3000);
                 _receiver = new BoomaSsbReceiver(_opts, _input->GetIfFrequency());
                 break;
             default:
@@ -375,6 +371,7 @@ bool BoomaApplication::UseChannel(int id) {
 }
 
 bool BoomaApplication::SetInputFilterWidth(int width) {
+    std::cout << "SET " << width << std::endl;
     _opts->SetInputFilterWidth(width);
     return _input->SetInputFilterWidth(_opts, width);
 }

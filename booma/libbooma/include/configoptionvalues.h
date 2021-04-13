@@ -125,8 +125,9 @@ enum DumpFileFormatType {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
     
-        // First stage gain (default 0 = auto)
+        // First stage gain (default 0 = auto) and input filter width
         int _rfGain = 0;
+        int _inputFilterWidth = 10000;
 
         // Output volume
         int _volume = 10;
@@ -166,7 +167,6 @@ enum DumpFileFormatType {
         int _rtlsdrCorrectionFactor = 0;
         int _rtlsdrGain = 0;
         int _firFilterSize = 51;
-        int _inputFilterWidth = 3000;
         int _rfAgcLevel = 500;
         int _decimatorAgcLevel = 1000;
 

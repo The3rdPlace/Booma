@@ -32,6 +32,10 @@ Waterfall::~Waterfall() {
 
 void Waterfall::draw() {
 
+    // Todo..  fix this calculation and move it
+    float bin = ((float) 24000) / (float) _n;
+    int center = ((float) 17200 / bin);
+
     // Move waterfall downwards
     _ofscr = fl_create_offscreen(_gw, _gh);
     fl_begin_offscreen(_ofscr);
@@ -47,6 +51,12 @@ void Waterfall::draw() {
         fl_point(i, 0);
         _screen[i * 3] = _screen[(i * 3) + 1] = _screen[(i * 3) + 2] = c;
     }
+
+    // Draw current center frequency
+    fl_color(FL_DARK_YELLOW);
+    fl_line_style(FL_DOT, 1, 0);
+    fl_line(center - 4, 0, center - 4, _gh);
+    fl_line(center + 4, 0, center + 4, _gh);
 
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();

@@ -73,7 +73,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
 
     std::cout << tr("==[Performance and quality (not persisted)]==") << std::endl;
     std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
-    std::cout << tr("1.st IF filter width (default 3000)                      -ifw width") << std::endl;
+    std::cout << tr("1.st IF filter width (default 10000)                     -ifw width") << std::endl;
     std::cout << std::endl;
 
     if( showSecretSettings ) {

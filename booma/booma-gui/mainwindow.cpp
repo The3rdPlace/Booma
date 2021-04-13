@@ -379,7 +379,7 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _win->w() - 180, 200, "RF input", _app->GetRfFftSize());
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 200, "RF input", _app->GetRfFftSize());
 }
 
 /***********************************************
