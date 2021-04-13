@@ -4,11 +4,12 @@
 #include <iostream>
 #include <math.h>
 
-Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n)
+Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaApplication* app)
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
     _gw(W),
-    _gh(H) {
+    _gh(H),
+    _app(app) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -23,6 +24,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n)
             _colorMap[i] = i;
         }
     }
+
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _n;
 }
 
 Waterfall::~Waterfall() {
@@ -31,10 +34,6 @@ Waterfall::~Waterfall() {
 }
 
 void Waterfall::draw() {
-
-    // Todo..  fix this calculation and move it
-    float bin = ((float) 24000) / (float) _n;
-    int center = ((float) 17200 / bin);
 
     // Move waterfall downwards
     _ofscr = fl_create_offscreen(_gw, _gh);
@@ -52,7 +51,8 @@ void Waterfall::draw() {
         _screen[i * 3] = _screen[(i * 3) + 1] = _screen[(i * 3) + 2] = c;
     }
 
-    // Draw current center frequency
+    // Draw current center frequency lines
+    int center = ((float) _app->GetFrequency() / _hzPerBin);
     fl_color(FL_DARK_YELLOW);
     fl_line_style(FL_DOT, 1, 0);
     fl_line(center - 4, 0, center - 4, _gh);

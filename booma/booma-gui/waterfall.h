@@ -1,11 +1,16 @@
 #ifndef BOOMA_WATERFALL_H
 #define BOOMA_WATERFALL_H
 
+#include "boomaapplication.h"
+
 #include <FL/fl_draw.H>
 
 class Waterfall : public Fl_Widget {
 
     private:
+
+        BoomaApplication* _app;
+        float _hzPerBin;
 
         int _n;
         Fl_Offscreen _ofscr;
@@ -32,7 +37,7 @@ class Waterfall : public Fl_Widget {
 
     public:
 
-        Waterfall(int X, int Y, int W, int H, const char *L, int n);
+        Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaApplication* app);
         ~Waterfall();
 
         void draw();

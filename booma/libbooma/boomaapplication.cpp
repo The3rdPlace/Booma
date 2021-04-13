@@ -371,7 +371,7 @@ bool BoomaApplication::UseChannel(int id) {
 }
 
 bool BoomaApplication::SetInputFilterWidth(int width) {
-    std::cout << "SET " << width << std::endl;
+
     _opts->SetInputFilterWidth(width);
     return _input->SetInputFilterWidth(_opts, width);
 }

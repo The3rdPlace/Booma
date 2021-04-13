@@ -280,16 +280,8 @@ void MainWindow::SetupReceiverInputFilterMenu() {
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 10000 ? FL_MENU_VALUE : 0));
-
-    // Allow an arbitrary value for the IF filter from manual configuration
-    if( _app->GetInputFilterWidth() != 500 && _app->GetInputFilterWidth() != 1000 &&
-            _app->GetInputFilterWidth() != 3000 && _app->GetInputFilterWidth() != 5000 &&
-            _app->GetInputFilterWidth() != 10000 ) {
-        _menubar->add(("Receiver/Filters/IF filter width/" + std::to_string(_app->GetInputFilterWidth()) + " Hz").c_str(), 0, HandleMenuButtonCallback, (void*) this,
-                      FL_MENU_RADIO | FL_MENU_VALUE);
-    }
+    _menubar->add("Receiver/Filters/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 }
 
 void MainWindow::SetupReceiverModeMenu() {
@@ -379,7 +371,7 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 200, "RF input", _app->GetRfFftSize());
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 200, "RF input", _app->GetRfFftSize(), _app);
 }
 
 /***********************************************
@@ -597,7 +589,11 @@ void MainWindow::HandleMenuButtonReceiverIfFilterWidth(char* name, char* value) 
     const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
 
     // Set width (width comes in Hz)
-    _app->SetInputFilterWidth(atoi(value));
+    if( strcmp(value, "off") == 0 ) {
+        _app->SetInputFilterWidth(0);
+    } else {
+        _app->SetInputFilterWidth(atoi(value));
+    }
 }
 
 void MainWindow::HandleFrequencyInputButtons(Fl_Widget *w) {
