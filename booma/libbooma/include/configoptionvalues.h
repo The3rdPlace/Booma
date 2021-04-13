@@ -127,7 +127,7 @@ enum DumpFileFormatType {
     
         // First stage gain (default 0 = auto) and input filter width
         int _rfGain = 0;
-        int _inputFilterWidth = 3000;
+        int _inputFilterWidth = 10000;
 
         // Output volume
         int _volume = 10;

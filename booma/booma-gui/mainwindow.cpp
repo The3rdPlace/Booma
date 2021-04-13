@@ -281,9 +281,9 @@ void MainWindow::SetupReceiverInputFilterMenu() {
     _menubar->add("Receiver/Filters/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/8000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 8000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 10000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 }

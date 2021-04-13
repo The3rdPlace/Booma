@@ -14,7 +14,7 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaAppl
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
 
-    _screen = new uchar[_gw * (_gh - 1) * 3];
+    _screen = new uchar[_gw * _gh * 3];
     memset((void*) _screen, 0, _gw * (_gh - 1) * 3);
 
     for(int i =0; i < 256; i++ ) {
