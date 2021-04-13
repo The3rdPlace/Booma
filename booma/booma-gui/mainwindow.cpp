@@ -280,6 +280,10 @@ void MainWindow::SetupReceiverInputFilterMenu() {
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Filters/IF filter width/8000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Filters/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Filters/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 }
@@ -346,12 +350,12 @@ void MainWindow::SetupControls() {
     _channelSelector->callback(HandleChannelSelectorCallback);
 
     // Gain and volume sliders
-    _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 10, 150, 30, _gainLabel);
+    _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 10, 180, 30, _gainLabel);
     _gainSlider->bounds(-20, 110);
     _gainSlider->scrollvalue(MapToGainSliderValue(_app->GetRfGain()), 1, -20, 131);
     SetGainSliderLabel();
     _gainSlider->callback(HandleGainSliderCallback);
-    _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 160, _menubar->h() + 80, 150, 30, _volumeLabel);
+    _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 80, 180, 30, _volumeLabel);
     _volumeSlider->bounds(0, 30);
     _volumeSlider->scrollvalue(_app->GetVolume(), 1, 0, 31);
     SetVolumeSliderLabel();
@@ -364,14 +368,14 @@ void MainWindow::SetupControls() {
 void MainWindow::SetupDisplays() {
 
     // Signallevel reporting
-    _signalLevelSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 160, _menubar->h() + 150, 150, 30, "S0");
+    _signalLevelSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 190, _menubar->h() + 150, 180, 30, "S0");
     _signalLevelSlider->bounds(0, 11);
     _signalLevelSlider->set_output();
     _signalLevelSlider->scrollvalue(0, 1,0, 12);
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 200, "RF input", _app->GetRfFftSize(), _app);
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 185, "RF input", _app->GetRfFftSize(), _app);
 }
 
 /***********************************************

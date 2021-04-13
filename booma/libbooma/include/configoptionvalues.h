@@ -127,7 +127,7 @@ enum DumpFileFormatType {
     
         // First stage gain (default 0 = auto) and input filter width
         int _rfGain = 0;
-        int _inputFilterWidth = 0;
+        int _inputFilterWidth = 3000;
 
         // Output volume
         int _volume = 10;
@@ -148,11 +148,12 @@ enum DumpFileFormatType {
         std::string _wavFile = "";
         bool _frequencyAlign = false;
         int _frequencyAlignVolume = 500;
-    
         bool _enableProbes = false;
-    
+
+        // Buffered output
         int _reservedBuffers = 200;
-    
+
+        // Options
         std::map<std::string, std::string> _receiverOptions;
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
     

@@ -8,7 +8,7 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaAppl
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
     _gw(W),
-    _gh(H),
+    _gh(H - 22),
     _app(app) {
 
     _fft = new double[_n];
@@ -36,7 +36,7 @@ Waterfall::~Waterfall() {
 void Waterfall::draw() {
 
     // Move waterfall downwards
-    _ofscr = fl_create_offscreen(_gw, _gh);
+    _ofscr = fl_create_offscreen(w(), h());
     fl_begin_offscreen(_ofscr);
     fl_draw_image(_screen, 0, 1, _gw, (_gh - 1));
     memmove((void*) &_screen[_gw * 1 * 3], (void*) _screen, _gw * (_gh - 1) * 3);
@@ -58,10 +58,53 @@ void Waterfall::draw() {
     fl_line(center - 4, 0, center - 4, _gh);
     fl_line(center + 4, 0, center + 4, _gh);
 
+    // Draw current if filter width
+    if( _app->GetInputFilterWidth() > 0 ) {
+        int left;
+        int right;
+        if( _app->GetFrequency() - (_app->GetInputFilterWidth() / 2) > 0) {
+            left = ((float) (_app->GetFrequency() - (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
+        } else {
+            left = 0;
+        }
+        if( _app->GetFrequency() + (_app->GetInputFilterWidth() / 2) < (_app->GetOutputSampleRate() / 2) ) {
+            right = ((float) (_app->GetFrequency() + (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
+        } else {
+            right = _app->GetOutputSampleRate() / 2;
+        }
+        fl_rectf(left, _gh - 3, right - left, 3, FL_RED);
+    }
+
+    // Frequency markers
+    fl_rectf(0, _gh, _gw, h(), FL_GRAY);
+    fl_color(FL_BLACK);
+    fl_draw("0", 5, _gh + 15);
+    fl_draw(std::to_string(_app->GetOutputSampleRate() / 2000).c_str(), _gw - 22, _gh + 15);
+    fl_draw(std::to_string(_app->GetOutputSampleRate() / 4000).c_str(), (_gw / 2), _gh + 15);
+    fl_draw(std::to_string(_app->GetOutputSampleRate() / 8000).c_str(), (_gw / 4), _gh + 15);
+    fl_draw(std::to_string(3 * _app->GetOutputSampleRate() / 8000).c_str(), (3 * _gw / 4), _gh + 15);
+    fl_color(40);
+    fl_line_style(FL_DASH, 1, 0);
+    fl_line((_gw / 2), 0, _gw / 2, _gh);
+    fl_line((_gw / 4), 0, _gw / 4, _gh);
+    fl_line((3 * _gw / 4), 0, 3 * _gw / 4, _gh);
+    fl_line((1 * _gw / 8), 0, 1 * _gw / 8, _gh);
+    fl_line((3 * _gw / 8), 0, 3 * _gw / 8, _gh);
+    fl_line((5 * _gw / 8), 0, 5 * _gw / 8, _gh);
+    fl_line((7 * _gw / 8), 0, 7 * _gw / 8, _gh);
+
+
+    // Outer frame
+    fl_line_style(FL_SOLID, 2, 0);
+    fl_rect(1, 1, w() - 1, h() - 1, FL_BLACK);
+
+
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
-    fl_copy_offscreen(x(), y(), _gw, _gh, _ofscr, 0, 0);
+    //fl_copy_offscreen(x(), y(), _gw, _gh, _ofscr, 0, 0);
+    fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
     fl_delete_offscreen(_ofscr);
+
 }
 
 void Waterfall::Refresh() {
