@@ -9,7 +9,12 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaAppl
     _n(n),
     _gw(W),
     _gh(H - 22),
-    _app(app) {
+    _app(app),
+    _ghMinusOne(H - 22 - 1),
+    _secondScreenLineStart(_gw * 1 * 3),
+    _oneScreenLineLength(_gw * 3),
+    _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
+    _ghMinusThree(_gh - 3) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -33,22 +38,36 @@ Waterfall::~Waterfall() {
     delete[] _screen;
 }
 
+#define W w()
+#define H h()
+#define GW _gw
+#define GH _gh
+#define GH_MINUS_ONE _ghMinusOne
+#define FULL_SCREEN_LENGT_MINUS_ONE _fullScreenLengthMinusOne
+#define SECOND_SCREEN_LINE_START _secondScreenLineStart
+#define ONE_SCREEN_LINE_LENGTH _oneScreenLineLength
+#define GH_MINUS_THREE _ghMinusThree
+
 void Waterfall::draw() {
 
     // Move waterfall downwards
-    _ofscr = fl_create_offscreen(w(), h());
+    _ofscr = fl_create_offscreen(W, H);
     fl_begin_offscreen(_ofscr);
-    fl_draw_image(_screen, 0, 1, _gw, (_gh - 1));
-    memmove((void*) &_screen[_gw * 1 * 3], (void*) _screen, _gw * (_gh - 1) * 3);
-    memset((void*) _screen, 0, _gw * 3);
+    fl_draw_image(_screen, 0, 1, GW, GH_MINUS_ONE);
+    memmove((void*) &_screen[SECOND_SCREEN_LINE_START], (void*) _screen, FULL_SCREEN_LENGT_MINUS_ONE);
+    memset((void*) _screen, 0, ONE_SCREEN_LINE_LENGTH);
 
     // Draw new waterfall line
-    fl_rectf(0, 0, _gw, 1, FL_BLACK);
+    fl_rectf(0, 0, GW, 1, FL_BLACK);
+    uchar* s = _screen;
+    uchar c;
     for( int i = 0; i < _n; i++ ) {
-        uchar c = colorMap(_fft[i]);
+        c = colorMap(_fft[i]);
         fl_color(fl_rgb_color(c));
         fl_point(i, 0);
-        _screen[i * 3] = _screen[(i * 3) + 1] = _screen[(i * 3) + 2] = c;
+        *(s++) = c;
+        *(s++) = c;
+        *(s++) = c;
     }
 
     // Draw current center frequency lines
@@ -72,7 +91,7 @@ void Waterfall::draw() {
         } else {
             right = _app->GetOutputSampleRate() / 2;
         }
-        fl_rectf(left, _gh - 3, right - left, 3, FL_RED);
+        fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
     }
 
     // Frequency markers
@@ -101,7 +120,6 @@ void Waterfall::draw() {
 
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
-    //fl_copy_offscreen(x(), y(), _gw, _gh, _ofscr, 0, 0);
     fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
     fl_delete_offscreen(_ofscr);
 

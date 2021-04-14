@@ -35,6 +35,13 @@ class Waterfall : public Fl_Widget {
             return _colorMap[j];
         }
 
+        // Precalculated variables (for speed)
+        int _ghMinusOne;
+        int _oneScreenLineLength;
+        int _secondScreenLineStart;
+        int _fullScreenLengthMinusOne;
+        int _ghMinusThree;
+
     public:
 
         Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaApplication* app);
