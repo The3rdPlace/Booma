@@ -104,7 +104,7 @@ MainWindow::MainWindow(BoomaApplication* app):
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            UpdateRfSpectrumDisplay();
+            //UpdateRfSpectrumDisplay();
         }
     } );
     _afSpectrumThread = new std::thread( [this]()  {
@@ -160,7 +160,7 @@ void MainWindow::Dispose() {
     delete _channelSelector;
     delete _gainSlider;
     delete _volumeSlider;
-    delete _rfInputWaterfall;
+    //delete _rfInputWaterfall;
     delete _signalLevelSlider;
 }
 
@@ -374,7 +374,7 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 185, "RF input", _app->GetRfFftSize(), _app);
+    //_rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 185, "RF input", _app->GetRfFftSize(), _app);
 }
 
 /***********************************************

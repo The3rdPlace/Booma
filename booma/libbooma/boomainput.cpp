@@ -113,7 +113,7 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfWriter);
     SAFE_DELETE(_rfSplitter);
     SAFE_DELETE(_rfBreaker);
-    SAFE_DELETE(_rfBuffer);
+    //SAFE_DELETE(_rfBuffer);
     SAFE_DELETE(_rfDelay);
 }
 

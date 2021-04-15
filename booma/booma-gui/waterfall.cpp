@@ -54,7 +54,7 @@ Waterfall::~Waterfall() {
 }
 
 void Waterfall::draw() {
-
+/*
     // Move waterfall downwards
     _ofscr = fl_create_offscreen(W, H);
     fl_begin_offscreen(_ofscr);
@@ -127,7 +127,7 @@ void Waterfall::draw() {
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
     fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
-    fl_delete_offscreen(_ofscr);
+    fl_delete_offscreen(_ofscr);*/
 }
 
 void Waterfall::Refresh() {
