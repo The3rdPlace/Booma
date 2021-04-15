@@ -7,6 +7,8 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _soundcardWriter(nullptr),
         _nullWriter(nullptr),
         _audioWriter(nullptr),
+        _pcmWriter(nullptr),
+        _wavWriter(nullptr),
         _audioSplitter(nullptr),
         _audioBreaker(nullptr),
         _audioBuffer(nullptr),

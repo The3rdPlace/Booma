@@ -31,9 +31,15 @@ class BoomaApplication {
             if( _opts->GetEnableProbes() ) {
                 HLog("Probes enabled, running 200 blocks");
                 _input->Run( 200 );
+
+                HLog("Resetting running state");
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
+
+                HLog("Clearing spectrums");
+                _receiver->ClearRfSpectrum();
+                _receiver->ClearAudioSpectrum();
             } else {
                 HLog("Starting normal run");
                 _current = new std::thread( [this]()  {
@@ -50,9 +56,15 @@ class BoomaApplication {
                     } catch( ... ) {
                         HError("Caught unknown exception from Run()");
                     }
+
+                    HLog("Resetting running state");
                     _isTerminated = true;
                     _isRunning = false;
                     _current = NULL;
+
+                    HLog("Clearing spectrums");
+                    _receiver->ClearRfSpectrum();
+                    _receiver->ClearAudioSpectrum();
                 } );
             }
             _isRunning = true;
@@ -76,6 +88,10 @@ class BoomaApplication {
 		        HLog("Resetting running state");
                 _isTerminated = false;
                 _isRunning = false;
+
+                HLog("Clearing spectrums");
+                _receiver->ClearRfSpectrum();
+                _receiver->ClearAudioSpectrum();
             }
             HLog("Receiver chain is halted");
         }

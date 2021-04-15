@@ -101,14 +101,11 @@ class BoomaReceiver {
         virtual ~BoomaReceiver() {
             SAFE_DELETE(_rfAgc);
             SAFE_DELETE(_rfAgcProbe);
-
             SAFE_DELETE(_spectrum);
-
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
             SAFE_DELETE(_rfFftWindow);
             SAFE_DELETE(_rfSpectrum);
-
             SAFE_DELETE(_audioFft);
             SAFE_DELETE(_audioFftWriter);
             SAFE_DELETE(_audioFftWindow);
@@ -165,6 +162,14 @@ class BoomaReceiver {
         int GetRfFftSize();
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
+
+        void ClearRfSpectrum() {
+            memset((void*) _rfSpectrum, 0, _rfFftSize * sizeof(double));
+        }
+
+        void ClearAudioSpectrum() {
+            memset((void*) _audioSpectrum, 0, _audioFftSize * sizeof(double));
+        }
 };
 
 #endif
