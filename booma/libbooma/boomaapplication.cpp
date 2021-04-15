@@ -29,8 +29,33 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 }
 
 BoomaApplication::~BoomaApplication() {
+
+    // Make sure that a running receiver has been shut down
+    HLog("Shutting down a running receiver (should we have one)");
+    Halt();
+
+    // Delete the config object
+    HLog("Deleting the configuration object");
     if( _opts != NULL ) {
         delete _opts;
+    }
+
+    // Reset all previous receiver components
+    HLog("Reset receiver components");
+    HLog("--Input");
+    if( _input != NULL ) {
+        delete _input;
+        _input = NULL;
+    }
+    HLog("--Receiver");
+    if( _receiver != NULL ) {
+        delete _receiver;
+        _receiver = NULL;
+    }
+    HLog("--Output");
+    if( _output != NULL ) {
+        delete _output;
+        _output = NULL;
     }
 }
 

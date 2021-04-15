@@ -41,6 +41,7 @@ class Waterfall : public Fl_Widget {
         int _secondScreenLineStart;
         int _fullScreenLengthMinusOne;
         int _ghMinusThree;
+        int _gridLines[9];
 
     public:
 

@@ -1,5 +1,5 @@
-#ifndef __CWRECEIVER2_H
-#define __CWRECEIVER2_H
+#ifndef __CWRECEIVER_H
+#define __CWRECEIVER_H
 
 #include <hardtapi.h>
 

@@ -45,9 +45,11 @@ int main(int argc, char** argv) {
         Fl::run();
 
         // Destroy the mainwindow and booma application
+        std::cout << "delete mainwindow" << std::endl;
         delete(mainWindow);
+        std::cout << "delete app" << std::endl;
         delete(app);
-
+std::cout << "stop" << std::endl;
         // Return for normal exit
         return 0;
     }

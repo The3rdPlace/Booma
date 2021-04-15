@@ -7,6 +7,8 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _soundcardWriter(nullptr),
         _nullWriter(nullptr),
         _audioWriter(nullptr),
+        _pcmWriter(nullptr),
+        _wavWriter(nullptr),
         _audioSplitter(nullptr),
         _audioBreaker(nullptr),
         _audioBuffer(nullptr),
@@ -94,27 +96,28 @@ BoomaOutput::~BoomaOutput() {
 
     SAFE_DELETE(_outputVolume);
     SAFE_DELETE(_outputFilter);
-
+std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_soundcardMultiplexer);
     SAFE_DELETE(_soundcardWriter);
     SAFE_DELETE(_nullWriter);
     SAFE_DELETE(_pcmWriter);
     SAFE_DELETE(_wavWriter);
-
+    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_audioWriter);
     SAFE_DELETE(_audioSplitter);
     SAFE_DELETE(_audioBreaker);
     SAFE_DELETE(_audioBuffer);
-
+    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_outputVolumeProbe);
     SAFE_DELETE(_outputFilterProbe);
-
+    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_frequencyAlignmentGenerator);
     SAFE_DELETE(_frequencyAlignmentMixer);
-
+    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_ifSplitter);
     SAFE_DELETE(_signalLevel);
     SAFE_DELETE(_signalLevelWriter);
+    std::cout << __LINE__ << std::endl;
 }
 
 bool BoomaOutput::SetDumpAudio(bool enabled) {

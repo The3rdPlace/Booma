@@ -99,20 +99,22 @@ class BoomaReceiver {
     public:
 
         virtual ~BoomaReceiver() {
+            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_rfAgc);
             SAFE_DELETE(_rfAgcProbe);
-
+            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_spectrum);
-
+            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
             SAFE_DELETE(_rfFftWindow);
             SAFE_DELETE(_rfSpectrum);
-
+            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_audioFft);
             SAFE_DELETE(_audioFftWriter);
             SAFE_DELETE(_audioFftWindow);
             SAFE_DELETE(_audioSpectrum);
+            std::cout << __LINE__ << std::endl;
         }
 
         virtual int GetOutputFilterWidth() {
@@ -165,6 +167,14 @@ class BoomaReceiver {
         int GetRfFftSize();
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
+
+        void ClearRfSpectrum() {
+            memset((void*) _rfSpectrum, 0, _rfFftSize * sizeof(double));
+        }
+
+        void ClearAudioSpectrum() {
+            memset((void*) _audioSpectrum, 0, _audioFftSize * sizeof(double));
+        }
 };
 
 #endif

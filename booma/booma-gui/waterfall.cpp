@@ -30,12 +30,11 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaAppl
         }
     }
 
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _n;
-}
+    for( int i = 0; i < 9; i++ ) {
+        _gridLines[i] = i * (_gw / 8);
+    };
 
-Waterfall::~Waterfall() {
-    delete[] _fft;
-    delete[] _screen;
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _n;
 }
 
 #define W w()
@@ -47,6 +46,12 @@ Waterfall::~Waterfall() {
 #define SECOND_SCREEN_LINE_START _secondScreenLineStart
 #define ONE_SCREEN_LINE_LENGTH _oneScreenLineLength
 #define GH_MINUS_THREE _ghMinusThree
+#define GH_PLUS_FIFTEEN _gh + 15
+
+Waterfall::~Waterfall() {
+    delete[] _fft;
+    delete[] _screen;
+}
 
 void Waterfall::draw() {
 
@@ -95,34 +100,34 @@ void Waterfall::draw() {
     }
 
     // Frequency markers
-    fl_rectf(0, _gh, _gw, h(), FL_GRAY);
+    fl_rectf(0, GH, GW, H, FL_GRAY);
     fl_color(FL_BLACK);
-    fl_draw("0", 5, _gh + 15);
-    fl_draw(std::to_string(_app->GetOutputSampleRate() / 2000).c_str(), _gw - 22, _gh + 15);
-    fl_draw(std::to_string(_app->GetOutputSampleRate() / 4000).c_str(), (_gw / 2), _gh + 15);
-    fl_draw(std::to_string(_app->GetOutputSampleRate() / 8000).c_str(), (_gw / 4), _gh + 15);
-    fl_draw(std::to_string(3 * _app->GetOutputSampleRate() / 8000).c_str(), (3 * _gw / 4), _gh + 15);
     fl_color(40);
     fl_line_style(FL_DASH, 1, 0);
-    fl_line((_gw / 2), 0, _gw / 2, _gh);
-    fl_line((_gw / 4), 0, _gw / 4, _gh);
-    fl_line((3 * _gw / 4), 0, 3 * _gw / 4, _gh);
-    fl_line((1 * _gw / 8), 0, 1 * _gw / 8, _gh);
-    fl_line((3 * _gw / 8), 0, 3 * _gw / 8, _gh);
-    fl_line((5 * _gw / 8), 0, 5 * _gw / 8, _gh);
-    fl_line((7 * _gw / 8), 0, 7 * _gw / 8, _gh);
+    for( int i = 0; i < 8; i++ ) {
+        fl_line(_gridLines[i], 0, _gridLines[i], GH);
+    }
 
+    // Frequency labels
+    std::string m0("0");
+    std::string m1 = std::to_string(1 * _app->GetOutputSampleRate() / 8000);
+    std::string m2 = std::to_string(2 * _app->GetOutputSampleRate() / 8000);
+    std::string m3 = std::to_string(3 * _app->GetOutputSampleRate() / 8000);
+    std::string m4 = std::to_string(4 * _app->GetOutputSampleRate() / 8000);
+    fl_draw(m0.c_str(), 5, GH_PLUS_FIFTEEN);
+    fl_draw(m1.c_str(), _gridLines[2] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
+    fl_draw(m2.c_str(), _gridLines[4] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
+    fl_draw(m3.c_str(), _gridLines[6] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
+    fl_draw(m4.c_str(), _gridLines[8] - fl_width(m4.c_str()) - 5, GH_PLUS_FIFTEEN);
 
     // Outer frame
     fl_line_style(FL_SOLID, 2, 0);
     fl_rect(1, 1, w() - 1, h() - 1, FL_BLACK);
 
-
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
     fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
     fl_delete_offscreen(_ofscr);
-
 }
 
 void Waterfall::Refresh() {

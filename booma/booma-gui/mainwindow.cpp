@@ -151,7 +151,6 @@ void MainWindow::Dispose() {
 
     // Cleanup
     HLog("Cleaning up resources");
-    delete _menubar;
     delete _frequencyInput;
     delete _frequencyInputSet;
     delete _frequencyInputUp100;
