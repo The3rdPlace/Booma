@@ -138,6 +138,7 @@ void MainWindow::Exit() {
 }
 
 void MainWindow::Dispose() {
+
     // Halt display threads
     HLog("Halting display threads");
     _threadsRunning = false;
@@ -454,6 +455,9 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
  */
 void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
 
+    // Halt receiver
+    _app->Halt();
+
     // No output
     if( strncmp(value, "Silence", 7) == 0 ) {
         _app->SetOutputAudioDevice(-1);
@@ -483,6 +487,9 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
 
     // Update the menu
     SetupReceiverOutputMenu();
+
+    // Restart
+    _app->ChangeReceiver();
     _app->Run();
 }
 
