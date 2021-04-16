@@ -4,9 +4,10 @@
 #include <iostream>
 #include <math.h>
 
-Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaApplication* app)
+Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app)
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
+    _iq(iq),
     _gw(W),
     _gh(H - 22),
     _app(app),
@@ -16,8 +17,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, BoomaAppl
     _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
     _ghMinusThree(_gh - 3) {
 
-    _fft = new double[_n];
-    memset((void*) _fft, 0, _n * sizeof(double));
+    _fft = new double[_iq ? _n * 2 : _n];
+    memset((void*) _fft, 0, _iq ? _n * 2 : _n * sizeof(double));
 
     _screen = new uchar[_gw * _gh * 3];
     memset((void*) _screen, 0, _gw * (_gh - 1) * 3);

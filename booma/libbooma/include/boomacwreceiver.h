@@ -73,7 +73,11 @@ class BoomaCwReceiver : public BoomaReceiver {
         }
 
         bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
-            return frequency < opts->GetOutputSampleRate() / 2 && (frequency > 6000);
+            if( opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+                return frequency < opts->GetOutputSampleRate() / 2 && (frequency > 6000);
+            } else {
+                return frequency == 0;
+            }
         }
 
     public:

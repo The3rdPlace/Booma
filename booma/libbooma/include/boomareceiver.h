@@ -32,6 +32,7 @@ class BoomaReceiver {
         HRectangularWindow<int16_t>* _rfFftWindow;
         double* _rfSpectrum;
         int _rfFftSize;
+        int _rfSpectrumSize;
 
         // Audio spectrum reporting
         HFftOutput<int16_t>* _audioFft;
@@ -40,6 +41,7 @@ class BoomaReceiver {
         HRectangularWindow<int16_t>* _audioFftWindow;
         double* _audioSpectrum;
         int _audioFftSize;
+        int _audioSpectrumSize;
 
         std::vector<Option> _options;
 
@@ -93,8 +95,16 @@ class BoomaReceiver {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
 
-            _rfSpectrum = new double[_rfFftSize];
-            _audioSpectrum = new double[_audioFftSize];
+            _rfSpectrumSize = opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE
+                    ? _rfFftSize / 2
+                    : _rfFftSize;
+            _rfSpectrum = new double[_rfSpectrumSize];
+            memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
+
+            _audioSpectrumSize = _audioFftSize / 2;
+            _audioSpectrum = new double[_audioSpectrumSize];
+            memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
+
         }
 
         int GetRfAgcLevel(ConfigOptions* opts);

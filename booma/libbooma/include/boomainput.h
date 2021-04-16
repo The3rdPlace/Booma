@@ -54,7 +54,7 @@ public:
         int _ifFrequency;
 
         HReader<int16_t>* SetInputReader(ConfigOptions* opts);
-        bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
+        void SetReaderFrequencies(ConfigOptions *opts, int frequency);
         bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
         HReader<int16_t>* SetDecimation(ConfigOptions* opts, HReader<int16_t>* reader);
         HWriterConsumer<int16_t>* SetInputFilter(ConfigOptions* options, HWriterConsumer<int16_t>* previous);

@@ -29,10 +29,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
-    if( !SetReaderFrequencies(opts, opts->GetFrequency()) )
-    {
-        throw new BoomaInputException("Unable to configure initial frequencies");
-    }
+    SetReaderFrequencies(opts, opts->GetFrequency());
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( opts->GetUseRemoteHead()) {
@@ -191,7 +188,7 @@ void BoomaInput::Halt() {
     (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Halt();
 }
 
-bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
+void BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
     HLog("Input virtual frequency = %d", _virtualFrequency);
 
@@ -205,16 +202,12 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
 
     HLog("Input hardware frequency = %d", _hardwareFrequency);
     HLog("Input IF frequency = %d", _ifFrequency);
-    return true;
 }
 
 bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 
     // Calculate new IF and hardware frequencies
-    if( !SetReaderFrequencies(opts, frequency) ) {
-        HError("Failed to set input reader frequency %d", frequency);
-        return false;
-    }
+    SetReaderFrequencies(opts, frequency);
 
     // If we have a bandpass filter as inputfilter (REAL input), then move it
     if( _inputFirFilter != nullptr ) {

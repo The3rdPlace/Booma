@@ -18,21 +18,21 @@ int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
 }
 
 int BoomaReceiver::GetRfSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
-    return _rfFftSize / 2;
+    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfSpectrumSize);
+    return _rfSpectrumSize;
 }
 
 int BoomaReceiver::GetRfFftSize() {
-    return _rfFftSize / 2;
+    return _rfSpectrumSize;
 }
 
 int BoomaReceiver::GetAudioFftSize() {
-    return _audioFftSize / 2;
+    return _audioSpectrumSize;
 }
 
 int BoomaReceiver::GetAudioSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioFftSize / 2);
-    return _audioFftSize / 2;
+    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioSpectrumSize);
+    return _audioSpectrumSize;
 }
 
 bool BoomaReceiver::SetOption(ConfigOptions* opts, std::string name, int value){
@@ -173,10 +173,8 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow);// , opts->GetOutputSampleRate(), 4, opts->GetFrequency());
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE );
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
-    _rfSpectrum = new double[_rfFftSize / 2];
-    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
 
     // Add preprocessing part of the receiver
     _preProcess = PreProcess(opts, _spectrum);
@@ -197,8 +195,6 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
     _audioFftWindow = new HRectangularWindow<int16_t>();
     _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow);
     _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::AudioFftCallback, _audioFft->Consumer());
-    _audioSpectrum = new double[_audioFftSize / 2];
-    memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
 
     // Receiver has been build and all components is initialized (or so they should be!)
     _hasBuilded = true;
