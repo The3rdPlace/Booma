@@ -149,6 +149,7 @@ enum DumpFileFormatType {
         bool _frequencyAlign = false;
         int _frequencyAlignVolume = 500;
         bool _enableProbes = false;
+        bool _verbose = false;
 
         // Buffered output
         int _reservedBuffers = 200;

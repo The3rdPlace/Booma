@@ -199,7 +199,6 @@ std::map<int, std::string> ConfigOptions::GetAudioDevices(bool hardwareDevices, 
     }
 
     std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
-    std::cout << std::endl;
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
         if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
@@ -221,7 +220,6 @@ std::map<int, std::string> ConfigOptions::GetRtlsdrDevices() {
     }
 
     std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
-    std::cout << std::endl;
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
         devices.insert(std::pair<int, std::string>((*it).Device, (*it).Vendor + ": " + (*it).Product));
@@ -707,8 +705,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Parameters used outside the config object
+        // Verbose output
         if( strcmp(argv[i], "-d") == 0 ) {
+            _values.at(_section)->_verbose = true;
             continue;
         }
 
@@ -850,6 +849,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 void ConfigOptions::DumpConfigInfo() {
+    if( !_values.at(_section)->_verbose ) {
+        return;
+    }
+
     std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
 
     // Remote/local
@@ -1066,6 +1069,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
         // Check for section name
         if( opt[0] == '[' && opt[opt.length() - 1] == ']' ) {
             _section = opt.substr(1, opt.length() - 2);
+            std::replace(_section.begin(), _section.end(), '_', ' ');
             std::replace(_section.begin(), _section.end(), '_', ' ');
             HLog("Next config section is '%s'", _section.c_str());
 

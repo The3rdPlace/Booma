@@ -274,33 +274,24 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::PostProcess(ConfigOptions* opts, HWri
 }
 
 BoomaCwReceiver::~BoomaCwReceiver() {
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_humfilter);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_preselect);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_passbandGain);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_ifMixer);
     SAFE_DELETE(_iqMultiplier);
     SAFE_DELETE(_iq2IConverter);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_ifFilter);
     SAFE_DELETE(_beatToneMixer);
     SAFE_DELETE(_postSelect);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_humfilterProbe);
     SAFE_DELETE(_iqMultiplierProbe);
     SAFE_DELETE(_iq2IConverterProbe);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_preselectProbe);
     SAFE_DELETE(_passbandGainProbe);
     SAFE_DELETE(_ifMixerProbe);
-    std::cout << __LINE__ << std::endl;
     SAFE_DELETE(_ifFilterProbe);
     SAFE_DELETE(_beatToneMixerProbe);
     SAFE_DELETE(_postSelectProbe);
-    std::cout << __LINE__ << std::endl;
 }
 
 bool BoomaCwReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {

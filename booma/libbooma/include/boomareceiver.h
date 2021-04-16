@@ -165,14 +165,6 @@ class BoomaReceiver {
         int GetRfFftSize();
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
-
-        void ClearRfSpectrum() {
-            memset((void*) _rfSpectrum, 0, _rfFftSize * sizeof(double));
-        }
-
-        void ClearAudioSpectrum() {
-            memset((void*) _audioSpectrum, 0, _audioFftSize * sizeof(double));
-        }
 };
 
 #endif
