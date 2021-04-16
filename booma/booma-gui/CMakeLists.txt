@@ -21,12 +21,12 @@ find_package(FLTK)
 
 	# Configure the main.h header
 	configure_file (
-	  "${PROJECT_SOURCE_DIR}/booma/booma-gui/main.h.in"
-	  "${PROJECT_BINARY_DIR}/booma/booma-gui/main.h"
+	  "${PROJECT_SOURCE_DIR}/booma/booma-gui/include/main.h.in"
+	  "${PROJECT_BINARY_DIR}/booma/booma-gui/include/main.h"
 	)
 
 	# add the executable
-	add_executable (booma-gui main.cpp mainwindow.cpp mainwindow.cpp waterfall.cpp waterfall.h inputdialog.cpp inputdialog.h)
+	add_executable (booma-gui main.cpp mainwindow.cpp mainwindow.cpp waterfall.cpp inputdialog.cpp)
 	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES})
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")

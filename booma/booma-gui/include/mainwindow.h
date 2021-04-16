@@ -86,6 +86,7 @@ class MainWindow {
         long MapToGainSliderValue(int value);
         void SetGainSliderLabel();
         void SetVolumeSliderLabel();
+        void UpdateState();
 
         // Display threads
         std::thread* _signalLevelThread;
@@ -121,7 +122,7 @@ class MainWindow {
         void HandleGainSlider();
         void HandleVolumeSlider();
 
-    // Exit
+        // Exit
         void Exit();
 };
 

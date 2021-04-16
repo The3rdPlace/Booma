@@ -215,6 +215,9 @@ void MainWindow::SetupMenus() {
 
     // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
+
+    // Make sure the menu state is current
+    UpdateState();
 }
 
 void MainWindow::SetupFileMenu() {
@@ -957,7 +960,6 @@ inline void MainWindow::UpdateSignalLevelDisplay() {
                 break;
             default:
                 if( level > 11) {
-                    std::cout << "Unexpected S value " << level << "\n";
                     _signalLevelSlider->label(levels[11]);
                     _signalLevelSlider->scrollvalue(11, 1, 0, 12);
                     _signalLevelSlider->color(FL_GRAY, FL_RED);
@@ -984,34 +986,41 @@ inline void MainWindow::UpdateAfSpectrumDisplay() {
 
 void MainWindow::Run() {
     _app->Run();
-    RenameMenuItem("Receiver/Start", "Stop");
+    UpdateState();
 }
 
 void MainWindow::Halt() {
     _app->Halt();
-    RenameMenuItem("Receiver/Stop", "Start");
-
-    if( _app->GetDumpRf() ) {
-        _app->ToggleDumpRf();
-        RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
-    }
-    if( _app->GetDumpAudio() ) {
-        _app->ToggleDumpAudio();
-        RenameMenuItem("Receiver/Stop dumping Af", "Dump AF");
-    }
+    UpdateState();
 }
 
 void MainWindow::HandleMenuButtonReceiverDumpRf() {
     _app->ToggleDumpRf();
+    UpdateState();
+}
+
+void MainWindow::HandleMenuButtonReceiverDumpAf() {
+    _app->ToggleDumpAudio();
+    UpdateState();
+}
+
+void MainWindow::UpdateState() {
+
+    // Running/Stopped
+    if( _app->IsRunning() ) {
+        RenameMenuItem("Receiver/Start", "Stop");
+    } else {
+        RenameMenuItem("Receiver/Stop", "Start");
+    }
+
+    // Dump RF
     if( _app->GetDumpRf() ) {
         RenameMenuItem("Receiver/Dump RF", "Stop dumping RF");
     } else {
         RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
     }
-}
 
-void MainWindow::HandleMenuButtonReceiverDumpAf() {
-    _app->ToggleDumpAudio();
+    // Dump AF
     if( _app->GetDumpAudio() ) {
         RenameMenuItem("Receiver/Dump AF", "Stop dumping AF");
     } else {
