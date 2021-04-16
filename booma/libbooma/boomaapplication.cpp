@@ -42,17 +42,14 @@ BoomaApplication::~BoomaApplication() {
 
     // Reset all previous receiver components
     HLog("Reset receiver components");
-    HLog("--Input");
     if( _input != NULL ) {
         delete _input;
         _input = NULL;
     }
-    HLog("--Receiver");
     if( _receiver != NULL ) {
         delete _receiver;
         _receiver = NULL;
     }
-    HLog("--Output");
     if( _output != NULL ) {
         delete _output;
         _output = NULL;

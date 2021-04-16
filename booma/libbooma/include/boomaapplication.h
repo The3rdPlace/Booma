@@ -23,7 +23,7 @@ class BoomaApplication {
         // Run receiver chain
         void Run() {
             if( _input == NULL ) {
-                HLog("Unable to run, receiver is NULL");
+                HLog("Unable to run, input is NULL");
                 return;
             }
 	        HLog("Run receiver chain");
@@ -74,6 +74,10 @@ class BoomaApplication {
         // Halt receiver chain
         void Halt(bool wait = true) {
 	        HLog("Halt receiver chain");
+	        if( !_isRunning ) {
+	            HLog("Already halted");
+	            return;
+	        }
             _isTerminated = true;
             if( wait )
             {

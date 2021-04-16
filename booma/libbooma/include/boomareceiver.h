@@ -92,6 +92,9 @@ class BoomaReceiver {
             _audioFftSize(256) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
+
+            _rfSpectrum = new double[_rfFftSize];
+            _audioSpectrum = new double[_audioFftSize];
         }
 
         int GetRfAgcLevel(ConfigOptions* opts);
@@ -99,22 +102,17 @@ class BoomaReceiver {
     public:
 
         virtual ~BoomaReceiver() {
-            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_rfAgc);
             SAFE_DELETE(_rfAgcProbe);
-            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_spectrum);
-            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_rfFft);
             SAFE_DELETE(_rfFftWriter);
             SAFE_DELETE(_rfFftWindow);
             SAFE_DELETE(_rfSpectrum);
-            std::cout << __LINE__ << std::endl;
             SAFE_DELETE(_audioFft);
             SAFE_DELETE(_audioFftWriter);
             SAFE_DELETE(_audioFftWindow);
             SAFE_DELETE(_audioSpectrum);
-            std::cout << __LINE__ << std::endl;
         }
 
         virtual int GetOutputFilterWidth() {
