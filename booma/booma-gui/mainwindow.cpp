@@ -116,7 +116,7 @@ MainWindow::MainWindow(BoomaApplication* app):
     } );
 
     // Start the receiver
-    _app->Run();
+    Run();
 }
 
 /**
@@ -148,7 +148,7 @@ void MainWindow::Dispose() {
 
     // Halt the receiver
     HLog("Halting the receiver");
-    _app->Halt();
+    Halt();
 
     // Cleanup
     HLog("Cleaning up resources");
@@ -209,6 +209,9 @@ void MainWindow::SetupMenus() {
     // Options
     SetupOptionsMenu();
 
+    // Other items (start/stop etc.)
+    SetupReceiverMenu();
+
     // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
 }
@@ -229,6 +232,15 @@ void MainWindow::SetupConfigurationMenu() {
     }
 
     _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
+}
+
+void MainWindow::SetupReceiverMenu() {
+
+    if( _app->IsRunning() ) {
+        _menubar->add("Receiver/Stop", "^s", HandleMenuButtonCallback, (void*) this);
+    } else {
+        _menubar->add("Receiver/Start", "^s", HandleMenuButtonCallback, (void*) this);
+    }
 }
 
 void MainWindow::SetupReceiverInputMenu() {
@@ -394,6 +406,9 @@ void MainWindow::HandleMenuButton(char* name) {
     else if( strncmp(name, "Configuration/Inputs/", 21) == 0 ) {
         HandleMenuButtonConfigurationInputs(name, &name[21]);
     }
+    else if( strncmp(name, "Receiver/Start", 14) == 0 || strncmp(name, "Receiver/Stop", 13) == 0 ) {
+        HandleMenuButtonReceiverStartStop();
+    }
     else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
         HandleMenuButtonReceiverInput(name, &name[15]);
     }
@@ -415,6 +430,15 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else {
         HError("Unknown menubutton '%s' clicked", name);
+    }
+}
+
+void MainWindow::HandleMenuButtonReceiverStartStop() {
+
+    if( _app->IsRunning() ) {
+        Halt();
+    } else {
+        Run();
     }
 }
 
@@ -445,7 +469,7 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     _gainSlider->redraw();
     SetGainSliderLabel();
     SetVolumeSliderLabel();
-    _app->Run();
+    Run();
 }
 
 /**
@@ -456,7 +480,7 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
 void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
 
     // Halt receiver
-    _app->Halt();
+    Halt();
 
     // No output
     if( strncmp(value, "Silence", 7) == 0 ) {
@@ -490,7 +514,7 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
 
     // Restart
     _app->ChangeReceiver();
-    _app->Run();
+    Run();
 }
 
 /**
@@ -499,6 +523,10 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
  * @param value Name of the button (part after 'Receiver/Mode/' aka The mode name
  */
 void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
+
+    // Halt running receiver
+    Halt();
+
     char fallback[16];
     switch(_app->GetReceiver()) {
         case AURORAL:
@@ -547,12 +575,18 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
             HError("Caught unknown exception while changing receiver");
             throw new BoomaReceiverException("Caught unknown exception while changing receiver");
         }
+        std::cout << __LINE__ << std::endl;
     } while(!created);
 
     // Add options for selected receiver
     SetupOptionsMenu();
 
-    _app->Run();
+    // Update frequency controls - it may change when selecting a new receiver
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _frequencyInput->redraw();
+
+    // Restart receiver
+    Run();
 }
 
 /**
@@ -659,7 +693,7 @@ void MainWindow::HandleVolumeSlider() {
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
-    _app->Halt();
+    Halt();
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
     if( dlg->Show() ) {
         _app->ChangeReceiver();
@@ -676,14 +710,14 @@ void MainWindow::EditReceiverInput(const char* name) {
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
 
-    _app->Run();
+    Run();
 }
 
 void MainWindow::AddReceiverInput() {
     int outputDevice = _app->GetOutputDevice();
     int volume = _app->GetVolume();
 
-    _app->Halt();
+    Halt();
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
     if( dlg->Show() ) {
         _app->ChangeReceiver();
@@ -703,7 +737,7 @@ void MainWindow::AddReceiverInput() {
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
 
-    _app->Run();
+    Run();
 }
 
 void MainWindow::DeleteReceiverInput(const char* name) {
@@ -736,7 +770,7 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
     // Find the (sub)menu containing the items to be deleted
     while( *head != '\0' ) {
 
-        // Get name of config section
+        // Get name of section
         char section[50] = {0};
         const char *sep = strchr(head, '/');
         if (sep == NULL) {
@@ -748,7 +782,7 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
         bool found = false;
         for ( int i = 0; i < submenu->size(); i++ ) {
             const Fl_Menu_Item& item = submenu->first()[i];
-            if (item.label() != NULL && strcmp(item.label(), section) == 0) {
+            if (item.label() != NULL && strcmp(item.label(), section) == 0 ) {
                 submenu = &item;
                 found = true;
                 break;
@@ -788,6 +822,14 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
             i++;
         }
     }
+}
+
+void MainWindow::RenameMenuItem(const char *name, const char* newname) {
+    const Fl_Menu_Item* item = _menubar->find_item(name);
+    if( item == nullptr ){
+        return;
+    }
+    const_cast<Fl_Menu_Item*>(item)->label(newname);
 }
 
 int MainWindow::MapFromGainSliderValue(long value) {
@@ -921,4 +963,14 @@ inline void MainWindow::UpdateRfSpectrumDisplay() {
 
 inline void MainWindow::UpdateAfSpectrumDisplay() {
     // Todo: Update display
+}
+
+void MainWindow::Run() {
+    _app->Run();
+    RenameMenuItem("Receiver/Start", "Stop");
+}
+
+void MainWindow::Halt() {
+    _app->Halt();
+    RenameMenuItem("Receiver/Stop", "Start");
 }

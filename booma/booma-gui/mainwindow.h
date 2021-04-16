@@ -55,6 +55,7 @@ class MainWindow {
         // Helper functions for setting up the GUI
         void SetupFileMenu();
         void SetupConfigurationMenu();
+        void SetupReceiverMenu();
         void SetupReceiverInputMenu();
         void SetupReceiverOutputMenu();
         void SetupReceiverInputFilterMenu();
@@ -62,6 +63,7 @@ class MainWindow {
         void SetupOptionsMenu();
 
         // Internal menu handling
+        void HandleMenuButtonReceiverStartStop();
         void HandleMenuButtonReceiverInput(char* name, char* value);
         void HandleMenuButtonReceiverOutput(char* name, char* value);
         void HandleMenuButtonReceiverMode(char* name, char* value);
@@ -77,6 +79,7 @@ class MainWindow {
         // Utility methods
         char* GetTitle();
         void RemoveMenuSubItems(const char *name);
+        void RenameMenuItem(const char* name, const char* newname);
         int MapFromGainSliderValue(long value);
         long MapToGainSliderValue(int value);
         void SetGainSliderLabel();
@@ -93,6 +96,9 @@ class MainWindow {
 
         // Halting and cleaning up
         void Dispose();
+
+        void Run();
+        void Halt();
 
     public:
 

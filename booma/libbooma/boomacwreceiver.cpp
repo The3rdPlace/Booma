@@ -268,7 +268,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::Receive(ConfigOptions* opts, HWriterC
 }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
-    HLog("Creating CW2 receiver postprocessing chain");
+    HLog("Creating CW receiver postprocessing chain");
 
     return previous;
 }
@@ -297,7 +297,7 @@ BoomaCwReceiver::~BoomaCwReceiver() {
 bool BoomaCwReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
     // This receiver only operates from 6000 - samplerate/2. Or exactly on o (zero, IQ devices)
-    if( frequency >= opts->GetOutputSampleRate() / 2 || (frequency <= 6000 && frequency != 0) ) {
+    if( !IsFrequencySupported(opts, frequency) ) {
         HError("Unsupported frequency %ld, must be greater than  %d and less than %d or zero", frequency, 6000, opts->GetOutputSampleRate() / 2);
         return false;
     }

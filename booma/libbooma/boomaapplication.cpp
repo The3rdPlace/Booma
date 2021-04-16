@@ -130,6 +130,15 @@ bool BoomaApplication::InitializeReceiver() {
                 std::cout << "Unknown receiver type defined" << std::endl;
                 return false;
         }
+
+        // Build receiver
+        if( !_receiver->IsFrequencySupported(_opts, _opts->GetFrequency()) ) {
+            HLog("Unsupported frequency %d when starting new receiver. Using receivers default = %d", _opts->GetFrequency(), _receiver->GetDefaultFrequency(_opts));
+            _opts->SetFrequency(_receiver->GetDefaultFrequency(_opts));
+            HLog("Initial receiver frequency is now %d", _opts->GetFrequency());
+        } else {
+            HLog("Initial frequency %d is valid for the selected receiver", _opts->GetFrequency());
+        }
         _receiver->Build(_opts, _input);
 
         // Setup output
@@ -521,4 +530,8 @@ bool BoomaApplication::SetOutputSampleRate(int rate) {
 
 void BoomaApplication::SyncConfiguration() {
     _opts->SyncStoredConfig();
+}
+
+bool BoomaApplication::IsRunning() {
+    return _isRunning;
 }
