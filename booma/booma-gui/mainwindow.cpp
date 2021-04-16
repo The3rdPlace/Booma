@@ -132,6 +132,9 @@ MainWindow::~MainWindow() {
 void MainWindow::Exit() {
     Dispose();
 
+    // Delete the app
+    delete _app;
+
     // Close window
     HLog("Calling exit(0)");
     exit(0);
@@ -201,6 +204,7 @@ void MainWindow::SetupMenus() {
     SetupConfigurationMenu();
 
     // Receiver
+    SetupReceiverMenu();
     SetupReceiverInputMenu();
     SetupReceiverOutputMenu();
     SetupReceiverInputFilterMenu();
@@ -208,9 +212,6 @@ void MainWindow::SetupMenus() {
 
     // Options
     SetupOptionsMenu();
-
-    // Other items (start/stop etc.)
-    SetupReceiverMenu();
 
     // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
@@ -236,11 +237,18 @@ void MainWindow::SetupConfigurationMenu() {
 
 void MainWindow::SetupReceiverMenu() {
 
+    RenameMenuItem("Receiver/Stop", "Start");
+    RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
+    RenameMenuItem("Receiver/Stop dumping AF", "Dump AF");
+
     if( _app->IsRunning() ) {
         _menubar->add("Receiver/Stop", "^s", HandleMenuButtonCallback, (void*) this);
     } else {
         _menubar->add("Receiver/Start", "^s", HandleMenuButtonCallback, (void*) this);
     }
+
+    _menubar->add("Receiver/Dump RF", "^p", HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Receiver/Dump AF", "^u", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 }
 
 void MainWindow::SetupReceiverInputMenu() {
@@ -405,6 +413,12 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Configuration/Inputs/", 21) == 0 ) {
         HandleMenuButtonConfigurationInputs(name, &name[21]);
+    }
+    else if( strncmp(name, "Receiver/Dump RF", 16) == 0 || strncmp(name, "Receiver/Stop dumping RF", 24) == 0 ) {
+        HandleMenuButtonReceiverDumpRf();
+    }
+    else if( strncmp(name, "Receiver/Dump AF", 16) == 0 || strncmp(name, "Receiver/Stop dumping AF", 24) == 0 ) {
+        HandleMenuButtonReceiverDumpAf();
     }
     else if( strncmp(name, "Receiver/Start", 14) == 0 || strncmp(name, "Receiver/Stop", 13) == 0 ) {
         HandleMenuButtonReceiverStartStop();
@@ -575,7 +589,6 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
             HError("Caught unknown exception while changing receiver");
             throw new BoomaReceiverException("Caught unknown exception while changing receiver");
         }
-        std::cout << __LINE__ << std::endl;
     } while(!created);
 
     // Add options for selected receiver
@@ -584,6 +597,9 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
     // Update frequency controls - it may change when selecting a new receiver
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
     _frequencyInput->redraw();
+
+    // Update the receiver menu
+    SetupReceiverMenu();
 
     // Restart receiver
     Run();
@@ -807,6 +823,7 @@ void MainWindow::RemoveMenuSubItems(const char *name) {
     int i = 1;
     while( i < submenu->size() ) {
         const Fl_Menu_Item& item = submenu->first()[i];
+
         if (item.label() != NULL && strncmp(item.label(), pattern, strlen(pattern)) == 0) {
             for ( int i = 0; i < _menubar->size(); i++ ) {
                 const Fl_Menu_Item &mitem = _menubar->menu()[i];
@@ -973,4 +990,31 @@ void MainWindow::Run() {
 void MainWindow::Halt() {
     _app->Halt();
     RenameMenuItem("Receiver/Stop", "Start");
+
+    if( _app->GetDumpRf() ) {
+        _app->ToggleDumpRf();
+        RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
+    }
+    if( _app->GetDumpAudio() ) {
+        _app->ToggleDumpAudio();
+        RenameMenuItem("Receiver/Stop dumping Af", "Dump AF");
+    }
+}
+
+void MainWindow::HandleMenuButtonReceiverDumpRf() {
+    _app->ToggleDumpRf();
+    if( _app->GetDumpRf() ) {
+        RenameMenuItem("Receiver/Dump RF", "Stop dumping RF");
+    } else {
+        RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
+    }
+}
+
+void MainWindow::HandleMenuButtonReceiverDumpAf() {
+    _app->ToggleDumpAudio();
+    if( _app->GetDumpAudio() ) {
+        RenameMenuItem("Receiver/Dump AF", "Stop dumping AF");
+    } else {
+        RenameMenuItem("Receiver/Stop dumping AF", "Dump AF");
+    }
 }

@@ -64,6 +64,8 @@ class MainWindow {
 
         // Internal menu handling
         void HandleMenuButtonReceiverStartStop();
+        void HandleMenuButtonReceiverDumpRf();
+        void HandleMenuButtonReceiverDumpAf();
         void HandleMenuButtonReceiverInput(char* name, char* value);
         void HandleMenuButtonReceiverOutput(char* name, char* value);
         void HandleMenuButtonReceiverMode(char* name, char* value);

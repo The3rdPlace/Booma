@@ -91,6 +91,14 @@ bool BoomaApplication::Reconfigure() {
 
 bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 
+    // Make sure we dont have any dump streams running
+    if( _opts->GetDumpRf() ) {
+        ToggleDumpRf();
+    }
+    if( _opts->GetDumpAudio() ) {
+        ToggleDumpAudio();
+    }
+
     // Register new receiver type
     HLog("Setting new receiver type");
     _opts->SetReceiverModeType(receiverModeType);

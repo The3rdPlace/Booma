@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
             else if( cmd == 'p' ) {
                 app.ToggleDumpRf();
             }
-            else if( cmd == 'a' ) {
+            else if( cmd == 'u' ) {
                 app.ToggleDumpAudio();
             }
 
@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
             }
 
             // Delete configuration section
-            else if( cmd == 'u' ) {
+            else if( cmd == 'a' ) {
                 if( opt == app.GetConfigSection() ) {
                     std::cout << "Can not delete currently active config section" << std::endl;
                 } else {
@@ -360,13 +360,13 @@ int main(int argc, char** argv) {
                 std::cout << "Change 1.st IF filter width:        w width" << std::endl;
                 std::cout << "List receiver options:              l" << std::endl;
                 std::cout << "Set receiver option:                o <NAME=VALUE>" << std::endl;
-                std::cout << "Toggle audio recording on/off:      a" << std::endl;
+                std::cout << "Toggle audio recording on/off:      u" << std::endl;
                 std::cout << "Toggle rf recording on/off:         p" << std::endl;
                 std::cout << "Enter measurement mode:             m" << std::endl;
                 std::cout << "Restart current receiver:           s" << std::endl;
                 std::cout << "Get configuration sections:         t" << std::endl;
                 std::cout << "Change configuration section:       n <section>" << std::endl;
-                std::cout << "Delete configuration section:       u <section>" << std::endl;
+                std::cout << "Delete configuration section:       a <section>" << std::endl;
                 std::cout << std::endl;
                 std::cout << "Set bookmark:                       b <name>" << std::endl;
                 std::cout << "Get bookmark:                       c <name>" << std::endl;

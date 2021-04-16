@@ -60,6 +60,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
 
     std::cout << tr("==[Configuration sections]==") << std::endl;
     std::cout << tr("Use existing or create new configuration section         -config section") << std::endl;
+    std::cout << std::endl;
 
     std::cout << tr("==[Remote head operation]==") << std::endl;
     std::cout << tr("Server for remote input                                  -s dataport commandport") << std::endl;
