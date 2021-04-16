@@ -18,7 +18,6 @@ int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
 }
 
 int BoomaReceiver::GetRfSpectrum(double* spectrum) {
-std::cout << "G\n";
     memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
     return _rfFftSize / 2;
 }

@@ -39,10 +39,10 @@ int main(int argc, char** argv) {
         app->SetInputFilterWidth(app->GetInputFilterWidth());
 
         // Create the mainwindow
-        //mainWindow = new MainWindow(app);
+        mainWindow = new MainWindow(app);
 
         // Run the main event loop
-        //Fl::run();
+        Fl::run();
 
         // Destroy the mainwindow and booma application
         delete(mainWindow);

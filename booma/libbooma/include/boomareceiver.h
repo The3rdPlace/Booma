@@ -167,12 +167,11 @@ class BoomaReceiver {
         int GetAudioSpectrum(double* spectrum);
 
         void ClearRfSpectrum() {
-            std::cout << "CLEAR SPECTRUM " << std::to_string(_rfFftSize) << "\n";
             memset((void*) _rfSpectrum, 0, _rfFftSize * sizeof(double));
         }
 
         void ClearAudioSpectrum() {
-            //memset((void*) _audioSpectrum, 0, _audioFftSize * sizeof(double));
+            memset((void*) _audioSpectrum, 0, _audioFftSize * sizeof(double));
         }
 };
 

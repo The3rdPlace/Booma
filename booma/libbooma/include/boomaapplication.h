@@ -57,10 +57,6 @@ class BoomaApplication {
                     _isTerminated = true;
                     _isRunning = false;
                     _current = NULL;
-
-                    HLog("Clearing spectrums");
-                    _receiver->ClearRfSpectrum();
-                    _receiver->ClearAudioSpectrum();
                 } );
             }
             _isRunning = true;
@@ -88,10 +84,6 @@ class BoomaApplication {
 		        HLog("Resetting running state");
                 _isTerminated = false;
                 _isRunning = false;
-
-                HLog("Clearing spectrums");
-                _receiver->ClearRfSpectrum();
-                _receiver->ClearAudioSpectrum();
             }
             HLog("Receiver chain is halted");
         }
