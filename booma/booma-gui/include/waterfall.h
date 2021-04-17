@@ -14,6 +14,7 @@ class Waterfall : public Fl_Widget {
 
         int _n;
         bool _iq;
+        int _zoom;
         Fl_Offscreen _ofscr;
         double* _fft;
         uchar* _screen;
@@ -46,10 +47,10 @@ class Waterfall : public Fl_Widget {
 
     public:
 
-        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app);
+        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom);
         ~Waterfall();
 
-        void ReConfigure(bool iq);
+        void ReConfigure(bool iq, int zoom);
 
         void draw();
 

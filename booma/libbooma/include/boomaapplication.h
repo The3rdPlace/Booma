@@ -181,7 +181,7 @@ class BoomaApplication {
         void SetOutputAudioDevice(int card);
         void SetOutputFilename(std::string filename);
 
-        // Public reporting functions for spectrum and signallevel
+        // Public reporting and setting functions for spectrum and signallevel
         int GetSignalLevel();
         double GetSignalSum();
         int GetSignalMax();
@@ -189,6 +189,10 @@ class BoomaApplication {
         int GetRfSpectrum(double* spectrum);
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
+        int GetRfFftZoom();
+        void SetRfFftZoom(int zoom);
+        int GetAfFftZoom();
+        void SetAfFftZoom(int zoom);
 
         // Schedule
         HTimer GetSchedule();
