@@ -95,15 +95,13 @@ class BoomaReceiver {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
 
-            _rfSpectrumSize = opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE
-                    ? _rfFftSize / 2
-                    : _rfFftSize;
+            _rfSpectrumSize = _rfFftSize / 2;
             _rfSpectrum = new double[_rfSpectrumSize];
-            memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
+            memset((void*) _rfSpectrum, 0, sizeof(double) * _rfSpectrumSize);
 
             _audioSpectrumSize = _audioFftSize / 2;
             _audioSpectrum = new double[_audioSpectrumSize];
-            memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
+            memset((void*) _audioSpectrum, 0, sizeof(double) * _audioSpectrumSize);
 
         }
 

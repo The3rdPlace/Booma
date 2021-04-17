@@ -37,7 +37,7 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     };
 
     // Not actually Hz per frequency bin, but more - Hz pr. pixel for the given spectrum size
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (_iq ? 1 : 2)) / (float) _gw;
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _gw;
     std::cout << "hzPerBin=" << _hzPerBin << "\n";
 }
 
@@ -71,14 +71,18 @@ void Waterfall::draw() {
     uchar* s = _screen;
     uchar c;
     if( _iq ) {
-        for (int i = 0; i < _n && i < _gw * 2; i += 2) {
-            if( _fft[i] > _fft[i + 1] ) {
-                c = colorMap(_fft[i]);
-            } else {
-                c = colorMap(_fft[i + 1]);
-            }
+        for (int i = _n / 4; i < _n / 2 && i < _gw; i++) {
+            c = colorMap(_fft[i]);
             fl_color(fl_rgb_color(c));
-            fl_point(i / 2, 0);
+            fl_point(i - (i / 4), 0);
+            *(s++) = c;
+            *(s++) = c;
+            *(s++) = c;
+        }
+        for (int i = 0; i < _n / 4 && i < _gw / 2; i++) {
+            c = colorMap(_fft[i]);
+            fl_color(fl_rgb_color(c));
+            fl_point(i + (i / 4), 0);
             *(s++) = c;
             *(s++) = c;
             *(s++) = c;
@@ -96,7 +100,7 @@ void Waterfall::draw() {
 
     // Draw current center frequency lines
     int center = _iq
-            ? _app->GetOutputSampleRate() / 2 / _hzPerBin
+            ? _app->GetOutputSampleRate() / 4 / _hzPerBin
             :((float) _app->GetFrequency() / _hzPerBin);
     fl_color(FL_DARK_YELLOW);
     fl_line_style(FL_DOT, 1, 0);
@@ -107,15 +111,20 @@ void Waterfall::draw() {
     if( _app->GetInputFilterWidth() > 0 ) {
         int left;
         int right;
-        if( _app->GetFrequency() - (_app->GetInputFilterWidth() / 2) > 0) {
-            left = ((float) (_app->GetFrequency() - (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
+        if( _iq ) {
+            left = ((_app->GetOutputSampleRate() / 4) - (_app->GetInputFilterWidth() / 2)) / _hzPerBin;
+            right = ((_app->GetOutputSampleRate() / 4) + (_app->GetInputFilterWidth() / 2)) / _hzPerBin;
         } else {
-            left = 0;
-        }
-        if( _app->GetFrequency() + (_app->GetInputFilterWidth() / 2) < (_app->GetOutputSampleRate() / 2) ) {
-            right = ((float) (_app->GetFrequency() + (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
-        } else {
-            right = _app->GetOutputSampleRate() / 2;
+            if (_app->GetFrequency() - (_app->GetInputFilterWidth() / 2) > 0) {
+                left = ((float) (_app->GetFrequency() - (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
+            } else {
+                left = 0;
+            }
+            if (_app->GetFrequency() + (_app->GetInputFilterWidth() / 2) < (_app->GetOutputSampleRate() / 2)) {
+                right = ((float) (_app->GetFrequency() + (_app->GetInputFilterWidth() / 2)) / _hzPerBin);
+            } else {
+                right = _app->GetOutputSampleRate() / 2;
+            }
         }
         fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
     }
@@ -130,15 +139,29 @@ void Waterfall::draw() {
     }
 
     // Frequency labels
-    std::string m0("0");
-    std::string m1 = std::to_string(1 * _app->GetOutputSampleRate() / 8000);
-    std::string m2 = std::to_string(2 * _app->GetOutputSampleRate() / 8000);
-    std::string m3 = std::to_string(3 * _app->GetOutputSampleRate() / 8000);
-    std::string m4 = std::to_string(4 * _app->GetOutputSampleRate() / 8000);
+    std::string m0;
+    std::string m1;
+    std::string m2;
+    std::string m3;
+    std::string m4;
+    if( _iq ) {
+        std::string suffix = _app->GetFrequency() % 1000 != 0 ? "." + std::to_string(_app->GetFrequency() % 1000).substr(0, 1) : "";
+        m0 = std::to_string((0) - (_app->GetOutputSampleRate() / 2000) + (_app->GetFrequency() / 1000)) + suffix;
+        m1 = std::to_string((1 * _app->GetOutputSampleRate() / 4000) - (_app->GetOutputSampleRate() / 2000) + (_app->GetFrequency() / 1000)) + suffix;
+        m2 = std::to_string((2 * _app->GetOutputSampleRate() / 4000) - (_app->GetOutputSampleRate() / 2000) + (_app->GetFrequency() / 1000)) + suffix;
+        m3 = std::to_string((3 * _app->GetOutputSampleRate() / 4000) - (_app->GetOutputSampleRate() / 2000) + (_app->GetFrequency() / 1000)) + suffix;
+        m4 = std::to_string((4 * _app->GetOutputSampleRate() / 4000) - (_app->GetOutputSampleRate() / 2000) + (_app->GetFrequency() / 1000)) + suffix;
+    } else {
+        m0 = "0";
+        m1 = std::to_string(1 * _app->GetOutputSampleRate() / 8000);
+        m2 = std::to_string(2 * _app->GetOutputSampleRate() / 8000);
+        m3 = std::to_string(3 * _app->GetOutputSampleRate() / 8000);
+        m4 = std::to_string(4 * _app->GetOutputSampleRate() / 8000);
+    }
     fl_draw(m0.c_str(), 5, GH_PLUS_FIFTEEN);
     fl_draw(m1.c_str(), _gridLines[2] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
-    fl_draw(m2.c_str(), _gridLines[4] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
-    fl_draw(m3.c_str(), _gridLines[6] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
+    fl_draw(m2.c_str(), _gridLines[4] - fl_width(m2.c_str())/2, GH_PLUS_FIFTEEN);
+    fl_draw(m3.c_str(), _gridLines[6] - fl_width(m3.c_str())/2, GH_PLUS_FIFTEEN);
     fl_draw(m4.c_str(), _gridLines[8] - fl_width(m4.c_str()) - 5, GH_PLUS_FIFTEEN);
 
     // Outer frame
@@ -157,8 +180,6 @@ void Waterfall::Refresh() {
 }
 
 void Waterfall::ReConfigure(bool iq) {
-    std::cout << "waterfall n=" << _n << ", iq=" << iq << "\n";
     _iq = iq;
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (iq ? 1 : 2)) / (float) _gw;
-    std::cout << "hzPerBin=" << _hzPerBin << "\n";
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (2)) / (float) _gw;
 }
