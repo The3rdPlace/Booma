@@ -30,8 +30,8 @@ class Waterfall : public Fl_Widget {
             return _gh;
         }
 
-        inline int colorMap(int value) {
-            int k = value / 20 ;
+        inline int colorMap(double value) {
+            long k = value / (long) 20 ;
             int j = k > 255 ? 255 : k;
             return _colorMap[j];
         }
@@ -48,6 +48,8 @@ class Waterfall : public Fl_Widget {
 
         Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app);
         ~Waterfall();
+
+        void ReConfigure(bool iq);
 
         void draw();
 

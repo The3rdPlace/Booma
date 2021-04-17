@@ -16,9 +16,10 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _oneScreenLineLength(_gw * 3),
     _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
     _ghMinusThree(_gh - 3) {
+    std::cout << "waterfall n=" << n << ", iq=" << iq << ", w=" << W << "\n";
 
-    _fft = new double[_iq ? _n * 2 : _n];
-    memset((void*) _fft, 0, _iq ? _n * 2 : _n * sizeof(double));
+    _fft = new double[_n];
+    memset((void*) _fft, 0, _n * sizeof(double));
 
     _screen = new uchar[_gw * _gh * 3];
     memset((void*) _screen, 0, _gw * (_gh - 1) * 3);
@@ -35,7 +36,9 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
         _gridLines[i] = i * (_gw / 8);
     };
 
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _n;
+    // Not actually Hz per frequency bin, but more - Hz pr. pixel for the given spectrum size
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (_iq ? 1 : 2)) / (float) _gw;
+    std::cout << "hzPerBin=" << _hzPerBin << "\n";
 }
 
 #define W w()
@@ -67,17 +70,34 @@ void Waterfall::draw() {
     fl_rectf(0, 0, GW, 1, FL_BLACK);
     uchar* s = _screen;
     uchar c;
-    for( int i = 0; i < _n; i++ ) {
-        c = colorMap(_fft[i]);
-        fl_color(fl_rgb_color(c));
-        fl_point(i, 0);
-        *(s++) = c;
-        *(s++) = c;
-        *(s++) = c;
+    if( _iq ) {
+        for (int i = 0; i < _n && i < _gw * 2; i += 2) {
+            if( _fft[i] > _fft[i + 1] ) {
+                c = colorMap(_fft[i]);
+            } else {
+                c = colorMap(_fft[i + 1]);
+            }
+            fl_color(fl_rgb_color(c));
+            fl_point(i / 2, 0);
+            *(s++) = c;
+            *(s++) = c;
+            *(s++) = c;
+        }
+    } else {
+        for (int i = 0; i < _n / 2 && i < _gw; i++) {
+            c = colorMap(_fft[i]);
+            fl_color(fl_rgb_color(c));
+            fl_point(i, 0);
+            *(s++) = c;
+            *(s++) = c;
+            *(s++) = c;
+        }
     }
 
     // Draw current center frequency lines
-    int center = ((float) _app->GetFrequency() / _hzPerBin);
+    int center = _iq
+            ? _app->GetOutputSampleRate() / 2 / _hzPerBin
+            :((float) _app->GetFrequency() / _hzPerBin);
     fl_color(FL_DARK_YELLOW);
     fl_line_style(FL_DOT, 1, 0);
     fl_line(center - 4, 0, center - 4, _gh);
@@ -134,4 +154,11 @@ void Waterfall::draw() {
 void Waterfall::Refresh() {
     redraw();
     Fl::awake();
+}
+
+void Waterfall::ReConfigure(bool iq) {
+    std::cout << "waterfall n=" << _n << ", iq=" << iq << "\n";
+    _iq = iq;
+    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (iq ? 1 : 2)) / (float) _gw;
+    std::cout << "hzPerBin=" << _hzPerBin << "\n";
 }

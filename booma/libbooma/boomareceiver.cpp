@@ -23,11 +23,11 @@ int BoomaReceiver::GetRfSpectrum(double* spectrum) {
 }
 
 int BoomaReceiver::GetRfFftSize() {
-    return _rfSpectrumSize;
+    return _rfFftSize;
 }
 
 int BoomaReceiver::GetAudioFftSize() {
-    return _audioSpectrumSize;
+    return _audioFftSize;
 }
 
 int BoomaReceiver::GetAudioSpectrum(double* spectrum) {

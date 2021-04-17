@@ -42,14 +42,19 @@ class BoomaApplication {
                     try {
                         _input->Run();
                     } catch( BoomaConfigurationException e ) {
+                        std::cout << "BoomaConfigurationException thrown\n";
                         HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
                     } catch( BoomaInputException e ) {
+                        std::cout << "BoomaInputException thrown\n";
                         HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
                     } catch( BoomaReceiverException e ) {
+                        std::cout << "BoomaReceiverException thrown\n";
                         HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
                     } catch( HException e ) {
+                        std::cout << "HException thrown\n";
                         HError("Caught exception from Run() of type '%s' with error '%s'", e.type(), e.what());
                     } catch( ... ) {
+                        std::cout << "Unknown exception thrown\n";
                         HError("Caught unknown exception from Run()");
                     }
 

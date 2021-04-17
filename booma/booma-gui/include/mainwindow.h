@@ -93,6 +93,7 @@ class MainWindow {
         std::thread* _rfSpectrumThread;
         std::thread* _afSpectrumThread;
         bool _threadsRunning = true;
+        bool _threadsPaused = false;
         inline void UpdateSignalLevelDisplay();
         inline void UpdateRfSpectrumDisplay();
         inline void UpdateAfSpectrumDisplay();

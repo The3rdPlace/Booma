@@ -97,21 +97,27 @@ MainWindow::MainWindow(BoomaApplication* app):
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            UpdateSignalLevelDisplay();
+            if( !_threadsPaused ) {
+                UpdateSignalLevelDisplay();
+            }
         }
     } );
     _rfSpectrumThread = new std::thread( [this]()  {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            UpdateRfSpectrumDisplay();
+            if( !_threadsPaused ) {
+                UpdateRfSpectrumDisplay();
+            }
         }
     } );
     _afSpectrumThread = new std::thread( [this]()  {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            UpdateAfSpectrumDisplay();
+            if( !_threadsPaused ) {
+                UpdateAfSpectrumDisplay();
+            }
         }
     } );
 
@@ -398,7 +404,7 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, _app->GetRfFftSize(), 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app);
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app);
 }
 
 /***********************************************
@@ -466,6 +472,8 @@ void MainWindow::HandleMenuButtonReceiverStartStop() {
  */
 void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
 
+    Halt();
+
     // Handle 'Edit' button
     if( strncmp(value, "Edit ", 5) == 0 ) {
         EditReceiverInput(_app->GetConfigSection().c_str());
@@ -486,6 +494,8 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     _gainSlider->redraw();
     SetGainSliderLabel();
     SetVolumeSliderLabel();
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+
     Run();
 }
 
@@ -976,7 +986,7 @@ inline void MainWindow::UpdateSignalLevelDisplay() {
 }
 
 inline void MainWindow::UpdateRfSpectrumDisplay() {
-    //_app->GetRfSpectrum(_rfInputWaterfall->GetFftBuffer());
+    _app->GetRfSpectrum(_rfInputWaterfall->GetFftBuffer());
     _rfInputWaterfall->Refresh();
 }
 
@@ -986,11 +996,13 @@ inline void MainWindow::UpdateAfSpectrumDisplay() {
 
 void MainWindow::Run() {
     _app->Run();
+    _threadsPaused = false;
     UpdateState();
 }
 
 void MainWindow::Halt() {
     _app->Halt();
+    _threadsPaused = true;
     UpdateState();
 }
 
