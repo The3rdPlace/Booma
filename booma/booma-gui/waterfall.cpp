@@ -17,7 +17,6 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _oneScreenLineLength(_gw * 3),
     _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
     _ghMinusThree(_gh - 3) {
-    std::cout << "waterfall n=" << n << ", iq=" << iq << ", w=" << W << "\n";
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
