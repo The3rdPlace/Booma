@@ -255,6 +255,7 @@ void MainWindow::SetupReceiverMenu() {
     } else {
         _menubar->add("Receiver/Start", "^s", HandleMenuButtonCallback, (void*) this);
     }
+    _menubar->add("Receiver/Restart", "^r", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 
     _menubar->add("Receiver/Dump RF", "^p", HandleMenuButtonCallback, (void*) this);
     _menubar->add("Receiver/Dump AF", "^u", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
@@ -432,6 +433,9 @@ void MainWindow::HandleMenuButton(char* name) {
     else if( strncmp(name, "Receiver/Start", 14) == 0 || strncmp(name, "Receiver/Stop", 13) == 0 ) {
         HandleMenuButtonReceiverStartStop();
     }
+    else if( strncmp(name, "Receiver/Restart", 16) == 0 ) {
+        HandleMenuButtonReceiverRestart();
+    }
     else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
         HandleMenuButtonReceiverInput(name, &name[15]);
     }
@@ -463,6 +467,11 @@ void MainWindow::HandleMenuButtonReceiverStartStop() {
     } else {
         Run();
     }
+}
+
+void MainWindow::HandleMenuButtonReceiverRestart() {
+    _app->ChangeReceiver();
+    Run();
 }
 
 /**
