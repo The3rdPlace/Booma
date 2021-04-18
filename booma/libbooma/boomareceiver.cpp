@@ -173,8 +173,12 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    // todo: enable zooming (missing support for zoomed iq fft)
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    if( opts->GetRfFftZoom() > 1 ) {
+        _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetOutputSampleRate(), opts->GetRfFftZoom(), opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ? opts->GetFrequency() : 0, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    } else {
+        _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow);
+    }
+
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
 
     // Add preprocessing part of the receiver
