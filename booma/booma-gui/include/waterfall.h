@@ -5,6 +5,8 @@
 
 #include <FL/fl_draw.H>
 
+enum WaterfallType { RF, AF };
+
 class Waterfall : public Fl_Widget {
 
     private:
@@ -12,9 +14,11 @@ class Waterfall : public Fl_Widget {
         BoomaApplication* _app;
         float _hzPerBin;
 
+        WaterfallType _type;
         int _n;
         bool _iq;
         int _zoom;
+        int _center;
         Fl_Offscreen _ofscr;
         double* _fft;
         uchar* _screen;
@@ -47,7 +51,7 @@ class Waterfall : public Fl_Widget {
 
     public:
 
-        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom);
+        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type);
         ~Waterfall();
 
         void ReConfigure(bool iq, int zoom);

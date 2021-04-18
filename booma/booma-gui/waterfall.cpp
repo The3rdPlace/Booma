@@ -4,11 +4,13 @@
 #include <iostream>
 #include <math.h>
 
-Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom)
+Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type)
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
     _iq(iq),
+    _type(type),
     _zoom(zoom),
+    _center(center),
     _gw(W),
     _gh(H - 22),
     _app(app),
@@ -37,8 +39,7 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     };
 
     // Not actually Hz per frequency bin, but more - Hz pr. pixel for the given spectrum size
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) 2) / (float) _gw;
-    std::cout << "hzPerBin=" << _hzPerBin << "\n";
+    _hzPerBin = (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw;
 }
 
 #define W w()
@@ -98,38 +99,41 @@ void Waterfall::draw() {
         }
     }
 
-    // Draw current center frequency lines
-    int center = _iq
-            ? _app->GetOutputSampleRate() / 4 / _hzPerBin
-            :((float) _app->GetFrequency() / _hzPerBin);
-    fl_color(FL_DARK_YELLOW);
-    fl_line_style(FL_DOT, 1, 0);
-    fl_line(center - 4, 0, center - 4, _gh);
-    fl_line(center + 4, 0, center + 4, _gh);
+    if( _type == RF ) {
 
-    // Draw current if filter width
-    int halfFilterWidth = _app->GetInputFilterWidth() / 2;
-    int quarterSampleRate = _app->GetOutputSampleRate() / 4;
-    int halfSampleRate = _app->GetOutputSampleRate() / 2;
-    if( halfFilterWidth > 0 ) {
-        int left;
-        int right;
-        if( _iq ) {
-            left = (quarterSampleRate - halfFilterWidth) / _hzPerBin;
-            right = (quarterSampleRate + halfFilterWidth) / _hzPerBin;
-        } else {
-            if (_app->GetFrequency() - halfFilterWidth > 0) {
-                left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);
+        // Draw current center frequency lines
+        int center = _iq
+                     ? _app->GetOutputSampleRate() / 4 / _hzPerBin
+                     : ((float) _app->GetFrequency()) / _hzPerBin;
+        fl_color(FL_DARK_YELLOW);
+        fl_line_style(FL_DOT, 1, 0);
+        fl_line(center - 4, 0, center - 4, _gh);
+        fl_line(center + 4, 0, center + 4, _gh);
+
+        // Draw current if filter width
+        int halfFilterWidth = _app->GetInputFilterWidth() / 2;
+        int quarterSampleRate = _app->GetOutputSampleRate() / 4;
+        int halfSampleRate = _app->GetOutputSampleRate() / 2;
+        if (halfFilterWidth > 0) {
+            int left;
+            int right;
+            if (_iq) {
+                left = (quarterSampleRate - halfFilterWidth) / _hzPerBin;
+                right = (quarterSampleRate + halfFilterWidth) / _hzPerBin;
             } else {
-                left = 0;
+                if (_app->GetFrequency() - halfFilterWidth > 0) {
+                    left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);
+                } else {
+                    left = 0;
+                }
+                if (_app->GetFrequency() + halfFilterWidth < halfSampleRate) {
+                    right = ((float) (_app->GetFrequency() + halfFilterWidth) / _hzPerBin);
+                } else {
+                    right = halfSampleRate;
+                }
             }
-            if (_app->GetFrequency() + halfFilterWidth < halfSampleRate) {
-                right = ((float) (_app->GetFrequency() + halfFilterWidth) / _hzPerBin);
-            } else {
-                right = halfSampleRate;
-            }
+            fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
         }
-        fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
     }
 
     // Frequency markers
@@ -159,11 +163,22 @@ void Waterfall::draw() {
         m4 = std::to_string((4 * zero) - halfRate + freqKhz) + suffix;
     } else {
         int eightRate = (_app->GetOutputSampleRate() / 8000) / _zoom;
-        m0 = "0";
-        m1 = std::to_string(1 * eightRate);
-        m2 = std::to_string(2 * eightRate);
-        m3 = std::to_string(3 * eightRate);
-        m4 = std::to_string(4 * eightRate);
+        if( _zoom > 1 ) {
+            // Todo: This section is not finished
+            int freqKhz = _center / 1000;
+            m0 = std::to_string(freqKhz - (3 * eightRate));
+            m1 = std::to_string(freqKhz - (1.5 * eightRate));
+            m2 = std::to_string(freqKhz + (0 * eightRate));
+            m3 = std::to_string(freqKhz + (1.5 * eightRate));
+            m4 = std::to_string(freqKhz + (3 * eightRate));
+            // End-Of-Todo
+        } else {
+            m0 = "0";
+            m1 = std::to_string(1 * eightRate);
+            m2 = std::to_string(2 * eightRate);
+            m3 = std::to_string(3 * eightRate);
+            m4 = std::to_string(4 * eightRate);
+        }
     }
     fl_draw(m0.c_str(), 5, GH_PLUS_FIFTEEN);
     fl_draw(m1.c_str(), _gridLines[2] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
