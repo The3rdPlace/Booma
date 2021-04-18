@@ -404,7 +404,7 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF Input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app, _app->GetRfFftZoom());
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app, 1);
 }
 
 /***********************************************
@@ -494,7 +494,7 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     _gainSlider->redraw();
     SetGainSliderLabel();
     SetVolumeSliderLabel();
-    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftZoom());
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, 1);
 
     Run();
 }

@@ -1125,8 +1125,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
             if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
             if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
             if (name == "activeSection" && value == "true") _activeSection = _section;
-            if (name == "rfFftZoom") _values.at(_section)->_rfFftZoom = atoi(value.c_str());
-            if (name == "afFftZoom") _values.at(_section)->_afFftZoom = atoi(value.c_str());
         }
         configStream >> opt;
     }
@@ -1227,8 +1225,6 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
         configStream << "volume=" << _values.at((*it).first)->_volume << std::endl;
         configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at((*it).first)->_receiverOptionsFor) << std::endl;
         configStream << "activeSection=" << (_section == (*it).first ? "true" : "false") << std::endl;
-        configStream << "rfFftZoom=" << _values.at((*it).first)->_rfFftZoom << std::endl;
-        configStream << "afFftZoom=" << _values.at((*it).first)->_afFftZoom << std::endl;
         configStream << std::endl;
     }
 

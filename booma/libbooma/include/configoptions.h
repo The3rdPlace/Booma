@@ -463,22 +463,6 @@ class ConfigOptions {
         void SetOutputFilename(std::string filename) {
             _values.at(_section)->_outputFilename = filename;
         }
-
-        int GetRfFftZoom() {
-            return _values.at(_section)->_rfFftZoom;
-        }
-
-        void SetRfFftZoom(int zoom) {
-            _values.at(_section)->_rfFftZoom = zoom;
-        }
-
-        int GetAfFftZoom() {
-            return _values.at(_section)->_afFftZoom;
-        }
-
-        void SetAfFftZoom(int zoom) {
-            _values.at(_section)->_afFftZoom = zoom;
-        }
     };
 
 #endif

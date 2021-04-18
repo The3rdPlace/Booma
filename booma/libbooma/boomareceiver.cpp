@@ -173,12 +173,7 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    if( opts->GetRfFftZoom() > 1 ) {
-        _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetOutputSampleRate(), opts->GetRfFftZoom(), opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ? opts->GetFrequency() : 0, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
-    } else {
-        _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow);
-    }
-
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
 
     // Add preprocessing part of the receiver
@@ -198,7 +193,7 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
 
     // Add audio spectrum calculation
     _audioFftWindow = new HRectangularWindow<int16_t>();
-    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), opts->GetAfFftZoom(), ((opts->GetOutputSampleRate() / 2) / opts->GetAfFftZoom()) / 2);
+    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow);
     _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::AudioFftCallback, _audioFft->Consumer());
 
     // Receiver has been build and all components is initialized (or so they should be!)

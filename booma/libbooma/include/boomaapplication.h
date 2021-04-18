@@ -189,10 +189,6 @@ class BoomaApplication {
         int GetRfSpectrum(double* spectrum);
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
-        int GetRfFftZoom();
-        void SetRfFftZoom(int zoom);
-        int GetAfFftZoom();
-        void SetAfFftZoom(int zoom);
 
         // Schedule
         HTimer GetSchedule();

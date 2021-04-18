@@ -543,19 +543,3 @@ void BoomaApplication::SyncConfiguration() {
 bool BoomaApplication::IsRunning() {
     return _isRunning;
 }
-
-int BoomaApplication::GetRfFftZoom() {
-    return _opts->GetRfFftZoom();
-}
-
-void BoomaApplication::SetRfFftZoom(int zoom) {
-    _opts->SetRfFftZoom(zoom);
-}
-
-int BoomaApplication::GetAfFftZoom() {
-    return _opts->GetAfFftZoom();
-}
-
-void BoomaApplication::SetAfFftZoom(int zoom) {
-    _opts->SetAfFftZoom(zoom);
-}

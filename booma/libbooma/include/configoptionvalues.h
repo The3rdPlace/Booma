@@ -88,8 +88,6 @@ enum DumpFileFormatType {
              _firFilterSize = other->_firFilterSize;
              _inputFilterWidth = other->_inputFilterWidth;
              _channels = other->_channels;
-             _rfFftZoom = other->_rfFftZoom;
-             _afFftZoom = other->_afFftZoom;
          }
          
         // Samplerates
@@ -162,10 +160,6 @@ enum DumpFileFormatType {
     
         // Decimation settings
         int _decimatorGain = 0; // = auto
-
-        // Fft settings
-        int _rfFftZoom = 1;
-        int _afFftZoom = 1;
 
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
