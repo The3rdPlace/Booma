@@ -490,7 +490,13 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     }
 
     // Change configuration
-    _app->SetConfigSection(value);
+    std::string previousConfig = _app->GetConfigSection();
+    try {
+        _app->SetConfigSection(value);
+    } catch( ... ) {
+        fl_alert("There was an error when selecting the new input.\nCheck that the settings are valid\n");
+        _app->SetConfigSection(previousConfig);
+    }
 
     // Update the menu
     SetupReceiverInputMenu();
@@ -732,12 +738,17 @@ void MainWindow::HandleVolumeSlider() {
 
 void MainWindow::EditReceiverInput(const char* name) {
     Halt();
-    InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
-    if( dlg->Show() ) {
-        _app->ChangeReceiver();
-        _app->SyncConfiguration();
+
+    try {
+        InputDialog *dlg = new InputDialog(_app, InputDialog::Mode::EDIT);
+        if (dlg->Show()) {
+            _app->ChangeReceiver();
+            _app->SyncConfiguration();
+        }
+        delete (dlg);
+    } catch( ... ) {
+        fl_alert("There was an error when using the edited input.\nCheck that the settings are valid\n");
     }
-    delete(dlg);
 
     _volumeSlider->value(MapToGainSliderValue(_app->GetVolume()));
     _gainSlider->value(_app->GetRfGain());
@@ -1004,8 +1015,12 @@ inline void MainWindow::UpdateAfSpectrumDisplay() {
 }
 
 void MainWindow::Run() {
-    _app->Run();
-    _threadsPaused = false;
+    try {
+        _app->Run();
+        _threadsPaused = false;
+    } catch( ... ) {
+        fl_alert("Could not start the receiver. Check the settings");
+    }
     UpdateState();
 }
 

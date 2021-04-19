@@ -24,7 +24,7 @@ class BoomaApplication {
         void Run() {
             if( _input == NULL ) {
                 HLog("Unable to run, input is NULL");
-                return;
+                throw new BoomaConfigurationException("Input is null");
             }
 	        HLog("Run receiver chain");
             _isTerminated = false;
