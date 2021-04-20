@@ -13,6 +13,8 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Slider.H>
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Output.H>
 
 class MainWindow {
 
@@ -39,6 +41,15 @@ class MainWindow {
         Fl_Slider* _gainSlider;
         Fl_Slider* _volumeSlider;
 
+        // Statusbar
+        Fl_Group* _statusbar;
+        Fl_Output* _statusbarConfig;
+        Fl_Output* _statusbarMode;
+        Fl_Output* _statusbarHardwareFreq;
+        Fl_Output* _statusbarRunningState;
+        Fl_Output* _statusbarRecordingRf;
+        Fl_Output* _statusbarRecordingAf;
+
         // Dynamic labels
         char _gainLabel[50];
         char _volumeLabel[50];
@@ -61,6 +72,7 @@ class MainWindow {
         void SetupReceiverInputFilterMenu();
         void SetupReceiverModeMenu();
         void SetupOptionsMenu();
+        void SetupStatusbar();
 
         // Internal menu handling
         void HandleMenuButtonReceiverStartStop();
@@ -88,6 +100,7 @@ class MainWindow {
         void SetGainSliderLabel();
         void SetVolumeSliderLabel();
         void UpdateState();
+        void UpdateStatusbar();
 
         // Display threads
         std::thread* _signalLevelThread;

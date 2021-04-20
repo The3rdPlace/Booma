@@ -85,6 +85,7 @@ MainWindow::MainWindow(BoomaApplication* app):
 
     // Create the window
     _win = new Fl_Window(720, 486, GetTitle());
+    SetupStatusbar();
     SetupMenus();
     SetupControls();
     SetupDisplays();
@@ -350,19 +351,52 @@ void MainWindow::SetupOptionsMenu() {
     }
 }
 
+void MainWindow::SetupStatusbar(){
+    _statusbar = new Fl_Group(0, _win->h() - 20, _win->w(), 20);
+    _statusbar->box(FL_FLAT_BOX);
+    _statusbar->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+    _statusbar->color(48-2);
+    _statusbar->begin();
+
+    _statusbarConfig = new Fl_Output(_statusbar->x(), _statusbar->y(), 180, 20);
+    _statusbarConfig->box(FL_THIN_DOWN_FRAME);
+    _statusbarConfig->color(FL_GRAY0);
+
+    _statusbarMode = new Fl_Output(_statusbarConfig->x() + _statusbarConfig->w(), _statusbar->y(), 100, 20);
+    _statusbarMode->box(FL_THIN_DOWN_FRAME);
+    _statusbarMode->color(FL_GRAY0);
+
+    _statusbarHardwareFreq = new Fl_Output(_statusbarMode->x() + _statusbarMode->w(), _statusbar->y(), 100, 20);
+    _statusbarHardwareFreq->box(FL_THIN_DOWN_FRAME);
+    _statusbarHardwareFreq->color(FL_GRAY0);
+
+    _statusbarRunningState = new Fl_Output(_statusbarHardwareFreq->x() + _statusbarHardwareFreq->w(), _statusbar->y(), 100, 20);
+    _statusbarRunningState->box(FL_THIN_DOWN_FRAME);
+
+    _statusbarRecordingRf = new Fl_Output(_statusbarRunningState->x() + _statusbarRunningState->w(), _statusbar->y(), 120, 20);
+    _statusbarRecordingRf->box(FL_THIN_DOWN_FRAME);
+    _statusbarRecordingRf->color(FL_GRAY0);
+
+    _statusbarRecordingAf = new Fl_Output(_statusbarRecordingRf->x() + _statusbarRecordingRf->w(), _statusbar->y(), 120, 20);
+    _statusbarRecordingAf->box(FL_THIN_DOWN_FRAME);
+    _statusbarRecordingAf->color(FL_GRAY0);
+
+    _statusbar->end();
+}
+
 /**
  * Setup controls in the main window
  */
 void MainWindow::SetupControls() {
 
     // Frequency input
-    _frequencyInput = new Fl_Input(90, _win->h() - 40, 150, 30, "Frequency ");
+    _frequencyInput = new Fl_Input(90, _win->h() - 80, 150, 30, "Frequency ");
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
-    _frequencyInputSet = new Fl_Button(250, _win->h() - 40, 50, 30, "set");
-    _frequencyInputDown1Khz = new Fl_Button(320, _win->h() - 40, 30, 30, "<<");
-    _frequencyInputDown100 = new Fl_Button(350, _win->h() - 40, 30, 30, "<");
-    _frequencyInputUp100 = new Fl_Button(385, _win->h() - 40, 30, 30, ">");
-    _frequencyInputUp1Khz = new Fl_Button(415, _win->h() - 40, 30, 30, ">>");
+    _frequencyInputSet = new Fl_Button(250, _win->h() - 80, 50, 30, "set");
+    _frequencyInputDown1Khz = new Fl_Button(320, _win->h() - 80, 30, 30, "<<");
+    _frequencyInputDown100 = new Fl_Button(350, _win->h() - 80, 30, 30, "<");
+    _frequencyInputUp100 = new Fl_Button(385, _win->h() - 80, 30, 30, ">");
+    _frequencyInputUp1Khz = new Fl_Button(415, _win->h() - 80, 30, 30, ">>");
     _frequencyInput->callback(HandleFrequencyInputCallback);
     _frequencyInput->when(FL_WHEN_ENTER_KEY);
     _frequencyInputSet->callback(HandleFrequencyInputButtonsCallback);
@@ -372,7 +406,7 @@ void MainWindow::SetupControls() {
     _frequencyInputDown1Khz->callback(HandleFrequencyInputButtonsCallback);
 
     // Channel selector
-    _channelSelector = new Fl_Choice(465, _win->h() - 40, 245, 30);
+    _channelSelector = new Fl_Choice(465, _win->h() - 80, 245, 30);
     std::map<int, Channel*> channels = _app->GetChannels();
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         _channelSelector->add(((*it).second->Name).c_str());
@@ -1062,4 +1096,49 @@ void MainWindow::UpdateState() {
     } else {
         RenameMenuItem("Receiver/Stop dumping AF", "Dump AF");
     }
+
+    // Statusbar
+    UpdateStatusbar();
+}
+
+void MainWindow::UpdateStatusbar() {
+
+    _statusbar->redraw();
+
+    _statusbarConfig->value(_app->GetConfigSection().c_str());
+
+    switch(_app->GetReceiver()) {
+        case ReceiverModeType::AM:
+            _statusbarMode->value("AM");
+            break;
+        case ReceiverModeType::AURORAL:
+            _statusbarMode->value("AURORAL");
+            break;
+        case ReceiverModeType::CW:
+            _statusbarMode->value("CW");
+            break;
+        case ReceiverModeType::SSB:
+            _statusbarMode->value("SSB");
+            break;
+        default:
+            _statusbarMode->value("(none)");
+            break;
+    }
+
+    if (_app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE) {
+        _statusbarHardwareFreq->value(std::to_string(_app->GetFrequency()).c_str());
+    } else {
+        _statusbarHardwareFreq->value(std::to_string(_app->GetFrequency() + _app->GetShift() + _app->GetFrequencyAdjust()).c_str());
+    }
+
+    if( _app->IsRunning() ) {
+        _statusbarRunningState->textcolor(FL_GREEN);
+        _statusbarRunningState->value("Running");
+    } else {
+        _statusbarRunningState->textcolor(FL_RED);
+        _statusbarRunningState->value("Stopped");
+    }
+
+    _statusbarRecordingRf->value( _app->GetDumpRf() ? "Recording RF" : "");
+    _statusbarRecordingAf->value( _app->GetDumpAudio() ? "Recording AF" : "");
 }
