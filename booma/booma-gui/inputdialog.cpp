@@ -654,6 +654,14 @@ std::string InputDialog::SelectFile(std::string filter) {
     }
 }
 
+int InputDialog::GetCardNumber(std::string key, const Fl_Menu_Item* item) {
+
+    if( strncmp(item->label(), key.c_str(), key.length()) == 0 ) {
+        return atoi(&item->label()[key.length()]);
+    }
+    return -1;
+}
+
 void InputDialog::SaveState() {
 
     if( _mode == ADD ) {
@@ -669,7 +677,6 @@ void InputDialog::SaveState() {
     // Input source type
     if( _isRemote->value() ) {
         _app->SetInputSourceType(NETWORK);
-
     }
     if( _isAudioDevice->value() ) {
         _app->SetInputSourceType(AUDIO_DEVICE);
@@ -692,10 +699,12 @@ void InputDialog::SaveState() {
 
     // Input device (audio or rtlsdr)
     if( _isAudioDevice->value() && _localAudioDevice->value() >= 0 ) {
-        _app->SetInputDevice(_localAudioDevice->value());
+        const Fl_Menu_Item* item = _localAudioDevice->menu() + _localAudioDevice->value();
+        _app->SetInputDevice(GetCardNumber("Card", item));
     }
     if( _isRtlsdrDevice->value() && _localRtlsdrDevice->value() >= 0 ) {
-        _app->SetInputDevice(_localRtlsdrDevice->value());
+        const Fl_Menu_Item* item = _localRtlsdrDevice->menu() + _localRtlsdrDevice->value();
+        _app->SetInputDevice(GetCardNumber("Device", item));
     }
 
     // Various settings

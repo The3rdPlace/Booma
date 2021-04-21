@@ -71,6 +71,8 @@ class InputDialog {
         Fl_Input* _converterFrequency;
         Fl_Input* _frequencyAdjust;
 
+        int GetCardNumber(std::string key, const Fl_Menu_Item* item);
+
         void LoadState();
         void SaveState();
         void UpdateState();
