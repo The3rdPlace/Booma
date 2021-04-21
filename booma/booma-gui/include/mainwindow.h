@@ -69,9 +69,8 @@ class MainWindow {
         void SetupReceiverMenu();
         void SetupReceiverInputMenu();
         void SetupReceiverOutputMenu();
-        void SetupReceiverInputFilterMenu();
         void SetupReceiverModeMenu();
-        void SetupOptionsMenu();
+        void SetupSettingsMenu();
         void SetupStatusbar();
 
         // Internal menu handling

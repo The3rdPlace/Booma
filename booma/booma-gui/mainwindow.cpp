@@ -214,11 +214,10 @@ void MainWindow::SetupMenus() {
     SetupReceiverMenu();
     SetupReceiverInputMenu();
     SetupReceiverOutputMenu();
-    SetupReceiverInputFilterMenu();
     SetupReceiverModeMenu();
 
     // Options
-    SetupOptionsMenu();
+    SetupSettingsMenu();
 
     // Help
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
@@ -300,25 +299,6 @@ void MainWindow::SetupReceiverOutputMenu() {
                   FL_MENU_RADIO | (_app->GetOutputFilename() != "" ? FL_MENU_VALUE : 0));
 }
 
-void MainWindow::SetupReceiverInputFilterMenu() {
-
-    // Define some usefull defaults for the IF filter
-    _menubar->add("Receiver/Filters/IF filter width/500 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 500 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/1000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 1000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/3000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/8000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 8000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 10000 ? FL_MENU_VALUE : 0));
-    _menubar->add("Receiver/Filters/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
-}
-
 void MainWindow::SetupReceiverModeMenu() {
     _menubar->add("Receiver/Mode/AURORAL", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AURORAL ? FL_MENU_VALUE : 0));
@@ -330,22 +310,31 @@ void MainWindow::SetupReceiverModeMenu() {
                   FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
 }
 
-void MainWindow::SetupOptionsMenu() {
+void MainWindow::SetupSettingsMenu() {
 
-    RemoveMenuSubItems("Receiver/Options/*");
+    RemoveMenuSubItems("Receiver/Settings/*");
 
-    // If no options is available, show a disabled 'Options' submenu
-    if( _app->GetOptions()->begin() == _app->GetOptions()->end() ) {
-        _menubar->add("Receiver/Options", 0, HandleMenuButtonCallback, (void*) this,
-                      FL_MENU_INACTIVE);
-        return;
-    }
+    // Define some usefull defaults for the IF filter
+    _menubar->add("Receiver/Settings/IF filter width/500 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 500 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/1000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 1000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/3000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 3000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/5000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 5000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/8000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 8000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/10000 Hz", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 10000 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 
     // Otherwise show available options
     for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
         std::vector<OptionValue> values = (*it).Values;
         for( std::vector<OptionValue>::iterator vit = values.begin(); vit != values.end(); vit++ ) {
-            _menubar->add( ("Receiver/Options/" + (*it).Name + "/" + (*vit).Name).c_str(), 0, HandleMenuButtonCallback, (void*) this,
+            _menubar->add( ("Receiver/Settings/" + (*it).Name + "/" + (*vit).Name).c_str(), 0, HandleMenuButtonCallback, (void*) this,
                            FL_MENU_RADIO | ( (*vit).Value == (*it).CurrentValue ? FL_MENU_VALUE : 0) );
         }
     }
@@ -479,11 +468,11 @@ void MainWindow::HandleMenuButton(char* name) {
     else if( strncmp(name, "Receiver/Mode/", 14) == 0 ) {
         HandleMenuButtonReceiverMode(name, &name[14]);
     }
-    else if( strncmp(name, "Receiver/Options/", 17) == 0 ) {
-        HandleMenuButtonReceiverOptions(name, &name[17]);
+    else if( strncmp(name, "Receiver/Settings/IF filter width/", 34) == 0 ) {
+        HandleMenuButtonReceiverIfFilterWidth(name, &name[34]);
     }
-    else if( strncmp(name, "Receiver/Filters/IF filter width/", 33) == 0 ) {
-        HandleMenuButtonReceiverIfFilterWidth(name, &name[33]);
+    else if( strncmp(name, "Receiver/Settings/", 18) == 0 ) {
+        HandleMenuButtonReceiverOptions(name, &name[18]);
     }
     else if( strcmp(name, "Help/Help") == 0 ) {
         // Todo: Show proper splash
@@ -654,7 +643,7 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
     } while(!created);
 
     // Add options for selected receiver
-    SetupOptionsMenu();
+    SetupSettingsMenu();
 
     // Update frequency controls - it may change when selecting a new receiver
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
@@ -668,7 +657,7 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
 }
 
 /**
- * Handle click on any of the 'Receiver/Options/xx' menubuttons
+ * Handle click on any of the 'Receiver/Settings/xx' menubuttons for the receiver options
  * @param name Full name of menubutton clicked
  * @param value Value of the selected option
  */
