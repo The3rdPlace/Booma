@@ -27,7 +27,12 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _inputFirFilterProbe(nullptr),
         _rfDelay(nullptr),
         _preamp(nullptr),
-        _preampProbe(nullptr) {
+        _preampProbe(nullptr),
+        _rfFft(nullptr),
+        _rfFftWindow(nullptr),
+        _rfFftWriter(nullptr),
+        _rfSpectrum(nullptr),
+        _rfFftSize(1024) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -63,6 +68,11 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(reader, BLOCKSIZE, isTerminated);
     }
 
+    // Calculate RF fft spectrum size
+    _rfSpectrumSize = _rfFftSize / 2;
+    _rfSpectrum = new double[_rfSpectrumSize];
+    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfSpectrumSize);
+
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter and RF optional output dump");
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
@@ -75,6 +85,11 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
     } else {
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer(), true);
     }
+
+    // Add RF spectrum calculation
+    _rfFftWindow = new HRectangularWindow<int16_t>();
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfSplitter->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaInput>(this, &BoomaInput::RfFftCallback, _rfFft->Consumer());
 
     // Add preamp
     HLog("Setting up the preamp");
@@ -120,6 +135,11 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfDelay);
     SAFE_DELETE(_preamp);
     SAFE_DELETE(_preampProbe);
+
+    SAFE_DELETE(_rfFft);
+    SAFE_DELETE(_rfFftWriter);
+    SAFE_DELETE(_rfFftWindow);
+    SAFE_DELETE(_rfSpectrum);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -476,3 +496,18 @@ bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
     return true;
 }
 
+int BoomaInput::RfFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
+    return length;
+}
+
+int BoomaInput::GetRfSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfSpectrumSize);
+    return _rfSpectrumSize;
+}
+
+int BoomaInput::GetRfFftSize() {
+    return _rfFftSize;
+}

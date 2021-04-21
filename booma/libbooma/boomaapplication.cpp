@@ -244,11 +244,11 @@ int BoomaApplication::GetSignalMax() {
 }
 
 int BoomaApplication::GetRfFftSize() {
-    return _receiver->GetRfFftSize();
+    return _input->GetRfFftSize();
 }
 
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
-    return _receiver->GetRfSpectrum(spectrum);
+    return _input->GetRfSpectrum(spectrum);
 }
 
 int BoomaApplication::GetAudioFftSize() {

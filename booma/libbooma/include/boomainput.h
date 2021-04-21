@@ -50,6 +50,15 @@ public:
         HWriter<int16_t>* _rfWriter;
         HDelay<int16_t>* _rfDelay;
 
+        // RF spectrum reporting
+        HFftOutput<int16_t>* _rfFft;
+        HCustomWriter<HFftResults>* _rfFftWriter;
+        int RfFftCallback(HFftResults* result, size_t length);
+        HRectangularWindow<int16_t>* _rfFftWindow;
+        double* _rfSpectrum;
+        int _rfFftSize;
+        int _rfSpectrumSize;
+
         // Final consumer
         HWriterConsumer<int16_t>* _lastConsumer;
 
@@ -97,6 +106,9 @@ public:
         bool SetInputFilterWidth(ConfigOptions* opts, int width);
 
         bool SetPreampLevel(ConfigOptions* opts, int level);
+
+        int GetRfSpectrum(double* spectrum);
+        int GetRfFftSize();
 };
 
 #endif

@@ -3,27 +3,12 @@
 
 #include "boomareceiver.h"
 
-int BoomaReceiver::RfFftCallback(HFftResults* result, size_t length) {
-
-    // Store the current spectrum in the output buffer
-    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
-    return length;
-}
 
 int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
 
     // Store the current spectrum in the output buffer
     memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
     return length;
-}
-
-int BoomaReceiver::GetRfSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfSpectrumSize);
-    return _rfSpectrumSize;
-}
-
-int BoomaReceiver::GetRfFftSize() {
-    return _rfFftSize;
 }
 
 int BoomaReceiver::GetAudioFftSize() {
@@ -168,16 +153,8 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
         _rfAgc->SetGain(g);
     }
 
-    // Add a splitter so that we can take the full spectrum out before running through the receiver filters
-    _spectrum = new HSplitter<int16_t>(_rfAgc->Consumer());
-
-    // Add RF spectrum calculation
-    _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
-    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
-
     // Add preprocessing part of the receiver
-    _preProcess = PreProcess(opts, _spectrum);
+    _preProcess = PreProcess(opts, _rfAgc);
 
     // Add the receiver chain
     _receive = Receive(opts, _preProcess);
