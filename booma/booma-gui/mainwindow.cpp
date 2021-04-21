@@ -330,6 +330,14 @@ void MainWindow::SetupSettingsMenu() {
     _menubar->add("Receiver/Settings/IF filter width/off", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 
+    // Preamp settings
+    _menubar->add("Receiver/Settings/Preamp/-12 dB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetPreampLevel() < 0 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/Preamp/Off", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetPreampLevel() == 0 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/Preamp/+12 dB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetPreampLevel() > 0 ? FL_MENU_VALUE : 0));
+
     // Otherwise show available options
     for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
         std::vector<OptionValue> values = (*it).Values;
@@ -470,6 +478,9 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Receiver/Settings/IF filter width/", 34) == 0 ) {
         HandleMenuButtonReceiverIfFilterWidth(name, &name[34]);
+    }
+    else if( strncmp(name, "Receiver/Settings/Preamp", 24) == 0 ) {
+        HandleMenuButtonReceiverPreamp(name, &name[24]);
     }
     else if( strncmp(name, "Receiver/Settings/", 18) == 0 ) {
         HandleMenuButtonReceiverOptions(name, &name[18]);
@@ -654,6 +665,26 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
 
     // Restart receiver
     Run();
+}
+
+
+/**
+ * Handle click on any of the 'Receiver/Settings/Preamp' menubuttons for the receiver preamp level
+ * @param name Full name of menubutton clicked
+ * @param value Value of the selected level
+ */
+void MainWindow::HandleMenuButtonReceiverPreamp(char* name, char* value) {
+
+    // Set the selected radio button
+    const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
+
+    if( strcmp(value, "/-12 dB") == 0 ) {
+        _app->SetPreampLevel(-1);
+    } else if( strcmp(value, "/+12 dB") == 0 ) {
+        _app->SetPreampLevel(1);
+    } else {
+        _app->SetPreampLevel(0);
+    }
 }
 
 /**

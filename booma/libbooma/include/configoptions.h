@@ -463,6 +463,14 @@ class ConfigOptions {
         void SetOutputFilename(std::string filename) {
             _values.at(_section)->_outputFilename = filename;
         }
+
+        void SetPreamp(int preamp) {
+            _values.at(_section)->_preamp = preamp;
+        }
+
+        int GetPreamp() {
+            return _values.at(_section)->_preamp;
+        }
     };
 
 #endif

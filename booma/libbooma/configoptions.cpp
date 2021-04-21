@@ -1124,6 +1124,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
             if (name == "rfGain") _values.at(_section)->_rfGain = atoi(value.c_str());
             if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
             if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if (name == "preamp") _values.at(_section)->_preamp = atoi(value.c_str());
             if (name == "activeSection" && value == "true") _activeSection = _section;
         }
         configStream >> opt;
@@ -1224,6 +1225,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
         configStream << "rfGain=" << _values.at((*it).first)->_rfGain << std::endl;
         configStream << "volume=" << _values.at((*it).first)->_volume << std::endl;
         configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at((*it).first)->_receiverOptionsFor) << std::endl;
+        configStream << "preamp=" << _values.at((*it).first)->_preamp << std::endl;
         configStream << "activeSection=" << (_section == (*it).first ? "true" : "false") << std::endl;
         configStream << std::endl;
     }

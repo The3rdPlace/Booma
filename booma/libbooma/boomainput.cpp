@@ -25,7 +25,9 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _inputIqFirFilter(nullptr),
         _inputFirFilter(nullptr),
         _inputFirFilterProbe(nullptr),
-        _rfDelay(nullptr) {
+        _rfDelay(nullptr),
+        _preamp(nullptr),
+        _preampProbe(nullptr) {
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -74,9 +76,13 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer(), true);
     }
 
+    // Add preamp
+    HLog("Setting up the preamp");
+    HWriterConsumer<int16_t>* preamp = SetPreamp(opts, _rfSplitter->Consumer());
+
     // Add optional zero-shift
     HLog("Setting optional zero shift");
-    HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
+    HWriterConsumer<int16_t>* shift = SetShift(opts, preamp);
 
     // Add inputfilter
     HLog("Setting 1.st. IF (input) filter");
@@ -110,8 +116,10 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfWriter);
     SAFE_DELETE(_rfSplitter);
     SAFE_DELETE(_rfBreaker);
-    //SAFE_DELETE(_rfBuffer);
+    SAFE_DELETE(_rfBuffer);
     SAFE_DELETE(_rfDelay);
+    SAFE_DELETE(_preamp);
+    SAFE_DELETE(_preampProbe);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -124,8 +132,6 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
             break;
         case SIGNAL_GENERATOR:
             HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
-            // The generator amplitude is adjusted so that, with the scalefactor '10' for the signallevel meter,
-            // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
             _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(), opts->GetSignalGeneratorFrequency(), 200);
             break;
         case PCM_FILE:
@@ -375,7 +381,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
 
         // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilterProbe = new HProbe<int16_t>("input_09_inputfirfilter", opts->GetEnableProbes());
         _inputIqFirFilter = new HIqFirFilter<int16_t>(previous, opts->GetInputFilterWidth() == 0
                 ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
                 : HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
@@ -384,7 +390,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
     } else {
 
         // Add extra filter the removes (mostly) anything outside the current frequency passband frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_08_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilterProbe = new HProbe<int16_t>("input_10_inputfirfilter", opts->GetEnableProbes());
         _inputFirFilter = new HFirFilter<int16_t>(previous,
             opts->GetInputFilterWidth() == 0
                 ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
@@ -429,7 +435,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_09_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplierProbe = new HProbe<int16_t>("input_08_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
 
         return _ifMultiplier->Consumer();
@@ -437,3 +443,36 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
 
     return previous;
 }
+
+HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+
+    float gain;
+    if( opts->GetPreamp() == 0 ) {
+        gain = 1;
+    } else if ( opts->GetPreamp() > 0 ) {
+        gain = 4;
+    } else {
+        gain = 0.25;
+    }
+
+    _preampProbe = new HProbe<int16_t>("input_07_preamp", opts->GetEnableProbes());
+    _preamp = new HGain<int16_t>(previous, gain, BLOCKSIZE, _preampProbe);
+
+    return _preamp;
+}
+
+bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
+
+    float gain;
+    if( level == 0 ) {
+        gain = 1;
+    } else if ( level > 0 ) {
+        gain = 4;
+    } else {
+        gain = 0.25;
+    }
+
+    _preamp->SetGain(gain);
+    return true;
+}
+

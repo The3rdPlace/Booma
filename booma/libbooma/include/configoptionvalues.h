@@ -125,9 +125,10 @@ enum DumpFileFormatType {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
     
-        // First stage gain (default 0 = auto) and input filter width
+        // Preamp gain, agc setting and input filter width
         int _rfGain = 0;
         int _inputFilterWidth = 10000;
+        int _preamp = 0;
 
         // Output volume
         int _volume = 10;

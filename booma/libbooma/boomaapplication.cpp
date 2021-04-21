@@ -35,6 +35,7 @@ BoomaApplication::~BoomaApplication() {
     Halt();
 
     // Delete the config object
+    SyncConfiguration();
     HLog("Deleting the configuration object");
     if( _opts != NULL ) {
         delete _opts;
@@ -542,4 +543,16 @@ void BoomaApplication::SyncConfiguration() {
 
 bool BoomaApplication::IsRunning() {
     return _isRunning;
+}
+
+bool BoomaApplication::SetPreampLevel(int level) {
+    if( _input != nullptr && _input->SetPreampLevel(_opts, level) ) {
+        _opts->SetPreamp(level);
+        return true;
+    }
+    return false;
+}
+
+int BoomaApplication::GetPreampLevel() {
+    return _opts->GetPreamp();
 }
