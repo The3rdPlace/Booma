@@ -103,7 +103,7 @@ void Waterfall::draw() {
 
         // Draw current center frequency lines
         int center = _iq
-                     ? _app->GetOutputSampleRate() / 4 / _hzPerBin
+                     ? ((_app->GetOutputSampleRate() / 4) + (_app->GetOffset() / 2)) / _hzPerBin
                      : ((float) _app->GetFrequency()) / _hzPerBin;
         fl_color(FL_DARK_YELLOW);
         fl_line_style(FL_DOT, 1, 0);
@@ -118,8 +118,8 @@ void Waterfall::draw() {
             int left;
             int right;
             if (_iq) {
-                left = (quarterSampleRate - halfFilterWidth) / _hzPerBin;
-                right = (quarterSampleRate + halfFilterWidth) / _hzPerBin;
+                left = ((quarterSampleRate - halfFilterWidth) + (_app->GetOffset() / 2)) / _hzPerBin;
+                right = ((quarterSampleRate + halfFilterWidth) + (_app->GetOffset() / 2)) / _hzPerBin;
             } else {
                 if (_app->GetFrequency() - halfFilterWidth > 0) {
                     left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);

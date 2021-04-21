@@ -556,3 +556,7 @@ bool BoomaApplication::SetPreampLevel(int level) {
 int BoomaApplication::GetPreampLevel() {
     return _opts->GetPreamp();
 }
+
+int BoomaApplication::GetOffset() {
+    return _opts->GetRtlsdrOffset();
+}

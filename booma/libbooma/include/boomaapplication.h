@@ -210,6 +210,7 @@ class BoomaApplication {
         int GetOutputSampleRate();
         bool SetOutputSampleRate(int rate);
         bool IsRunning();
+        int GetOffset();
 
         // Bookmarks
         void SetBookmark(std::string name);

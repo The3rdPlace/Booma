@@ -104,9 +104,9 @@ MainWindow::MainWindow(BoomaApplication* app):
         }
     } );
     _rfSpectrumThread = new std::thread( [this]()  {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
         while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
             if( !_threadsPaused ) {
                 UpdateRfSpectrumDisplay();
             }
