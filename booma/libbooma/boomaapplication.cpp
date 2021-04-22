@@ -560,3 +560,15 @@ int BoomaApplication::GetPreampLevel() {
 int BoomaApplication::GetOffset() {
     return _opts->GetRtlsdrOffset();
 }
+
+bool BoomaApplication::GetRfGainEnabled() {
+    return _opts->GetRfGainEnabled();
+}
+
+bool BoomaApplication::SetRfGainEnabled(bool enabled) {
+    if( _receiver->SetRfGainEnabled(enabled) ) {
+        _opts->SetRfGainEnabled(enabled);
+        return true;
+    }
+    return false;
+}

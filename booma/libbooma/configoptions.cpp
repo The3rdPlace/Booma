@@ -38,6 +38,8 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 0 = auto)                               -g gain") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)                    -ro NAME=VALUE") << std::endl;
+    std::cout << tr("Enable or disable RF gain (AGC) (default enabled)        -rfg 1 (enable) or -rfg 0 (disable)") << std::endl;
+    std::cout << tr("Set preamp level (default off)                           -pa -1 (-12dB) or -pa 0 (off) or -pa 1 (+12dB)") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Output, recordings]==") << std::endl;
@@ -364,6 +366,34 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Rf gain
         if( strcmp(argv[i], "-g") == 0 && i < argc - 1) {
             _values.at(_section)->_rfGain = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
+        // Rf gain enable/disable
+        if( strcmp(argv[i], "-rfg") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "1") == 0 ) {
+                _values.at(_section)->_rfGainEnabled = true;
+            } else if( strcmp(argv[i + 1], "0") == 0 ) {
+                _values.at(_section)->_rfGainEnabled = false;
+            } else {
+                std::cout << "Unknown parameter value '" << argv[i + 1] << "' for RF gain enable/disable\n";
+            }
+            i++;
+            continue;
+        }
+
+        // Preamp level
+        if( strcmp(argv[i], "-pa") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "-1") == 0 ) {
+                _values.at(_section)->_preamp = -1;
+            } else if( strcmp(argv[i + 1], "0") == 0 ) {
+                _values.at(_section)->_preamp = 0;
+            } else if( strcmp(argv[i + 1], "+1") == 0 ) {
+                _values.at(_section)->_preamp = 1;
+            } else {
+                std::cout << "Unknown parameter value '" << argv[i + 1] << "' for preamp level\n";
+            }
             i++;
             continue;
         }
@@ -1122,6 +1152,7 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
             if (name == "frequency") _values.at(_section)->_frequency = atoi(value.c_str());
             if (name == "receiverModeType") _values.at(_section)->_receiverModeType = (ReceiverModeType) atoi(value.c_str());
             if (name == "rfGain") _values.at(_section)->_rfGain = atoi(value.c_str());
+            if (name == "rfGainEnabled") _values.at(_section)->_rfGainEnabled = (value == "true" ? true : false);
             if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
             if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
             if (name == "preamp") _values.at(_section)->_preamp = atoi(value.c_str());
@@ -1223,6 +1254,7 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
         configStream << "frequency=" << _values.at((*it).first)->_frequency << std::endl;
         configStream << "receiverModeType=" << _values.at((*it).first)->_receiverModeType << std::endl;
         configStream << "rfGain=" << _values.at((*it).first)->_rfGain << std::endl;
+        configStream << "rfGainEnabled=" << (_values.at((*it).first)->_rfGainEnabled ? "true" : "false")  << std::endl;
         configStream << "volume=" << _values.at((*it).first)->_volume << std::endl;
         configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at((*it).first)->_receiverOptionsFor) << std::endl;
         configStream << "preamp=" << _values.at((*it).first)->_preamp << std::endl;

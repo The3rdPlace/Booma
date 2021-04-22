@@ -15,6 +15,7 @@
 #include <FL/Fl_Slider.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Output.H>
+#include <FL/Fl_Light_Button.H>
 
 class MainWindow {
 
@@ -40,6 +41,7 @@ class MainWindow {
         Fl_Choice* _channelSelector;
         Fl_Slider* _gainSlider;
         Fl_Slider* _volumeSlider;
+        Fl_Light_Button* _gainEnabled;
 
         // Statusbar
         Fl_Group* _statusbar;
@@ -135,6 +137,7 @@ class MainWindow {
         void HandleFrequencyInput(Fl_Widget *w);
         void HandleChannelSelector(Fl_Widget *w);
         void HandleGainSlider();
+         void HandleGainEnabled();
         void HandleVolumeSlider();
 
         // Exit

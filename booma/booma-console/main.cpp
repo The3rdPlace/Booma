@@ -199,20 +199,21 @@ int main(int argc, char** argv) {
 
             // Increase/decrease rf gain
             else if( cmd == 'g' ) {
-                int gain;
+                if( !app.GetRfGainEnabled() ) {
+                    std::cout << "RF gain (agc) not enabled\n";
+                } else {
+                    int gain;
 
-                if( opt.at(0) == '+' ) {
-                    gain = atoi(opt.substr(1, std::string::npos).c_str());
-                    app.SetRfGain( gain );
-                }
-                else if( opt.at(0) == '-' ) {
-                    gain = atoi(opt.substr(1, std::string::npos).c_str());
-                    app.SetRfGain( -1 * gain );
-                }
-                else
-                {
-                    gain = atoi(opt.c_str());
-                    app.SetRfGain(gain);
+                    if (opt.at(0) == '+') {
+                        gain = atoi(opt.substr(1, std::string::npos).c_str());
+                        app.SetRfGain(gain);
+                    } else if (opt.at(0) == '-') {
+                        gain = atoi(opt.substr(1, std::string::npos).c_str());
+                        app.SetRfGain(-1 * gain);
+                    } else {
+                        gain = atoi(opt.c_str());
+                        app.SetRfGain(gain);
+                    }
                 }
             }
 

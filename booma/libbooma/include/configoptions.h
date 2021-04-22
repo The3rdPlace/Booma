@@ -471,6 +471,14 @@ class ConfigOptions {
         int GetPreamp() {
             return _values.at(_section)->_preamp;
         }
+
+        void SetRfGainEnabled(bool enabled) {
+            _values.at(_section)->_rfGainEnabled = enabled;
+        }
+
+        bool GetRfGainEnabled() {
+            return _values.at(_section)->_rfGainEnabled;
+        }
     };
 
 #endif

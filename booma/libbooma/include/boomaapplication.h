@@ -146,6 +146,8 @@ class BoomaApplication {
         int GetRfGain();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
+        bool GetRfGainEnabled();
+        bool SetRfGainEnabled(bool enabled);
 
         bool SetPreampLevel(int level);
         int GetPreampLevel();

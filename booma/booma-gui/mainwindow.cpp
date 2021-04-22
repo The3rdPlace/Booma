@@ -62,6 +62,14 @@ void HandleGainSliderCallback(Fl_Widget* w) {
 }
 
 /**
+ * Static callback for gain-enabled button events
+ * @param w
+ */
+void HandleGainEnabledCallback(Fl_Widget* w) {
+    MainWindow::Instance()->HandleGainEnabled();
+}
+
+/**
  * Static callback for gain slider events
  * @param w
  */
@@ -410,12 +418,23 @@ void MainWindow::SetupControls() {
     }
     _channelSelector->callback(HandleChannelSelectorCallback);
 
-    // Gain and volume sliders
-    _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 10, 180, 30, _gainLabel);
+    // Gain slider and agc enable/disable
+    _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 10, 120, 30, _gainLabel);
     _gainSlider->bounds(-20, 110);
     _gainSlider->scrollvalue(MapToGainSliderValue(_app->GetRfGain()), 1, -20, 131);
     SetGainSliderLabel();
     _gainSlider->callback(HandleGainSliderCallback);
+    _gainEnabled = new Fl_Light_Button(_win->w() - 60, _menubar->h() + 10, 50, 30, "AGC");
+    _gainEnabled->value(_app->GetRfGainEnabled() ? 1 : 0);
+    _gainEnabled->color(FL_GRAY, FL_GREEN);
+    _gainEnabled->callback(HandleGainEnabledCallback);
+    if( _app->GetRfGainEnabled() ) {
+        _gainSlider->set_active();
+    } else {
+        _gainSlider->clear_active();
+    }
+
+    // Volume slider
     _volumeSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 80, 180, 30, _volumeLabel);
     _volumeSlider->bounds(0, 30);
     _volumeSlider->scrollvalue(_app->GetVolume(), 1, 0, 31);
@@ -785,6 +804,19 @@ void MainWindow::HandleGainSlider() {
     SetGainSliderLabel();
 }
 
+void MainWindow::HandleGainEnabled() {
+    _app->SetRfGainEnabled(!_app->GetRfGainEnabled());
+    _gainEnabled->value(_app->GetRfGainEnabled() ? 1 : 0);
+    if( _app->GetRfGainEnabled() ) {
+        _gainSlider->set_active();
+        _gainSlider->redraw();
+    } else {
+        _gainSlider->clear_active();
+        _gainSlider->redraw();
+    }
+    SetGainSliderLabel();
+}
+
 void MainWindow::HandleVolumeSlider() {
     _app->SetVolume(_volumeSlider->value());
     SetVolumeSliderLabel();
@@ -957,7 +989,11 @@ long MainWindow::MapToGainSliderValue(int value) {
 }
 
 void MainWindow::SetGainSliderLabel() {
-    strcpy(_gainLabel, ("  RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")  ").c_str());
+    if (_app->GetRfGainEnabled()) {
+        strcpy(_gainLabel,("  RF Gain (" + (_app->GetRfGain() == 0 ? "auto" : std::to_string(_app->GetRfGain())) + ")  ").c_str());
+    } else {
+        strcpy(_gainLabel, "  RF Gain (off)  ");
+    }
     _gainSlider->label(_gainLabel);
 }
 

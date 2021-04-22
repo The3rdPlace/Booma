@@ -142,6 +142,8 @@ class BoomaReceiver {
 
         int GetAudioFftSize();
         int GetAudioSpectrum(double* spectrum);
+
+        bool SetRfGainEnabled(bool enabled);
 };
 
 #endif

@@ -149,8 +149,13 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
     _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
     _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
     if( opts->GetRfGain() != 0 ) {
-        float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
-        _rfAgc->SetGain(g);
+        if( opts->GetRfGainEnabled() ) {
+            float g =
+                    opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
+            _rfAgc->SetGain(g);
+        } else {
+            _rfAgc->SetGain(1);
+        }
     }
 
     // Add preprocessing part of the receiver
@@ -176,5 +181,14 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
     // Receiver has been build and all components is initialized (or so they should be!)
     _hasBuilded = true;
 };
+
+bool BoomaReceiver::SetRfGainEnabled(bool enabled) {
+    if( enabled ) {
+        SetRfGain(_gainValue);
+    } else {
+        _rfAgc->SetGain(1);
+    }
+    return true;
+}
 
 #endif

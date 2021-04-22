@@ -129,6 +129,7 @@ enum DumpFileFormatType {
         int _rfGain = 0;
         int _inputFilterWidth = 10000;
         int _preamp = 0;
+        bool _rfGainEnabled = 1;
 
         // Output volume
         int _volume = 10;
