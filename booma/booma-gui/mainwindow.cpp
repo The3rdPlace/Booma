@@ -132,7 +132,7 @@ MainWindow::MainWindow(BoomaApplication* app):
         _threadsAlive++;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
             if( !_threadsPaused ) {
                 Fl::lock();
                 UpdateRfSpectrumDisplay();
@@ -146,7 +146,7 @@ MainWindow::MainWindow(BoomaApplication* app):
         _threadsAlive++;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(150));
             if( !_threadsPaused ) {
                 Fl::lock();
                 UpdateAfSpectrumDisplay();

@@ -3,23 +3,6 @@
 
 #include "boomareceiver.h"
 
-
-int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
-
-    // Store the current spectrum in the output buffer
-    memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
-    return length;
-}
-
-int BoomaReceiver::GetAudioFftSize() {
-    return _audioFftSize;
-}
-
-int BoomaReceiver::GetAudioSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioSpectrumSize);
-    return _audioSpectrumSize;
-}
-
 bool BoomaReceiver::SetOption(ConfigOptions* opts, std::string name, int value){
     for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
         if( (*it).Name == name ) {
@@ -168,11 +151,6 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
     if( decoder != NULL ) {
         _decoder->SetWriter(decoder->Writer());
     }
-
-    // Add audio spectrum calculation
-    _audioFftWindow = new HRectangularWindow<int16_t>();
-    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), 4, opts->GetOutputSampleRate() / 16);
-    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::AudioFftCallback, _audioFft->Consumer());
 
     // Receiver has been build and all components is initialized (or so they should be!)
     _hasBuilded = true;

@@ -252,11 +252,11 @@ int BoomaApplication::GetRfSpectrum(double* spectrum) {
 }
 
 int BoomaApplication::GetAudioFftSize() {
-    return _receiver->GetAudioFftSize();
+    return _output->GetAudioFftSize();
 }
 
 int BoomaApplication::GetAudioSpectrum(double* spectrum) {
-    return _receiver->GetAudioSpectrum(spectrum);
+    return _output->GetAudioSpectrum(spectrum);
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {
