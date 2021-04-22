@@ -76,7 +76,8 @@ class BoomaCwReceiver : public BoomaReceiver {
             if( opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
                 return frequency < opts->GetOutputSampleRate() / 2 && (frequency > 6000);
             } else {
-                return frequency == 0;
+                // With an rtlsdr source, the frequency can be almost anything
+                return frequency >= 0;
             }
         }
 

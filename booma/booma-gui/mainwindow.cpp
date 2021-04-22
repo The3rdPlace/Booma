@@ -476,10 +476,22 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
     // RF input waterfall
-    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app, 1, _app->GetOutputSampleRate() / 2, RF);
+    _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input",
+                                      _app->GetRfFftSize(),
+                                      _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE,
+                                      _app,
+                                      1,
+                                      _app->GetOutputSampleRate() / 2,
+                                      RF);
 
     // AF output waterfall
-    _afOutputWaterfall = new Waterfall(10, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 128, 140, "AF output", _app->GetAudioFftSize(), false, _app, 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2, AF);
+    _afOutputWaterfall = new Waterfall(10, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 128, 140, "AF output",
+                                       _app->GetAudioFftSize(),
+                                       false,
+                                       _app,
+                                       4,
+                                       ((_app->GetOutputSampleRate() / 2) / 4) / 2,
+                                       AF);
 }
 
 /***********************************************
