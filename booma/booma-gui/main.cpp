@@ -38,8 +38,7 @@ int main(int argc, char** argv) {
             std::cout << "App failed to initialize. Could be a bad configuration.\n\n";
             std::cout << "If you have forgotten to plug in the device used by the\n";
             std::cout << "default (current) receiver, plug it in and retry, otherwise\n";
-            std::cout << "you can reset the configuration with the command 'booma-gui -z\n";
-            exit(1);
+            std::cout << "you can reset the configuration with the command 'booma-gui -z\n";exit(1);
         }
 
         // Todo: For strange reasons, the input filter fails to initialize properly

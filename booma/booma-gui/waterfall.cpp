@@ -145,7 +145,7 @@ void Waterfall::draw() {
         fl_line(_gridLines[i], 0, _gridLines[i], GH);
     }
 
-    // Frequency labels
+    // Frequency markers and labels
     std::string m0;
     std::string m1;
     std::string m2;
@@ -164,14 +164,12 @@ void Waterfall::draw() {
     } else {
         int eightRate = (_app->GetOutputSampleRate() / 8000) / _zoom;
         if( _zoom > 1 ) {
-            // Todo: This section is not finished
-            int freqKhz = _center / 1000;
+            int freqKhz = (_center / 1000);
             m0 = std::to_string(freqKhz - (3 * eightRate));
-            m1 = std::to_string(freqKhz - (1.5 * eightRate));
+            m1 = "";
             m2 = std::to_string(freqKhz + (0 * eightRate));
-            m3 = std::to_string(freqKhz + (1.5 * eightRate));
+            m3 = "";
             m4 = std::to_string(freqKhz + (3 * eightRate));
-            // End-Of-Todo
         } else {
             m0 = "0";
             m1 = std::to_string(1 * eightRate);
@@ -180,10 +178,16 @@ void Waterfall::draw() {
             m4 = std::to_string(4 * eightRate);
         }
     }
+
+    // Display Labels
     fl_draw(m0.c_str(), 5, GH_PLUS_FIFTEEN);
-    fl_draw(m1.c_str(), _gridLines[2] - fl_width(m1.c_str())/2, GH_PLUS_FIFTEEN);
+    if( m1 != "" ) {
+        fl_draw(m1.c_str(), _gridLines[2] - fl_width(m1.c_str()) / 2, GH_PLUS_FIFTEEN);
+    }
     fl_draw(m2.c_str(), _gridLines[4] - fl_width(m2.c_str())/2, GH_PLUS_FIFTEEN);
-    fl_draw(m3.c_str(), _gridLines[6] - fl_width(m3.c_str())/2, GH_PLUS_FIFTEEN);
+    if( m3 != "" ) {
+        fl_draw(m3.c_str(), _gridLines[6] - fl_width(m3.c_str()) / 2, GH_PLUS_FIFTEEN);
+    }
     fl_draw(m4.c_str(), _gridLines[8] - fl_width(m4.c_str()) - 5, GH_PLUS_FIFTEEN);
 
     // Outer frame

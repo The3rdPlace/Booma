@@ -58,6 +58,7 @@ class MainWindow {
 
         // Display widgets
         Waterfall* _rfInputWaterfall;
+        Waterfall* _afOutputWaterfall;
         Fl_Slider* _signalLevelSlider;
 
         // Compose GUI
@@ -108,14 +109,13 @@ class MainWindow {
         std::thread* _signalLevelThread;
         std::thread* _rfSpectrumThread;
         std::thread* _afSpectrumThread;
-        bool _threadsRunning = true;
+        std::thread* _halterThread;
+        static bool _threadsRunning;
+        static int _threadsAlive;
         bool _threadsPaused = false;
         inline void UpdateSignalLevelDisplay();
         inline void UpdateRfSpectrumDisplay();
         inline void UpdateAfSpectrumDisplay();
-
-        // Halting and cleaning up
-        void Dispose();
 
         void Run();
         void Halt();

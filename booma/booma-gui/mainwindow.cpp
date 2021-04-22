@@ -9,6 +9,9 @@
 #include "mainwindow.h"
 #include "inputdialog.h"
 
+bool MainWindow::_threadsRunning = true;
+int MainWindow::_threadsAlive = 0;
+
 /***********************************************
   Static callbacks
 ***********************************************/
@@ -77,6 +80,12 @@ void HandleVolumeSliderCallback(Fl_Widget* w) {
     MainWindow::Instance()->HandleVolumeSlider();
 }
 
+static void HandleMainWindowExit(Fl_Widget *widget, void *)
+{
+    MainWindow* window = (MainWindow*) widget;
+    window->Exit();
+}
+
 /***********************************************
   Member functions
 ***********************************************/
@@ -93,6 +102,9 @@ MainWindow::MainWindow(BoomaApplication* app):
 
     // Create the window
     _win = new Fl_Window(720, 486, GetTitle());
+    _win->callback(HandleMainWindowExit);
+
+    // Compose gui
     SetupStatusbar();
     SetupMenus();
     SetupControls();
@@ -103,32 +115,55 @@ MainWindow::MainWindow(BoomaApplication* app):
     // Start display threads
     Fl::lock();
     _signalLevelThread = new std::thread( [this]()  {
+        _threadsAlive++;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        while( _threadsRunning ) {
+        while( MainWindow::_threadsRunning ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             if( !_threadsPaused ) {
+                Fl::lock();
                 UpdateSignalLevelDisplay();
+                Fl::unlock();
+                Fl::awake();
             }
         }
+        _threadsAlive--;
     } );
     _rfSpectrumThread = new std::thread( [this]()  {
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            if( !_threadsPaused ) {
-                UpdateRfSpectrumDisplay();
-            }
-        }
-    } );
-    _afSpectrumThread = new std::thread( [this]()  {
+        _threadsAlive++;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if( !_threadsPaused ) {
-                UpdateAfSpectrumDisplay();
+                Fl::lock();
+                UpdateRfSpectrumDisplay();
+                Fl::unlock();
+                Fl::awake();
             }
         }
+        _threadsAlive--;
     } );
+    _afSpectrumThread = new std::thread( [this]()  {
+        _threadsAlive++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        while( _threadsRunning ) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if( !_threadsPaused ) {
+                Fl::lock();
+                UpdateAfSpectrumDisplay();
+                Fl::unlock();
+                Fl::awake();
+            }
+        }
+        _threadsAlive--;
+    } );
+    _halterThread = new std::thread([this]() {
+        while( _threadsRunning || _threadsAlive > 0 ) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        HLog("No more running threads, closing mainwindow");
+        _win->hide();
+        Fl::awake();
+    });
 
     // Start the receiver
     Run();
@@ -138,38 +173,9 @@ MainWindow::MainWindow(BoomaApplication* app):
  * Destruct the mainwindow
  */
 MainWindow::~MainWindow() {
-    Dispose();
-}
-
-/**
- * Stop receiver and exit the mainwindow - effectively closing the application
- */
-void MainWindow::Exit() {
-    Dispose();
-
-    // Delete the app
-    delete _app;
-
-    // Close window
-    HLog("Calling exit(0)");
-    exit(0);
-}
-
-void MainWindow::Dispose() {
-
-    // Halt display threads
-    HLog("Halting display threads");
-    _threadsRunning = false;
-    _signalLevelThread->join();
-    _rfSpectrumThread->join();
-    _afSpectrumThread->join();
-
-    // Halt the receiver
-    HLog("Halting the receiver");
-    Halt();
+    HLog("Destroying the MainWindow");
 
     // Cleanup
-    HLog("Cleaning up resources");
     delete _frequencyInput;
     delete _frequencyInputSet;
     delete _frequencyInputUp100;
@@ -180,7 +186,22 @@ void MainWindow::Dispose() {
     delete _gainSlider;
     delete _volumeSlider;
     delete _rfInputWaterfall;
+    delete _afOutputWaterfall;
     delete _signalLevelSlider;
+
+    // Join threads
+    _signalLevelThread->join();
+    _rfSpectrumThread->join();
+    _afSpectrumThread->join();
+    _halterThread->join();
+}
+
+/**
+ * Stop receiver and exit the mainwindow - effectively closing the application
+ */
+void MainWindow::Exit() {
+    HLog("Halting threads and receiver");
+    MainWindow::_threadsRunning = false;
 }
 
 /**
@@ -454,8 +475,11 @@ void MainWindow::SetupDisplays() {
     _signalLevelSlider->scrollvalue(0, 1,0, 12);
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
 
-    // RF Input waterfall
+    // RF input waterfall
     _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input", _app->GetRfFftSize(), _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app, 1, _app->GetOutputSampleRate() / 2, RF);
+
+    // AF output waterfall
+    _afOutputWaterfall = new Waterfall(10, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 128, 140, "AF output", _app->GetAudioFftSize(), false, _app, 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2, AF);
 }
 
 /***********************************************
@@ -1101,7 +1125,8 @@ inline void MainWindow::UpdateRfSpectrumDisplay() {
 }
 
 inline void MainWindow::UpdateAfSpectrumDisplay() {
-    // Todo: Update display
+    _app->GetAudioSpectrum(_afOutputWaterfall->GetFftBuffer());
+    _afOutputWaterfall->Refresh();
 }
 
 void MainWindow::Run() {

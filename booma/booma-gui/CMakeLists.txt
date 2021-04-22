@@ -11,7 +11,7 @@ find_package(FLTK)
 	include_directories("${PROJECT_SOURCE_DIR}/booma/libbooma/include")
 	include_directories ("${PROJECT_SOURCE_DIR}")
 	include_directories("${PROJECT_SOURCE_DIR}/booma/booma-gui/include")
-	include_directories("${PROJECT_BINARY_DIR}/booma/booma-gui")
+	include_directories("${PROJECT_BINARY_DIR}/booma/booma-gui/include")
 	include_directories(${FLTK_INCLUDE_DIR})
 
 	# Set the application major and minor version here
