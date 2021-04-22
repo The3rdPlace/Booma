@@ -36,6 +36,7 @@ class ConfigOptions {
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
         std::vector<Channel*> ReadChannels(std::string configname, std::string channels);
         std::vector<Channel*> ReadPersistentChannels(std::string configname, std::string section);
+        void AddDefaultChannels(std::vector<Channel *>* list);
         std::string WriteChannels(std::string configname, std::string section, std::vector<Channel*> channels);
         void DumpConfigInfo();
 

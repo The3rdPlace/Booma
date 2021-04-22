@@ -435,7 +435,9 @@ void MainWindow::SetupControls() {
     _channelSelector = new Fl_Choice(465, _win->h() - 80, 245, 30);
     std::map<int, Channel*> channels = _app->GetChannels();
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
-        _channelSelector->add(((*it).second->Name).c_str());
+        std::string name = (*it).second->Name;
+        std::replace(name.begin(), name.end(), '/', '|');
+        _channelSelector->add(name.c_str());
     }
     _channelSelector->callback(HandleChannelSelectorCallback);
 
