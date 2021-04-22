@@ -65,16 +65,12 @@ bool BoomaReceiver::SetOption(ConfigOptions* opts, std::string name, int value){
 };
 
 int BoomaReceiver::GetRfAgcLevel(ConfigOptions* opts) {
+
     switch(opts->GetInputSourceDataType()) {
         case IQ_INPUT_SOURCE_DATA_TYPE:
         case I_INPUT_SOURCE_DATA_TYPE:
         case Q_INPUT_SOURCE_DATA_TYPE:
-            // Set level of individual branches, so that the absolute size
-            // of the IQ vector has the requested level..
-            // I^2 + Q^2 = MAG^2  ==>  I = Q = sqrt(MAG^2 / 2)
-            // Then divide by 2 to go from peak-to-peak to size of positive or
-            // negative part of the cycle.
-            return sqrt( pow(opts->GetRfAgcLevel(), 2) / 2 ) / 2;
+            return opts->GetRfAgcLevel() * 1.4;
         default:
             return opts->GetRfAgcLevel();
     }
