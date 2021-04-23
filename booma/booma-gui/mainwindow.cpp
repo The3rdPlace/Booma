@@ -1,8 +1,9 @@
 #include <hardt.h>
-#include <iomanip>
 
+#include <iomanip>
 #include <chrono>
 #include <thread>
+#include <regex>
 
 #include "main.h"
 #include "booma.h"
@@ -37,7 +38,6 @@ void HandleMenuButtonCallback(Fl_Widget* w, void* data) {
 void HandleFrequencyInputButtonsCallback(Fl_Widget *w) {
     MainWindow::Instance()->HandleFrequencyInputButtons(w);
 }
-
 
 /**
  * Static callback for frequency input events
@@ -84,6 +84,15 @@ static void HandleMainWindowExit(Fl_Widget *widget, void *)
 {
     MainWindow* window = (MainWindow*) widget;
     window->Exit();
+}
+
+/**
+ * Static callback for offset input event
+ * @param w Calling input field
+ * @param data (Unused)
+ */
+void HandleFrequencyOffsetCallback(Fl_Widget *w) {
+    MainWindow::Instance()->HandleFrequencyOffset(w);
 }
 
 /***********************************************
@@ -365,7 +374,9 @@ void MainWindow::SetupSettingsMenu() {
     _menubar->add("Receiver/Settings/Preamp/Off", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetPreampLevel() == 0 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Settings/Preamp/+12 dB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetPreampLevel() > 0 ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetPreampLevel() == 1 ? FL_MENU_VALUE : 0));
+    _menubar->add("Receiver/Settings/Preamp/+24 dB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetPreampLevel() > 1 ? FL_MENU_VALUE : 0));
 
     // Otherwise show available options
     for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
@@ -416,14 +427,21 @@ void MainWindow::SetupStatusbar(){
 void MainWindow::SetupControls() {
 
     // Frequency input
-    _frequencyInput = new Fl_Input(90, _win->h() - 80, 150, 30, "Frequency ");
+    _frequencyInput = new Fl_Input(90, _win->h() - 80, 100, 30, "Frequency ");
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
-    _frequencyInputSet = new Fl_Button(250, _win->h() - 80, 50, 30, "set");
-    _frequencyInputDown1Khz = new Fl_Button(320, _win->h() - 80, 30, 30, "<<");
-    _frequencyInputDown100 = new Fl_Button(350, _win->h() - 80, 30, 30, "<");
-    _frequencyInputUp100 = new Fl_Button(385, _win->h() - 80, 30, 30, ">");
-    _frequencyInputUp1Khz = new Fl_Button(415, _win->h() - 80, 30, 30, ">>");
+    _frequencyInputSet = new Fl_Button(200, _win->h() - 80, 50, 30, "set");
+    _frequencyInputDown1Khz = new Fl_Button(260, _win->h() - 80, 30, 30, "<<");
+    _frequencyInputDown100 = new Fl_Button(290, _win->h() - 80, 30, 30, "<");
+    _frequencyInputUp100 = new Fl_Button(325, _win->h() - 80, 30, 30, ">");
+    _frequencyInputUp1Khz = new Fl_Button(355, _win->h() - 80, 30, 30, ">>");
+    _frequencyOffset = new Fl_Value_Input(395, _win->h() - 80, 50, 30);
+    _frequencyOffset->step(10);
+    _frequencyOffset->minimum(0);
+    _frequencyOffset->maximum(10000);
+    _frequencyOffset->tooltip("Offset when using an rtlsdr input source");
+    _frequencyOffset->value(_app->GetOffset());
     _frequencyInput->callback(HandleFrequencyInputCallback);
+    _frequencyOffset->callback(HandleFrequencyOffsetCallback);
     _frequencyInput->when(FL_WHEN_ENTER_KEY);
     _frequencyInputSet->callback(HandleFrequencyInputButtonsCallback);
     _frequencyInputUp1Khz->callback(HandleFrequencyInputButtonsCallback);
@@ -432,12 +450,14 @@ void MainWindow::SetupControls() {
     _frequencyInputDown1Khz->callback(HandleFrequencyInputButtonsCallback);
 
     // Channel selector
-    _channelSelector = new Fl_Choice(465, _win->h() - 80, 245, 30);
+    _channelSelector = new Fl_Choice(470, _win->h() - 80, 240, 30);
     std::map<int, Channel*> channels = _app->GetChannels();
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         std::string name = (*it).second->Name;
-        std::replace(name.begin(), name.end(), '/', '|');
-        _channelSelector->add(name.c_str());
+        std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
+        std::cout << choiceName << std::endl;
+
+        _channelSelector->add((std::to_string((*it).second->Frequency) + "  " + choiceName).c_str());
     }
     _channelSelector->callback(HandleChannelSelectorCallback);
 
@@ -739,6 +759,8 @@ void MainWindow::HandleMenuButtonReceiverPreamp(char* name, char* value) {
         _app->SetPreampLevel(-1);
     } else if( strcmp(value, "/+12 dB") == 0 ) {
         _app->SetPreampLevel(1);
+    } else if( strcmp(value, "/+24 dB") == 0 ) {
+        _app->SetPreampLevel(2);
     } else {
         _app->SetPreampLevel(0);
     }
@@ -820,7 +842,6 @@ void MainWindow::HandleFrequencyInputButtons(Fl_Widget *w) {
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 }
 
-
 void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
     try
     {
@@ -831,6 +852,19 @@ void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 }
 
+void MainWindow::HandleFrequencyOffset(Fl_Widget *w) {
+    Halt();
+
+    try
+    {
+        _app->SetOffset(_frequencyOffset->value());
+    }
+    catch(...)
+    { }
+
+    _app->ChangeReceiver();
+    Run();
+}
 
 void MainWindow::HandleChannelSelector(Fl_Widget *w) {
     _app->SetFrequency(_app->GetChannels().at(_channelSelector->value() + 1)->Frequency);
@@ -1194,6 +1228,29 @@ void MainWindow::UpdateState() {
 
     // Statusbar
     UpdateStatusbar();
+
+    // Offset control
+    if( _frequencyOffset != nullptr ) {
+        if (_app->GetInputSourceType() == RTLSDR || _app->GetOriginalInputSourceType() == RTLSDR) {
+            _frequencyOffset->set_active();
+            _frequencyOffset->color(FL_WHITE);
+        } else {
+            _frequencyOffset->clear_active();
+            _frequencyOffset->color(FL_GRAY);
+        }
+        _frequencyOffset->redraw();
+    }
+
+    if( _frequencyInput != nullptr ) {
+        if (_app->GetInputSourceType() == PCM_FILE && _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE) {
+            _frequencyInput->clear_active();
+            _frequencyInput->color(FL_GRAY);
+        } else {
+            _frequencyInput->set_active();
+            _frequencyInput->color(FL_WHITE);
+        }
+        _frequencyInput->redraw();
+    }
 }
 
 void MainWindow::UpdateStatusbar() {

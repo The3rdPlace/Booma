@@ -53,7 +53,7 @@ int BoomaReceiver::GetRfAgcLevel(ConfigOptions* opts) {
         case IQ_INPUT_SOURCE_DATA_TYPE:
         case I_INPUT_SOURCE_DATA_TYPE:
         case Q_INPUT_SOURCE_DATA_TYPE:
-            return opts->GetRfAgcLevel() * 1.4;
+            return opts->GetRfAgcLevel() * 4;
         default:
             return opts->GetRfAgcLevel();
     }

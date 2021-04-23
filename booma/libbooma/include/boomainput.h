@@ -58,6 +58,7 @@ public:
         double* _rfSpectrum;
         int _rfFftSize;
         int _rfSpectrumSize;
+        HGain<int16_t>* _rfFftGain;
 
         // Final consumer
         HWriterConsumer<int16_t>* _lastConsumer;

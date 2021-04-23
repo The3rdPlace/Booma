@@ -1504,10 +1504,10 @@ void ConfigOptions::AddDefaultChannels(std::vector<Channel *>* list) {
     list->push_back(new Channel("unid25 Mokpo. South Korea", 25000));
     list->push_back(new Channel("NML La Moure. ND. USA", 25200));
     list->push_back(new Channel("TBB Bafa. Turkey", 26700));
-    list->push_back(new Channel("??? ???. ???", 30700));
+    list->push_back(new Channel("(unknown 1)", 30700));
     list->push_back(new Channel("NRK/TFK Grindavik. Iceland", 37500));
     list->push_back(new Channel("SRC Varberg. Sweden", 40400));
-    list->push_back(new Channel("??? ???. ???", 44270));
+    list->push_back(new Channel("(unknown 2)", 44270));
     list->push_back(new Channel("NSY Niscemi. Italy", 45900));
     list->push_back(new Channel("SXA Marathon. Greece", 49000));
     list->push_back(new Channel("GYW1 Crimond. UK", 51950));

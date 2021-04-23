@@ -561,6 +561,10 @@ int BoomaApplication::GetOffset() {
     return _opts->GetRtlsdrOffset();
 }
 
+void BoomaApplication::SetOffset(int offset) {
+    _opts->SetRtlsdrOffset(offset);
+}
+
 bool BoomaApplication::GetRfGainEnabled() {
     return _opts->GetRfGainEnabled();
 }

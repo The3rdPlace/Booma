@@ -105,8 +105,8 @@ void Waterfall::draw() {
         int center = _iq
                      ? ((_app->GetOutputSampleRate() / 4) + (_app->GetOffset() / 2)) / _hzPerBin
                      : ((float) _app->GetFrequency()) / _hzPerBin;
-        fl_color(FL_DARK_YELLOW);
-        fl_line_style(FL_DOT, 1, 0);
+        fl_color(FL_DARK_RED);
+        fl_line_style(FL_SOLID, 1, 0);
         fl_line(center - 4, 0, center - 4, _gh);
         fl_line(center + 4, 0, center + 4, _gh);
 
@@ -139,11 +139,6 @@ void Waterfall::draw() {
     // Frequency markers
     fl_rectf(0, GH, GW, H, FL_GRAY);
     fl_color(FL_BLACK);
-    fl_color(40);
-    fl_line_style(FL_DASH, 1, 0);
-    for( int i = 0; i < 8; i++ ) {
-        fl_line(_gridLines[i], 0, _gridLines[i], GH);
-    }
 
     // Frequency markers and labels
     std::string m0;
@@ -154,7 +149,7 @@ void Waterfall::draw() {
     if( _iq ) {
         int zero = (_app->GetOutputSampleRate() / 4000) / _zoom;
         int halfRate = (_app->GetOutputSampleRate() / 2000) / _zoom;
-        int freqKhz = _app->GetFrequency() / 1000;
+        int freqKhz = (_app->GetFrequency() - _app->GetOffset())/ 1000;
         std::string suffix = _app->GetFrequency() % 1000 != 0 ? "." + std::to_string(_app->GetFrequency() % 1000).substr(0, 1) : "";
         m0 = std::to_string((0 * zero) - halfRate + freqKhz) + suffix;
         m1 = std::to_string((1 * zero) - halfRate + freqKhz) + suffix;
@@ -189,6 +184,13 @@ void Waterfall::draw() {
         fl_draw(m3.c_str(), _gridLines[6] - fl_width(m3.c_str()) / 2, GH_PLUS_FIFTEEN);
     }
     fl_draw(m4.c_str(), _gridLines[8] - fl_width(m4.c_str()) - 5, GH_PLUS_FIFTEEN);
+
+    fl_line_style(FL_SOLID, 2, 0);
+    for( int i = 0; i < 8; i++ ) {
+        // Todo: make these configurable
+        //fl_line(_gridLines[i], 0, _gridLines[i], GH);
+        fl_line(_gridLines[i], _gh, _gridLines[i], _gh + 3);
+    }
 
     // Outer frame
     fl_line_style(FL_SOLID, 2, 0);

@@ -16,6 +16,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Light_Button.H>
+#include <FL/Fl_Value_Input.H>
 
 class MainWindow {
 
@@ -32,25 +33,26 @@ class MainWindow {
         Fl_Menu_Bar* _menubar;
 
         // Control widgets
-        Fl_Input* _frequencyInput;
-        Fl_Button* _frequencyInputSet;
-        Fl_Button* _frequencyInputUp100;
-        Fl_Button* _frequencyInputDown100;
-        Fl_Button* _frequencyInputUp1Khz;
-        Fl_Button* _frequencyInputDown1Khz;
-        Fl_Choice* _channelSelector;
-        Fl_Slider* _gainSlider;
-        Fl_Slider* _volumeSlider;
-        Fl_Light_Button* _gainEnabled;
+        Fl_Input* _frequencyInput = nullptr;
+        Fl_Button* _frequencyInputSet = nullptr;
+        Fl_Button* _frequencyInputUp100 = nullptr;
+        Fl_Button* _frequencyInputDown100 = nullptr;
+        Fl_Button* _frequencyInputUp1Khz = nullptr;
+        Fl_Button* _frequencyInputDown1Khz = nullptr;
+        Fl_Value_Input* _frequencyOffset = nullptr;
+        Fl_Choice* _channelSelector = nullptr;
+        Fl_Slider* _gainSlider = nullptr;
+        Fl_Slider* _volumeSlider = nullptr;
+        Fl_Light_Button* _gainEnabled = nullptr;
 
         // Statusbar
-        Fl_Group* _statusbar;
-        Fl_Output* _statusbarConfig;
-        Fl_Output* _statusbarMode;
-        Fl_Output* _statusbarHardwareFreq;
-        Fl_Output* _statusbarRunningState;
-        Fl_Output* _statusbarRecordingRf;
-        Fl_Output* _statusbarRecordingAf;
+        Fl_Group* _statusbar = nullptr;
+        Fl_Output* _statusbarConfig = nullptr;
+        Fl_Output* _statusbarMode = nullptr;
+        Fl_Output* _statusbarHardwareFreq = nullptr;
+        Fl_Output* _statusbarRunningState = nullptr;
+        Fl_Output* _statusbarRecordingRf = nullptr;
+        Fl_Output* _statusbarRecordingAf = nullptr;
 
         // Dynamic labels
         char _gainLabel[50];
@@ -136,6 +138,7 @@ class MainWindow {
         void HandleFrequencyInputButtons(Fl_Widget *w);
         void HandleFrequencyInput(Fl_Widget *w);
         void HandleChannelSelector(Fl_Widget *w);
+        void HandleFrequencyOffset(Fl_Widget *w);
         void HandleGainSlider();
          void HandleGainEnabled();
         void HandleVolumeSlider();

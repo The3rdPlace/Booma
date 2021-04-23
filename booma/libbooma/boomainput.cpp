@@ -32,7 +32,16 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfFftWindow(nullptr),
         _rfFftWriter(nullptr),
         _rfSpectrum(nullptr),
-        _rfFftSize(1024) {
+        _rfFftSize(1024),
+        _rfFftGain(nullptr) {
+
+    // If using a PCM file with IQ data, then always set the frequency to 0 (zero)
+    if( opts->GetInputSourceType() == PCM_FILE && opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE ) {
+        HLog("Input source is a PCM file with I/Q data. Zero'ing frequency, shift and rtlsdr-adjust");
+        opts->SetFrequency(0);
+        opts->SetShift(0);
+        opts->SetRtlsdrAdjust(0);
+    }
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
@@ -88,7 +97,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfSplitter->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    _rfFftGain = new HGain<int16_t>(_rfSplitter->Consumer(), 1, BLOCKSIZE);
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfFftGain->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
     _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaInput>(this, &BoomaInput::RfFftCallback, _rfFft->Consumer());
 
     // Add preamp
@@ -469,14 +479,17 @@ HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterCons
     float gain;
     if( opts->GetPreamp() == 0 ) {
         gain = 1;
-    } else if ( opts->GetPreamp() > 0 ) {
+    } else if ( opts->GetPreamp() > 0 && opts->GetPreamp() < 2) {
         gain = 4;
+    } else if ( opts->GetPreamp() > 1 ) {
+        gain = 8;
     } else {
         gain = 0.25;
     }
 
     _preampProbe = new HProbe<int16_t>("input_07_preamp", opts->GetEnableProbes());
     _preamp = new HGain<int16_t>(previous, gain, BLOCKSIZE, _preampProbe);
+    _rfFftGain->SetGain(gain);
 
     return _preamp;
 }
@@ -486,13 +499,16 @@ bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
     float gain;
     if( level == 0 ) {
         gain = 1;
-    } else if ( level > 0 ) {
+    } else if ( level > 0 && level < 2 ) {
         gain = 4;
+    } else if ( level > 1 ) {
+        gain = 8;
     } else {
         gain = 0.25;
     }
 
     _preamp->SetGain(gain);
+    _rfFftGain->SetGain(gain);
     return true;
 }
 

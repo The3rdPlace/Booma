@@ -264,6 +264,10 @@ class ConfigOptions {
             return _values.at(_section)->_rtlsdrOffset;
         }
 
+        void SetRtlsdrOffset(int offset) {
+            _values.at(_section)->_rtlsdrOffset = offset;
+        }
+
         long GetRtlsdrAdjust() {
             return _values.at(_section)->_rtlsdrAdjust;
         }
