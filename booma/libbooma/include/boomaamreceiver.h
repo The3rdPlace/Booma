@@ -51,7 +51,7 @@ private:
     }
 
     bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
-        return frequency < (opts->GetOutputSampleRate() / 2);
+        return true;
     }
 
 public:
