@@ -451,15 +451,8 @@ void MainWindow::SetupControls() {
 
     // Channel selector
     _channelSelector = new Fl_Choice(470, _win->h() - 80, 240, 30);
-    std::map<int, Channel*> channels = _app->GetChannels();
-    for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
-        std::string name = (*it).second->Name;
-        std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
-        std::cout << choiceName << std::endl;
-
-        _channelSelector->add((std::to_string((*it).second->Frequency) + "  " + choiceName).c_str());
-    }
     _channelSelector->callback(HandleChannelSelectorCallback);
+    SetupChannels();
 
     // Gain slider and agc enable/disable
     _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 10, 120, 30, _gainLabel);
@@ -483,6 +476,19 @@ void MainWindow::SetupControls() {
     _volumeSlider->scrollvalue(_app->GetVolume(), 1, 0, 31);
     SetVolumeSliderLabel();
     _volumeSlider->callback(HandleVolumeSliderCallback);
+}
+
+void MainWindow::SetupChannels() {
+    _channelSelector->clear();
+
+    std::map<int, Channel*> channels = _app->GetChannels();
+    for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+        std::string name = (*it).second->Name;
+        std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
+        std::cout << choiceName << std::endl;
+
+        _channelSelector->add((std::to_string((*it).second->Frequency) + "  " + choiceName).c_str());
+    }
 }
 
 /**
@@ -612,6 +618,8 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     // Update the menu
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
+    SetupChannels();
+    SetupChannels();
 
     _volumeSlider->value(_app->GetVolume());
     _gainSlider->value(MapToGainSliderValue(_app->GetRfGain()));
@@ -925,6 +933,7 @@ void MainWindow::AddReceiverInput() {
     int volume = _app->GetVolume();
 
     Halt();
+
     InputDialog* dlg = new InputDialog(_app, InputDialog::Mode::ADD);
     if( dlg->Show() ) {
         _app->ChangeReceiver();
@@ -940,6 +949,7 @@ void MainWindow::AddReceiverInput() {
     _volumeSlider->redraw();
     _gainSlider->redraw();
 
+    SetupChannels();
     SetupReceiverOutputMenu();
     SetupReceiverInputMenu();
     SetupConfigurationMenu();

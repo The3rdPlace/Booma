@@ -69,6 +69,7 @@ class MainWindow {
         void SetupDisplays();
 
         // Helper functions for setting up the GUI
+        void SetupChannels();
         void SetupFileMenu();
         void SetupConfigurationMenu();
         void SetupReceiverMenu();
