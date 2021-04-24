@@ -23,6 +23,7 @@ class Waterfall : public Fl_Widget {
         double* _fft;
         uchar* _screen;
         uchar _colorMap[256];
+        Fl_Callback0* _cb;
 
         int _gw;
         int _gh;
@@ -65,6 +66,10 @@ class Waterfall : public Fl_Widget {
         }
 
         void Refresh();
+
+        void callback(Fl_Callback0* cb) {
+            _cb = cb;
+        }
 };
 
 #endif

@@ -95,6 +95,15 @@ void HandleFrequencyOffsetCallback(Fl_Widget *w) {
     MainWindow::Instance()->HandleFrequencyOffset(w);
 }
 
+/**
+ * Static callback for menu handling
+ * @param w The menubar widget
+ * @param data Pointer to the mainwindow
+ */
+void HandleRfWaterfallCallback(Fl_Widget* w) {
+    std::cout << "RF waterfall callback\n";
+}
+
 /***********************************************
   Member functions
 ***********************************************/
@@ -511,6 +520,7 @@ void MainWindow::SetupDisplays() {
                                       1,
                                       _app->GetOutputSampleRate() / 2,
                                       RF);
+    _rfInputWaterfall->callback(HandleRfWaterfallCallback);
 
     // AF output waterfall
     _afOutputWaterfall = new Waterfall(10, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 128, 140, "AF output",

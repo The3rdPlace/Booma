@@ -229,12 +229,14 @@ int Waterfall::handle(int event) {
             return 1;
         case FL_RELEASE:
             std::cout << "FL_RELEASE. Mouse was at " << x << ", " << y << "\n";
+            _cb(this);
             return 1;
         case FL_DRAG: {
             int newX = Fl::event_x();
             int newY = Fl::event_y();
 
             std::cout << "FL_DRAG from " << x << ", " << y << " to " << newX << ", " << newY << "\n";
+            _cb(this);
             return 1;
         }
         default:
