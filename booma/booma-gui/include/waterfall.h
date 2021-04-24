@@ -58,6 +58,8 @@ class Waterfall : public Fl_Widget {
 
         void draw();
 
+        int handle(int event);
+
         double* GetFftBuffer() {
             return _fft;
         }

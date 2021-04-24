@@ -212,3 +212,32 @@ void Waterfall::ReConfigure(bool iq, int zoom) {
     _zoom = zoom;
     _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (2)) / (float) _gw;
 }
+
+int Waterfall::handle(int event) {
+
+    // Todo: Use events to set frequency
+
+    int x;
+    int y;
+
+    switch(event) {
+        case FL_PUSH:
+            x = Fl::event_x();
+            y = Fl::event_y();
+
+            std::cout << "FL_PUSH at " << x << ", " << y << "\n";
+            return 1;
+        case FL_RELEASE:
+            std::cout << "FL_RELEASE. Mouse was at " << x << ", " << y << "\n";
+            return 1;
+        case FL_DRAG: {
+            int newX = Fl::event_x();
+            int newY = Fl::event_y();
+
+            std::cout << "FL_DRAG from " << x << ", " << y << " to " << newX << ", " << newY << "\n";
+            return 1;
+        }
+        default:
+            return Fl_Widget::handle(event);
+    }
+}
