@@ -11,6 +11,9 @@ class Waterfall : public Fl_Widget {
 
     private:
 
+        bool _enableDrawing;
+        bool _enableNavigation;
+
         BoomaApplication* _app;
         float _hzPerBin;
 

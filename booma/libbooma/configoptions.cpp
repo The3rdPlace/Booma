@@ -89,7 +89,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
         std::cout << tr("Agc level for automatic decimator gain (default 1000)    -dal level") << std::endl;
         std::cout << tr("Automatic RF gain level (default 500)                    -ral level") << std::endl;
-        std::cout << tr("AF FFT gain (default 2)                                  -afg level") << std::endl;
+        std::cout << tr("AF FFT gain (default 1)                                  -afg level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
@@ -756,14 +756,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-fa") == 0 ) {
             _values.at(_section)->_frequencyAlign = true;
             _values.at(_section)->_rtlsdrAdjust = 0;
-            std::cout << tr("*{msg}* Frequency align mode is enabled.") << std::endl;
-            std::cout << tr("*{msg}* ") << std::endl;
-            std::cout << tr("*{msg}* RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
-            std::cout << tr("*{msg}* ") <<std::endl;
-            std::cout << tr("*{msg}* An 800Hz tone is superimposed on the output audio") << std::endl;
-            std::cout << tr("*{msg}* to help you find the offset error in your RTL-SDR") << std::endl;
-            std::cout << tr("*{msg}* dongle. Use this value with the -rtla parameter") << std::endl;
-            std::cout << tr("*{msg}* to enable precise tuning.") << std::endl;
+            std::cout << tr("Frequency align mode is enabled.") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("An 800Hz tone is superimposed on the output audio") << std::endl;
+            std::cout << tr("to help you find the offset error in your RTL-SDR") << std::endl;
+            std::cout << tr("dongle. Use this value with the -rtla parameter") << std::endl;
+            std::cout << tr("to enable precise tuning.") << std::endl;
             HLog("Frequency alignment mode enabled");
             continue;
         }

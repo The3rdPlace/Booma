@@ -19,7 +19,10 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _oneScreenLineLength(_gw * 3),
     _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
     _ghMinusThree(_gh - 3),
-    _selectedFrequency(_app->GetFrequency()) {
+    _selectedFrequency(_app->GetFrequency()),
+    _enableDrawing(true),
+    _cb(nullptr),
+    _enableNavigation(false) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -43,6 +46,11 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _hzPerBin = _app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE
             ? (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw
             : ((float) _app->GetOutputSampleRate() / (float) _zoom) / (float) _gw;
+
+    // Only enable click/drag navigation for the RF spectrum
+    if( type == RF ) {
+        _enableNavigation = true;
+    }
 }
 
 #define W w()
@@ -62,6 +70,10 @@ Waterfall::~Waterfall() {
 }
 
 void Waterfall::draw() {
+
+    if( !_enableDrawing ) {
+        return;
+    }
 
     // Move waterfall downwards
     _ofscr = fl_create_offscreen(W, H);
@@ -212,31 +224,50 @@ void Waterfall::Refresh() {
 void Waterfall::ReConfigure(bool iq, int zoom) {
     _iq = iq;
     _zoom = zoom;
-    _hzPerBin = ((float) _app->GetOutputSampleRate() / (float) (2)) / (float) _gw;
+
+    _hzPerBin = !iq
+                ? (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw
+                : ((float) _app->GetOutputSampleRate() / (float) _zoom) / (float) _gw;
 }
 
 int Waterfall::handle(int event) {
 
-    // Todo: Use events to set frequency
+    if( !_enableNavigation ) {
+        return 1;
+    }
 
-    static int x;
-    static int y;
+    static int firstX;
+    static int firstY;
+    static int lastX;
+    static int lastY;
+    static bool isDrag = false;
 
     switch(event) {
         case FL_PUSH:
-            x = Fl::event_x();
-            y = Fl::event_y();
+            firstX = lastX = Fl::event_x();
+            firstY = lastY = Fl::event_y();
+            _enableDrawing = false;
             return 1;
         case FL_RELEASE:
 
             // Calculate the final selected frequency
-            _selectedFrequency =(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE
-                            ? (_app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2))
-                            : 0) +
-                    ((x - this->x()) * _hzPerBin);
+            if( isDrag ) {
+                int diff = ((lastX - this->x()) - (firstX - this->x()));
+                int diffFreq = (diff * _hzPerBin);
+                _selectedFrequency -= diffFreq;
+            } else {
+                _selectedFrequency = (_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE
+                                      ? (_app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2))
+                                      : 0) +
+                                     ((lastX - this->x()) * _hzPerBin);
+            }
 
             // Round to nearest 100 Hz
             _selectedFrequency = (_selectedFrequency / 100) * 100;
+
+            // Reset
+            isDrag = false;
+            _enableDrawing = true;
 
             // Notify the callback that the frequency should change
             if( _cb != nullptr ) {
@@ -247,12 +278,27 @@ int Waterfall::handle(int event) {
             return 1;
 
         case FL_DRAG: {
-            int newX = Fl::event_x();
-            int newY = Fl::event_y();
+            lastX = Fl::event_x();
+            lastY = Fl::event_y();
 
-            // Todo:: Handle dragging the spectrum
-            std::cout << "FL_DRAG from " << x << ", " << y << " to " << newX << ", " << newY << "\n";
-            //_cb(this);
+            if( _iq ) {
+                isDrag = true;
+
+                int diff = lastX - firstX + this->x();
+                fl_rectf(this->x(), this->y(), GW, GH, FL_BLACK);
+                fl_draw_image(_screen, diff, this->y(), GW, GH);
+
+                // Draw current center frequency lines
+                if (_type == RF) {
+                    int center = ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin;
+                    center += this->x();
+                    fl_color(FL_YELLOW);
+                    fl_line_style(FL_SOLID, 1, 0);
+                    fl_line(center - 4, this->y(), center - 4, this->h() + this->y());
+                    fl_line(center + 4, this->y(), center + 4, this->h() + this->y());
+                }
+            }
+
             return 1;
         }
         default:
