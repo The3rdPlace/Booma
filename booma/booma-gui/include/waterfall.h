@@ -14,6 +14,8 @@ class Waterfall : public Fl_Widget {
         BoomaApplication* _app;
         float _hzPerBin;
 
+        long _selectedFrequency;
+
         WaterfallType _type;
         int _n;
         bool _iq;
@@ -69,6 +71,10 @@ class Waterfall : public Fl_Widget {
 
         void callback(Fl_Callback0* cb) {
             _cb = cb;
+        }
+
+        long GetSelectedFrequency() {
+            return _selectedFrequency;
         }
 };
 

@@ -141,8 +141,9 @@ class MainWindow {
         void HandleChannelSelector(Fl_Widget *w);
         void HandleFrequencyOffset(Fl_Widget *w);
         void HandleGainSlider();
-         void HandleGainEnabled();
+        void HandleGainEnabled();
         void HandleVolumeSlider();
+        void HandleRfWaterfall();
 
         // Exit
         void Exit();

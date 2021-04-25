@@ -18,7 +18,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _secondScreenLineStart(_gw * 1 * 3),
     _oneScreenLineLength(_gw * 3),
     _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
-    _ghMinusThree(_gh - 3) {
+    _ghMinusThree(_gh - 3),
+    _selectedFrequency(_app->GetFrequency()) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -39,7 +40,9 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     };
 
     // Not actually Hz per frequency bin, but more - Hz pr. pixel for the given spectrum size
-    _hzPerBin = (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw;
+    _hzPerBin = _app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE
+            ? (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw
+            : ((float) _app->GetOutputSampleRate() / (float) _zoom) / (float) _gw;
 }
 
 #define W w()
@@ -103,7 +106,7 @@ void Waterfall::draw() {
 
         // Draw current center frequency lines
         int center = _iq
-                     ? ((_app->GetOutputSampleRate() / 4) + (_app->GetOffset() / 2)) / _hzPerBin
+                     ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
                      : ((float) _app->GetFrequency()) / _hzPerBin;
         fl_color(FL_DARK_RED);
         fl_line_style(FL_SOLID, 1, 0);
@@ -112,14 +115,13 @@ void Waterfall::draw() {
 
         // Draw current if filter width
         int halfFilterWidth = _app->GetInputFilterWidth() / 2;
-        int quarterSampleRate = _app->GetOutputSampleRate() / 4;
         int halfSampleRate = _app->GetOutputSampleRate() / 2;
         if (halfFilterWidth > 0) {
             int left;
             int right;
             if (_iq) {
-                left = ((quarterSampleRate - halfFilterWidth) + (_app->GetOffset() / 2)) / _hzPerBin;
-                right = ((quarterSampleRate + halfFilterWidth) + (_app->GetOffset() / 2)) / _hzPerBin;
+                left = ((halfSampleRate - halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
+                right = ((halfSampleRate + halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
             } else {
                 if (_app->GetFrequency() - halfFilterWidth > 0) {
                     left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);
@@ -217,26 +219,40 @@ int Waterfall::handle(int event) {
 
     // Todo: Use events to set frequency
 
-    int x;
-    int y;
+    static int x;
+    static int y;
 
     switch(event) {
         case FL_PUSH:
             x = Fl::event_x();
             y = Fl::event_y();
-
-            std::cout << "FL_PUSH at " << x << ", " << y << "\n";
             return 1;
         case FL_RELEASE:
-            std::cout << "FL_RELEASE. Mouse was at " << x << ", " << y << "\n";
-            _cb(this);
+
+            // Calculate the final selected frequency
+            _selectedFrequency =(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE
+                            ? (_app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2))
+                            : 0) +
+                    ((x - this->x()) * _hzPerBin);
+
+            // Round to nearest 100 Hz
+            _selectedFrequency = (_selectedFrequency / 100) * 100;
+
+            // Notify the callback that the frequency should change
+            if( _cb != nullptr ) {
+                _cb(this);
+            }
+
+            // Handled
             return 1;
+
         case FL_DRAG: {
             int newX = Fl::event_x();
             int newY = Fl::event_y();
 
+            // Todo:: Handle dragging the spectrum
             std::cout << "FL_DRAG from " << x << ", " << y << " to " << newX << ", " << newY << "\n";
-            _cb(this);
+            //_cb(this);
             return 1;
         }
         default:

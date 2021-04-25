@@ -101,7 +101,7 @@ void HandleFrequencyOffsetCallback(Fl_Widget *w) {
  * @param data Pointer to the mainwindow
  */
 void HandleRfWaterfallCallback(Fl_Widget* w) {
-    std::cout << "RF waterfall callback\n";
+    MainWindow::Instance()->HandleRfWaterfall();
 }
 
 /***********************************************
@@ -910,6 +910,11 @@ void MainWindow::HandleGainEnabled() {
 void MainWindow::HandleVolumeSlider() {
     _app->SetVolume(_volumeSlider->value());
     SetVolumeSliderLabel();
+}
+
+void MainWindow::HandleRfWaterfall() {
+    _app->SetFrequency(_rfInputWaterfall->GetSelectedFrequency());
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
