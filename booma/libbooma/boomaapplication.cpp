@@ -576,3 +576,7 @@ bool BoomaApplication::SetRfGainEnabled(bool enabled) {
     }
     return false;
 }
+
+int BoomaApplication::GetDecimatorCutoff() {
+    return _opts->GetDecimatorCutoff();
+}

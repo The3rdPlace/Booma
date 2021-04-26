@@ -148,6 +148,20 @@ void Waterfall::draw() {
             }
             fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
         }
+
+        // Draw current decimation filter width
+        if (_iq) {
+            int left = ((_app->GetOutputSampleRate() / 2) - (_app->GetDecimatorCutoff())) / _hzPerBin;
+            int center = (_app->GetOutputSampleRate() / 2) / _hzPerBin;
+            int right = ((_app->GetOutputSampleRate() / 2) + (_app->GetDecimatorCutoff())) / _hzPerBin;
+            fl_color(FL_DARK_YELLOW);
+            fl_line_style(FL_DASH, 1, 0);
+            fl_line(center, 0, center, GH);
+            fl_line_style(FL_SOLID, 1, 0);
+            fl_line(left, GH - 10, left, GH);
+            fl_line(right, GH - 10, right, GH);
+            fl_rectf(left, GH - 2, right - left, 2, FL_DARK_YELLOW);
+        }
     }
 
     // Frequency markers
@@ -199,10 +213,9 @@ void Waterfall::draw() {
     }
     fl_draw(m4.c_str(), _gridLines[8] - fl_width(m4.c_str()) - 5, GH_PLUS_FIFTEEN);
 
+    // Grid markers
     fl_line_style(FL_SOLID, 2, 0);
     for( int i = 0; i < 8; i++ ) {
-        // Todo: make these configurable
-        //fl_line(_gridLines[i], 0, _gridLines[i], GH);
         fl_line(_gridLines[i], _gh, _gridLines[i], _gh + 3);
     }
 

@@ -214,6 +214,7 @@ class BoomaApplication {
         bool IsRunning();
         int GetOffset();
         void SetOffset(int offset);
+        int GetDecimatorCutoff();
 
         // Bookmarks
         void SetBookmark(std::string name);
