@@ -246,7 +246,7 @@ void Waterfall::ReConfigure(bool iq, int zoom) {
 int Waterfall::handle(int event) {
 
     if( !_enableNavigation ) {
-        return 1;
+        return 0;
     }
 
     static int firstX;
@@ -315,6 +315,6 @@ int Waterfall::handle(int event) {
             return 1;
         }
         default:
-            return Fl_Widget::handle(event);
+            return 0;
     }
 }
