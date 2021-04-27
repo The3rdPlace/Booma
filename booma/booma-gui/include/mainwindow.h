@@ -78,6 +78,7 @@ class MainWindow {
         void SetupReceiverModeMenu();
         void SetupSettingsMenu();
         void SetupStatusbar();
+        void SetupNavigationMenu();
 
         // Internal menu handling
         void HandleMenuButtonReceiverStartStop();
@@ -144,6 +145,7 @@ class MainWindow {
         void HandleGainEnabled();
         void HandleVolumeSlider();
         void HandleRfWaterfall();
+        void HandleFrequencyNavigation(char* name);
 
         // Exit
         void Exit();

@@ -104,6 +104,12 @@ void HandleRfWaterfallCallback(Fl_Widget* w) {
     MainWindow::Instance()->HandleRfWaterfall();
 }
 
+void HandleFrequencyNavigationCallback(Fl_Widget* w, void* data) {
+    char name[80];
+    ((Fl_Menu_Button*) w)->item_pathname(name, sizeof(name)-1);
+    MainWindow::Instance()->HandleFrequencyNavigation(name);
+}
+
 /***********************************************
   Member functions
 ***********************************************/
@@ -123,10 +129,10 @@ MainWindow::MainWindow(BoomaApplication* app):
     _win->callback(HandleMainWindowExit);
 
     // Compose gui
-    SetupStatusbar();
     SetupMenus();
     SetupControls();
     SetupDisplays();
+    SetupStatusbar();
     _win->end();
     _win->show();
 
@@ -182,6 +188,9 @@ MainWindow::MainWindow(BoomaApplication* app):
         _win->hide();
         Fl::awake();
     });
+
+    // Set initial focus
+    Fl::focus(_win);
 
     // Start the receiver
     Run();
@@ -256,6 +265,9 @@ void MainWindow::SetupMenus() {
 
     // Configuration
     SetupConfigurationMenu();
+
+    // Navigation
+    SetupNavigationMenu();
 
     // Receiver
     SetupReceiverMenu();
@@ -428,6 +440,7 @@ void MainWindow::SetupStatusbar(){
     _statusbarRecordingAf->color(FL_GRAY0);
 
     _statusbar->end();
+    _statusbar->show();
 }
 
 /**
@@ -447,7 +460,6 @@ void MainWindow::SetupControls() {
     _frequencyOffset->step(10);
     _frequencyOffset->minimum(0);
     _frequencyOffset->maximum(10000);
-    _frequencyOffset->tooltip("Offset when using an rtlsdr input source");
     _frequencyOffset->value(_app->GetOffset());
     _frequencyInput->callback(HandleFrequencyInputCallback);
     _frequencyOffset->callback(HandleFrequencyOffsetCallback);
@@ -457,6 +469,13 @@ void MainWindow::SetupControls() {
     _frequencyInputUp100->callback(HandleFrequencyInputButtonsCallback);
     _frequencyInputDown100->callback(HandleFrequencyInputButtonsCallback);
     _frequencyInputDown1Khz->callback(HandleFrequencyInputButtonsCallback);
+    _frequencyInput->tooltip("Current frequency");
+    _frequencyInputSet->tooltip("Set receiver to the frequency given in the current frequency field (or just press ENTER after editing the frequency)");
+    _frequencyOffset->tooltip("Offset from zero for rtlsdr devices");
+    _frequencyInputDown100->tooltip("Tune 100Hz lower");
+    _frequencyInputDown1Khz->tooltip("Tune 1KHz lower");
+    _frequencyInputUp100->tooltip("Tune 100Hz higher");
+    _frequencyInputUp1Khz->tooltip("Tune 1KHz higher");
 
     // Channel selector
     _channelSelector = new Fl_Choice(470, _win->h() - 80, 240, 30);
@@ -530,6 +549,17 @@ void MainWindow::SetupDisplays() {
                                        4,
                                        ((_app->GetOutputSampleRate() / 2) / 4) / 2,
                                        AF);
+}
+
+void MainWindow::SetupNavigationMenu() {
+    _menubar->add("Navigation/Frequency/Up 1KHz", ("+^" + std::to_string(FL_Up)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Up 100Hz", ("^" + std::to_string(FL_Up)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Up 10Hz", ("+" + std::to_string(FL_Up)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Up",  + std::to_string(FL_Up).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Down", std::to_string(FL_Down).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Down 10Hz", ("+" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Down 100Hz", ("^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Down 1KHz", ("+^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
 }
 
 /***********************************************
@@ -917,6 +947,32 @@ void MainWindow::HandleRfWaterfall() {
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
 }
 
+void MainWindow::HandleFrequencyNavigation(char* name) {
+    char value[80];
+    char *p = strrchr(name, '/');
+    if( p != nullptr ) {
+        strcpy(value, p + 1);
+        if( strcmp(value, "Up 1KHz") == 0 ) {
+            _app->ChangeFrequency(1000);
+        } else if( strcmp(value, "Up 100Hz") == 0 ) {
+            _app->ChangeFrequency(100);
+        } else if( strcmp(value, "Up 10Hz") == 0 ) {
+            _app->ChangeFrequency(10);
+        } else if( strcmp(value, "Up") == 0 ) {
+            _app->ChangeFrequency(1);
+        } else if( strcmp(value, "Down") == 0 ) {
+            _app->ChangeFrequency(-1);
+        } else if( strcmp(value, "Down 10Hz") == 0 ) {
+            _app->ChangeFrequency(-10);
+        } else if( strcmp(value, "Down 100Hz") == 0 ) {
+            _app->ChangeFrequency(-100);
+        } else if( strcmp(value, "Down 1KHz") == 0 ) {
+            _app->ChangeFrequency(-1000);
+        }
+        _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    }
+}
+
 void MainWindow::EditReceiverInput(const char* name) {
     Halt();
 
@@ -1280,6 +1336,9 @@ void MainWindow::UpdateState() {
 
 void MainWindow::UpdateStatusbar() {
 
+    if( _statusbar == nullptr ) {
+        return;
+    }
     _statusbar->redraw();
 
     _statusbarConfig->value(_app->GetConfigSection().c_str());
