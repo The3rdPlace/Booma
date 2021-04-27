@@ -39,7 +39,7 @@ class MainWindow {
         Fl_Button* _frequencyInputDown100 = nullptr;
         Fl_Button* _frequencyInputUp1Khz = nullptr;
         Fl_Button* _frequencyInputDown1Khz = nullptr;
-        Fl_Value_Input* _frequencyOffset = nullptr;
+        Fl_Input* _frequencyOffset = nullptr;
         Fl_Choice* _channelSelector = nullptr;
         Fl_Slider* _gainSlider = nullptr;
         Fl_Slider* _volumeSlider = nullptr;
@@ -146,6 +146,9 @@ class MainWindow {
         void HandleVolumeSlider();
         void HandleRfWaterfall();
         void HandleFrequencyNavigation(char* name);
+        void HandleCtrlF();
+        void HandleCtrlO();
+        void HandleEscape();
 
         // Exit
         void Exit();

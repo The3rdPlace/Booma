@@ -110,6 +110,33 @@ void HandleFrequencyNavigationCallback(Fl_Widget* w, void* data) {
     MainWindow::Instance()->HandleFrequencyNavigation(name);
 }
 
+int HandleAllEvents(int event) {
+    if (event == FL_SHORTCUT) {
+        if( Fl::event_ctrl() && Fl::event_key() == 'f' ) {
+            MainWindow::Instance()->HandleCtrlF();
+            return 1;
+        }
+        if( Fl::event_ctrl() && Fl::event_key() == 'o' ) {
+            MainWindow::Instance()->HandleCtrlO();
+            return 1;
+        }
+        if( Fl::event_key() == FL_Escape ) {
+            MainWindow::Instance()->HandleEscape();
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void HandleMenuCtrlF(Fl_Widget* w, void* data) {
+    HandleAllEvents(FL_SHORTCUT);
+}
+
+
+void HandleMenuCtrlO(Fl_Widget* w, void* data) {
+    HandleAllEvents(FL_SHORTCUT);
+}
+
 /***********************************************
   Member functions
 ***********************************************/
@@ -188,6 +215,9 @@ MainWindow::MainWindow(BoomaApplication* app):
         _win->hide();
         Fl::awake();
     });
+
+    // Add a global event handler to handle general keypresses without an menu entry
+    Fl::add_handler(HandleAllEvents);
 
     // Set initial focus
     Fl::focus(_win);
@@ -451,19 +481,17 @@ void MainWindow::SetupControls() {
     // Frequency input
     _frequencyInput = new Fl_Input(90, _win->h() - 80, 100, 30, "Frequency ");
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _frequencyInput->when(FL_WHEN_ENTER_KEY_ALWAYS);
     _frequencyInputSet = new Fl_Button(200, _win->h() - 80, 50, 30, "set");
     _frequencyInputDown1Khz = new Fl_Button(260, _win->h() - 80, 30, 30, "<<");
     _frequencyInputDown100 = new Fl_Button(290, _win->h() - 80, 30, 30, "<");
     _frequencyInputUp100 = new Fl_Button(325, _win->h() - 80, 30, 30, ">");
     _frequencyInputUp1Khz = new Fl_Button(355, _win->h() - 80, 30, 30, ">>");
-    _frequencyOffset = new Fl_Value_Input(395, _win->h() - 80, 50, 30);
-    _frequencyOffset->step(10);
-    _frequencyOffset->minimum(0);
-    _frequencyOffset->maximum(10000);
-    _frequencyOffset->value(_app->GetOffset());
+    _frequencyOffset = new Fl_Input(395, _win->h() - 80, 50, 30);
+    _frequencyOffset->when(FL_WHEN_ENTER_KEY_ALWAYS);
+    _frequencyOffset->value(std::to_string(_app->GetOffset()).c_str());
     _frequencyInput->callback(HandleFrequencyInputCallback);
     _frequencyOffset->callback(HandleFrequencyOffsetCallback);
-    _frequencyInput->when(FL_WHEN_ENTER_KEY);
     _frequencyInputSet->callback(HandleFrequencyInputButtonsCallback);
     _frequencyInputUp1Khz->callback(HandleFrequencyInputButtonsCallback);
     _frequencyInputUp100->callback(HandleFrequencyInputButtonsCallback);
@@ -559,7 +587,9 @@ void MainWindow::SetupNavigationMenu() {
     _menubar->add("Navigation/Frequency/Down", std::to_string(FL_Down).c_str(), HandleFrequencyNavigationCallback, (void*) this);
     _menubar->add("Navigation/Frequency/Down 10Hz", ("+" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
     _menubar->add("Navigation/Frequency/Down 100Hz", ("^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
-    _menubar->add("Navigation/Frequency/Down 1KHz", ("+^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this);
+    _menubar->add("Navigation/Frequency/Down 1KHz", ("+^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this, FL_MENU_DIVIDER);
+    _menubar->add("Navigation/Frequency/Frequency", "^f", HandleMenuCtrlF, (void*) this);
+    _menubar->add("Navigation/Frequency/Offset", "^o", HandleMenuCtrlO, (void*) this);
 }
 
 /***********************************************
@@ -898,6 +928,8 @@ void MainWindow::HandleFrequencyInput(Fl_Widget *w) {
     catch(...)
     { }
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _frequencyInput->redraw();
+    Fl::focus(_win);
 }
 
 void MainWindow::HandleFrequencyOffset(Fl_Widget *w) {
@@ -905,12 +937,16 @@ void MainWindow::HandleFrequencyOffset(Fl_Widget *w) {
 
     try
     {
-        _app->SetOffset(_frequencyOffset->value());
+        _app->SetOffset(atoi(_frequencyOffset->value()));
     }
     catch(...)
     { }
 
     _app->ChangeReceiver();
+
+    _frequencyOffset->redraw();
+    Fl::focus(_win);
+
     Run();
 }
 
@@ -971,6 +1007,34 @@ void MainWindow::HandleFrequencyNavigation(char* name) {
         }
         _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
     }
+}
+
+void MainWindow::HandleCtrlF() {
+    if( Fl::focus() == _frequencyInput ) {
+        Fl::focus(_win);
+    } else {
+        Fl::focus(_frequencyInput);
+        _frequencyInput->redraw();
+    }
+}
+
+void MainWindow::HandleCtrlO() {
+    if( Fl::focus() == _frequencyOffset ) {
+        Fl::focus(_win);
+    } else {
+        Fl::focus(_frequencyOffset);
+        _frequencyOffset->redraw();
+    }
+}
+
+void MainWindow::HandleEscape() {
+    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+    _frequencyInput->redraw();
+    _frequencyOffset->value(std::to_string(_app->GetOffset()).c_str());
+    _frequencyOffset->redraw();
+    Fl::awake();
+
+    Fl::focus(_win);
 }
 
 void MainWindow::EditReceiverInput(const char* name) {
