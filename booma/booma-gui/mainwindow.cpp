@@ -525,13 +525,16 @@ void MainWindow::SetupChannels() {
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         std::string name = (*it).second->Name;
         std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
-        std::cout << choiceName << std::endl;
         _menubar->add(("Navigation/Channels/" + std::to_string((*it).second->Frequency) + "  " + choiceName).c_str(), 0, HandleMenuButtonCallback, (void*) this);
     }
 }
 
 void MainWindow::SetupBookmarks() {
-    // Todo: Implement this
+    std::vector<std::string> bookmarks = _app->GetBookmarks();
+    for( std::vector<std::string>::iterator it = bookmarks.begin(); it != bookmarks.end(); it++ ) {
+        std::string name = regex_replace((*it), std::regex("\\/"), "\\/");
+        _menubar->add(("Navigation/Bookmarks/" + name).c_str(), 0, HandleMenuButtonCallback, (void*) this);
+    }
 }
 
 /**
@@ -953,7 +956,10 @@ void MainWindow::HandleChannelSelection(char* name, char* value) {
 }
 
 void MainWindow::HandleBookmarkSelection(char* name, char* value) {
-    // Todo: Implement this
+    Halt();
+    _app->ApplyBookmark(value);
+    UpdateState();
+    Run();
 }
 
 void MainWindow::HandleGainSlider() {
@@ -1376,6 +1382,7 @@ void MainWindow::UpdateState() {
 
     // Offset control
     if( _frequencyOffset != nullptr ) {
+        _frequencyOffset->value(std::to_string(_app->GetOffset()).c_str());
         if (_app->GetInputSourceType() == RTLSDR || _app->GetOriginalInputSourceType() == RTLSDR) {
             _frequencyOffset->set_active();
             _frequencyOffset->color(FL_WHITE);
@@ -1387,6 +1394,7 @@ void MainWindow::UpdateState() {
     }
 
     if( _frequencyInput != nullptr ) {
+        _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
         if (_app->GetInputSourceType() == PCM_FILE && _app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE) {
             _frequencyInput->clear_active();
             _frequencyInput->color(FL_GRAY);
