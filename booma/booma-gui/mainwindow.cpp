@@ -49,14 +49,6 @@ void HandleFrequencyInputCallback(Fl_Widget *w) {
 }
 
 /**
- * Static callback for channel selection events
- * @param w
- */
-void HandleChannelSelectorCallback(Fl_Widget* w) {
-    MainWindow::Instance()->HandleChannelSelector(w);
-}
-
-/**
  * Static callback for gain slider events
  * @param w
  */
@@ -239,7 +231,6 @@ MainWindow::~MainWindow() {
     delete _frequencyInputDown100;
     delete _frequencyInputUp1Khz;
     delete _frequencyInputDown1Khz;
-    delete _channelSelector;
     delete _gainSlider;
     delete _volumeSlider;
     delete _rfInputWaterfall;
@@ -505,11 +496,6 @@ void MainWindow::SetupControls() {
     _frequencyInputUp100->tooltip("Tune 100Hz higher");
     _frequencyInputUp1Khz->tooltip("Tune 1KHz higher");
 
-    // Channel selector
-    _channelSelector = new Fl_Choice(470, _win->h() - 80, 240, 30);
-    _channelSelector->callback(HandleChannelSelectorCallback);
-    SetupChannels();
-
     // Gain slider and agc enable/disable
     _gainSlider = new Fl_Slider(FL_HOR_NICE_SLIDER, _win->w() - 190, _menubar->h() + 10, 120, 30, _gainLabel);
     _gainSlider->bounds(-20, 110);
@@ -535,16 +521,17 @@ void MainWindow::SetupControls() {
 }
 
 void MainWindow::SetupChannels() {
-    _channelSelector->clear();
-
     std::map<int, Channel*> channels = _app->GetChannels();
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         std::string name = (*it).second->Name;
         std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
         std::cout << choiceName << std::endl;
-
-        _channelSelector->add((std::to_string((*it).second->Frequency) + "  " + choiceName).c_str());
+        _menubar->add(("Navigation/Channels/" + std::to_string((*it).second->Frequency) + "  " + choiceName).c_str(), 0, HandleMenuButtonCallback, (void*) this);
     }
+}
+
+void MainWindow::SetupBookmarks() {
+    // Todo: Implement this
 }
 
 /**
@@ -590,6 +577,9 @@ void MainWindow::SetupNavigationMenu() {
     _menubar->add("Navigation/Frequency/Down 1KHz", ("+^" + std::to_string(FL_Down)).c_str(), HandleFrequencyNavigationCallback, (void*) this, FL_MENU_DIVIDER);
     _menubar->add("Navigation/Frequency/Frequency", "^f", HandleMenuCtrlF, (void*) this);
     _menubar->add("Navigation/Frequency/Offset", "^o", HandleMenuCtrlO, (void*) this);
+
+    SetupChannels();
+    SetupBookmarks();
 }
 
 /***********************************************
@@ -637,6 +627,12 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Receiver/Settings/", 18) == 0 ) {
         HandleMenuButtonReceiverOptions(name, &name[18]);
+    }
+    else if( strncmp(name, "Navigation/Channels/", 20) == 0 ) {
+        HandleChannelSelection(name, &name[20]);
+    }
+    else if( strncmp(name, "Navigation/Bookmarks/", 21) == 0 ) {
+        HandleBookmarkSelection(name, &name[21]);
     }
     else if( strcmp(name, "Help/Help") == 0 ) {
         // Todo: Show proper splash
@@ -950,9 +946,14 @@ void MainWindow::HandleFrequencyOffset(Fl_Widget *w) {
     Run();
 }
 
-void MainWindow::HandleChannelSelector(Fl_Widget *w) {
-    _app->SetFrequency(_app->GetChannels().at(_channelSelector->value() + 1)->Frequency);
-    _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
+void MainWindow::HandleChannelSelection(char* name, char* value) {
+    long freq = atol(value);
+    _app->SetFrequency(freq);
+    _frequencyInput->value(std::to_string(freq).c_str());
+}
+
+void MainWindow::HandleBookmarkSelection(char* name, char* value) {
+    // Todo: Implement this
 }
 
 void MainWindow::HandleGainSlider() {
@@ -1084,7 +1085,6 @@ void MainWindow::AddReceiverInput() {
     _volumeSlider->redraw();
     _gainSlider->redraw();
 
-    SetupChannels();
     SetupReceiverOutputMenu();
     SetupReceiverInputMenu();
     SetupConfigurationMenu();

@@ -40,7 +40,6 @@ class MainWindow {
         Fl_Button* _frequencyInputUp1Khz = nullptr;
         Fl_Button* _frequencyInputDown1Khz = nullptr;
         Fl_Input* _frequencyOffset = nullptr;
-        Fl_Choice* _channelSelector = nullptr;
         Fl_Slider* _gainSlider = nullptr;
         Fl_Slider* _volumeSlider = nullptr;
         Fl_Light_Button* _gainEnabled = nullptr;
@@ -79,6 +78,7 @@ class MainWindow {
         void SetupSettingsMenu();
         void SetupStatusbar();
         void SetupNavigationMenu();
+        void SetupBookmarks();
 
         // Internal menu handling
         void HandleMenuButtonReceiverStartStop();
@@ -92,6 +92,8 @@ class MainWindow {
         void HandleMenuButtonReceiverOptions(char* name, char* value);
         void HandleMenuButtonConfigurationInputs(char* name, char* value);
         void HandleMenuButtonReceiverIfFilterWidth(char* name, char* value);
+        void HandleChannelSelection(char* name, char* value);
+        void HandleBookmarkSelection(char* name, char* value);
 
         // Configurations (inputs)
         void EditReceiverInput(const char* name);
@@ -139,7 +141,6 @@ class MainWindow {
         void HandleMenuButton(char* name);
         void HandleFrequencyInputButtons(Fl_Widget *w);
         void HandleFrequencyInput(Fl_Widget *w);
-        void HandleChannelSelector(Fl_Widget *w);
         void HandleFrequencyOffset(Fl_Widget *w);
         void HandleGainSlider();
         void HandleGainEnabled();
