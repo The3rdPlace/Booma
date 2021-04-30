@@ -92,6 +92,7 @@ class MainWindow {
         void HandleMenuButtonReceiverOptions(char* name, char* value);
         void HandleMenuButtonConfigurationInputs(char* name, char* value);
         void HandleMenuButtonConfigurationChannels(char* name, char* value);
+        void HandleMenuButtonConfigurationBookmarks(char* name, char* value);
         void HandleMenuButtonReceiverIfFilterWidth(char* name, char* value);
         void HandleChannelSelection(char* name, char* value);
         void HandleBookmarkSelection(char* name, char* value);

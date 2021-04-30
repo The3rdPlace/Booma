@@ -324,6 +324,7 @@ void MainWindow::SetupConfigurationMenu() {
 
     _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
     _menubar->add("Configuration/Channels/Add channel", "^c", HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Configuration/Bookmarks/Add bookmark", "^b", HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverMenu() {
@@ -534,6 +535,8 @@ void MainWindow::SetupChannels() {
 }
 
 void MainWindow::SetupBookmarks() {
+    RemoveMenuSubItems("Navigation/Bookmarks/*");
+
     std::vector<std::string> bookmarks = _app->GetBookmarks();
     for( std::vector<std::string>::iterator it = bookmarks.begin(); it != bookmarks.end(); it++ ) {
         std::string name = regex_replace((*it), std::regex("\\/"), "\\/");
@@ -607,6 +610,9 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Configuration/Channels/", 23) == 0 ) {
         HandleMenuButtonConfigurationChannels(name, &name[23]);
+    }
+    else if( strncmp(name, "Configuration/Bookmarks/", 24) == 0 ) {
+        HandleMenuButtonConfigurationBookmarks(name, &name[24]);
     }
     else if( strncmp(name, "Receiver/Dump RF", 16) == 0 || strncmp(name, "Receiver/Stop dumping RF", 24) == 0 ) {
         HandleMenuButtonReceiverDumpRf();
@@ -889,10 +895,19 @@ void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
 }
 
 void MainWindow::HandleMenuButtonConfigurationChannels(char* name, char* value) {
-    GetValueDialog* dlg = new GetValueDialog("Add new channel", "Name", "Pick a (short) name for the channel", std::to_string(_app->GetFrequency()).c_str());
+    GetValueDialog* dlg = new GetValueDialog("Add new channel", "Name", "Pick a (short) name for this channel", std::to_string(_app->GetFrequency()).c_str());
     if( dlg->Show() ) {
         _app->AddChannel(dlg->GetValue(), _app->GetFrequency());
         SetupChannels();
+    }
+    delete(dlg);
+}
+
+void MainWindow::HandleMenuButtonConfigurationBookmarks(char* name, char* value) {
+    GetValueDialog* dlg = new GetValueDialog("Add new bookmark", "Name", "Pick a (short) name for this bookmark", std::to_string(_app->GetFrequency()).c_str());
+    if( dlg->Show() ) {
+        _app->SetBookmark(dlg->GetValue());
+        SetupBookmarks();
     }
     delete(dlg);
 }
