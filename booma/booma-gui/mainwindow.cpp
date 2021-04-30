@@ -9,6 +9,7 @@
 #include "booma.h"
 #include "mainwindow.h"
 #include "inputdialog.h"
+#include "getvaluedialog.h"
 
 bool MainWindow::_threadsRunning = true;
 int MainWindow::_threadsAlive = 0;
@@ -322,6 +323,7 @@ void MainWindow::SetupConfigurationMenu() {
     }
 
     _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Configuration/Channels/Add channel", "^c", HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverMenu() {
@@ -521,6 +523,8 @@ void MainWindow::SetupControls() {
 }
 
 void MainWindow::SetupChannels() {
+    RemoveMenuSubItems("Navigation/Channels/*");
+
     std::map<int, Channel*> channels = _app->GetChannels();
     for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
         std::string name = (*it).second->Name;
@@ -600,6 +604,9 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Configuration/Inputs/", 21) == 0 ) {
         HandleMenuButtonConfigurationInputs(name, &name[21]);
+    }
+    else if( strncmp(name, "Configuration/Channels/", 23) == 0 ) {
+        HandleMenuButtonConfigurationChannels(name, &name[23]);
     }
     else if( strncmp(name, "Receiver/Dump RF", 16) == 0 || strncmp(name, "Receiver/Stop dumping RF", 24) == 0 ) {
         HandleMenuButtonReceiverDumpRf();
@@ -879,6 +886,15 @@ void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
     } else if( strncmp(value, "Delete ", 7) == 0 ) {
         DeleteReceiverInput(&value[7]);
     }
+}
+
+void MainWindow::HandleMenuButtonConfigurationChannels(char* name, char* value) {
+    GetValueDialog* dlg = new GetValueDialog("Add new channel", "Name", "Pick a (short) name for the channel", std::to_string(_app->GetFrequency()).c_str());
+    if( dlg->Show() ) {
+        _app->AddChannel(dlg->GetValue(), _app->GetFrequency());
+        SetupChannels();
+    }
+    delete(dlg);
 }
 
 void MainWindow::HandleMenuButtonReceiverIfFilterWidth(char* name, char* value) {

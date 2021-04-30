@@ -26,7 +26,12 @@ find_package(FLTK)
 	)
 
 	# add the executable
-	add_executable (booma-gui main.cpp mainwindow.cpp mainwindow.cpp waterfall.cpp inputdialog.cpp)
+	add_executable (booma-gui
+			main.cpp
+			mainwindow.cpp
+			waterfall.cpp
+			inputdialog.cpp
+			getvaluedialog.cpp)
 	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES})
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
