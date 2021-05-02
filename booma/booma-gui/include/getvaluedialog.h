@@ -8,6 +8,7 @@
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Input.H>
 #include <FL/Fl_Button.H>
+#include <FL/fl_draw.H>
 
 class GetValueDialog {
 

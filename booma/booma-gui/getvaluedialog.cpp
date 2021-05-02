@@ -22,7 +22,6 @@ GetValueDialog::GetValueDialog(std::string title, std::string text, std::string 
 GetValueDialog::~GetValueDialog() {
 
 }
-#include <FL/fl_draw.H>
 
 bool GetValueDialog::Show() {
 

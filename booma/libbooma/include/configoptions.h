@@ -347,9 +347,10 @@ class ConfigOptions {
                 std::vector<Channel*>::iterator it = _values.at(_section)->_channels.begin();
                 int number = 0;
                 while( it != _values.at(_section)->_channels.end() ) {
-                    std::cout << "NAME " << (*it)->Name << " with number " << (number + 1) << " <== " << id << std::endl;
                     if( number + 1 == id ) {
+                        Channel* c = (*it);
                         _values.at(_section)->_channels.erase(it);
+                        delete c;
                         return true;
                     }
                     number++;

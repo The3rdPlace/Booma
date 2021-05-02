@@ -10,6 +10,7 @@
 #include "mainwindow.h"
 #include "inputdialog.h"
 #include "getvaluedialog.h"
+#include "selectvaluedialog.h"
 
 bool MainWindow::_threadsRunning = true;
 int MainWindow::_threadsAlive = 0;
@@ -324,7 +325,9 @@ void MainWindow::SetupConfigurationMenu() {
 
     _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
     _menubar->add("Configuration/Channels/Add channel", "^c", HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Configuration/Channels/Delete channel", 0, HandleMenuButtonCallback, (void*) this);
     _menubar->add("Configuration/Bookmarks/Add bookmark", "^b", HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Configuration/Bookmarks/Delete bookmark", 0, HandleMenuButtonCallback, (void*) this);
 }
 
 void MainWindow::SetupReceiverMenu() {
@@ -895,21 +898,49 @@ void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
 }
 
 void MainWindow::HandleMenuButtonConfigurationChannels(char* name, char* value) {
-    GetValueDialog* dlg = new GetValueDialog("Add new channel", "Name", "Pick a (short) name for this channel", std::to_string(_app->GetFrequency()).c_str());
-    if( dlg->Show() ) {
-        _app->AddChannel(dlg->GetValue(), _app->GetFrequency());
-        SetupChannels();
+    if( strncmp(value, "Delete", 6) == 0 ) {
+        std::map<int, Channel*> channels = _app->GetChannels();
+        std::map<int, std::string> channelNames;
+        for( std::map<int, Channel*>::iterator it = channels.begin(); it != channels.end(); it++ ) {
+            std::string name = (*it).second->Name;
+            std::string choiceName = regex_replace(name, std::regex("\\/"), "\\/");
+            channelNames.insert(std::pair<int, std::string>((*it).first, std::to_string((*it).second->Frequency) + "  " + choiceName));
+        }
+        SelectValueDialog *dlg = new SelectValueDialog("Delete channel", "Name", "Select the channel that you wish to delete",
+            channelNames);
+        if( dlg->Show() ) {
+            _app->RemoveChannel(dlg->SelectedId());
+            SetupChannels();
+        }
+        delete (dlg);
+    } else {
+        GetValueDialog *dlg = new GetValueDialog("Add new channel", "Name", "Pick a (short) name for this channel",
+                                                 std::to_string(_app->GetFrequency()).c_str());
+        if (dlg->Show()) {
+            _app->AddChannel(dlg->GetValue(), _app->GetFrequency());
+            SetupChannels();
+        }
+        delete (dlg);
     }
-    delete(dlg);
 }
 
 void MainWindow::HandleMenuButtonConfigurationBookmarks(char* name, char* value) {
-    GetValueDialog* dlg = new GetValueDialog("Add new bookmark", "Name", "Pick a (short) name for this bookmark", std::to_string(_app->GetFrequency()).c_str());
-    if( dlg->Show() ) {
-        _app->SetBookmark(dlg->GetValue());
-        SetupBookmarks();
+    if( strncmp(value, "Delete", 6) == 0 ) {
+        SelectValueDialog *dlg = new SelectValueDialog("Delete bookmark", "Name", "Select the bookmar that you wish to delete", _app->GetBookmarks());
+        if( dlg->Show() ) {
+            _app->DeleteBookmark(dlg->SelectedValue());
+            SetupBookmarks();
+        }
+        delete (dlg);
+    } else {
+        GetValueDialog *dlg = new GetValueDialog("Add new bookmark", "Name", "Pick a (short) name for this bookmark",
+                                                 std::to_string(_app->GetFrequency()).c_str());
+        if (dlg->Show()) {
+            _app->SetBookmark(dlg->GetValue());
+            SetupBookmarks();
+        }
+        delete (dlg);
     }
-    delete(dlg);
 }
 
 void MainWindow::HandleMenuButtonReceiverIfFilterWidth(char* name, char* value) {
