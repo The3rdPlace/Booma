@@ -100,7 +100,7 @@ class MainWindow {
         // Configurations (inputs)
         void EditReceiverInput(const char* name);
         void AddReceiverInput();
-        void DeleteReceiverInput(const char* name);
+        void DeleteReceiverInput();
 
         // Utility methods
         char* GetTitle();

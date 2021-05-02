@@ -314,18 +314,13 @@ void MainWindow::SetupFileMenu() {
 
 void MainWindow::SetupConfigurationMenu() {
 
-    RemoveMenuSubItems("Configuration/Inputs/*");
-
-    std::vector<std::string> configSections = _app->GetConfigSections();
-    for( int i = 0; i < configSections.size(); i++ ) {
-        _menubar->add(("Configuration/Inputs/Delete " + configSections.at(i)).c_str(), 0, HandleMenuButtonCallback, (void*) this,
-                      (_app->GetConfigSection() == configSections.at(i) ? FL_MENU_INACTIVE : 0) |
-                      (i == configSections.size() - 1 ? FL_MENU_DIVIDER : 0));
-    }
-
     _menubar->add("Configuration/Inputs/Add input", 0, HandleMenuButtonCallback, (void*) this);
+    std::vector<std::string> configSections = _app->GetConfigSections();
+    _menubar->add("Configuration/Inputs/Delete input", 0, HandleMenuButtonCallback, (void*) this, (configSections.size() <= 1 ? FL_MENU_INACTIVE : 0));
+
     _menubar->add("Configuration/Channels/Add channel", "^c", HandleMenuButtonCallback, (void*) this);
     _menubar->add("Configuration/Channels/Delete channel", 0, HandleMenuButtonCallback, (void*) this);
+
     _menubar->add("Configuration/Bookmarks/Add bookmark", "^b", HandleMenuButtonCallback, (void*) this);
     _menubar->add("Configuration/Bookmarks/Delete bookmark", 0, HandleMenuButtonCallback, (void*) this);
 }
@@ -893,7 +888,7 @@ void MainWindow::HandleMenuButtonConfigurationInputs(char* name, char* value) {
     if( strncmp(value, "Add", 3) == 0 ) {
         AddReceiverInput();
     } else if( strncmp(value, "Delete ", 7) == 0 ) {
-        DeleteReceiverInput(&value[7]);
+        DeleteReceiverInput();
     }
 }
 
@@ -1160,7 +1155,7 @@ void MainWindow::AddReceiverInput() {
     Run();
 }
 
-void MainWindow::DeleteReceiverInput(const char* name) {
+void MainWindow::DeleteReceiverInput() {
 
     // We cannot delete the section if no other sections exists
     std::vector<std::string> configurations = _app->GetConfigSections();
@@ -1169,18 +1164,19 @@ void MainWindow::DeleteReceiverInput(const char* name) {
         return;
     }
 
-    // We cannot delete the active configuration
-    if( _app->GetConfigSection() == name ) {
-        HError("Not allowed to delete the active configuration");
-        return;
+    std::vector<std::string> sections;
+    for( std::vector<std::string>::iterator it = configurations.begin(); it != configurations.end(); it++  ) {
+        if( _app->GetConfigSection() != (*it) ) {
+            sections.push_back((*it));
+        }
     }
-
-    // Delete the configuration
-    _app->DeleteConfigSection(name);
-
-    // Refresh the Configuration/Inputs menu
-    SetupConfigurationMenu();
-    SetupReceiverInputMenu();
+    SelectValueDialog* dlg = new SelectValueDialog("Delete configuration", "Configuration", "Select the configuration configuration that you wish to delete", sections);
+    if( dlg->Show() ) {
+        _app->DeleteConfigSection(dlg->SelectedValue());
+        SetupConfigurationMenu();
+        SetupReceiverInputMenu();
+    }
+    delete (dlg);
 }
 
 void MainWindow::RemoveMenuSubItems(const char *name) {
