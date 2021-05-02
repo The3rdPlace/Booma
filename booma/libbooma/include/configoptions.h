@@ -486,12 +486,12 @@ class ConfigOptions {
             return _values.at(_section)->_rfGainEnabled;
         }
 
-        void SetAfFftGain(int gain) {
-            _values.at(_section)->_afFftGain = gain;
+        void SetAfFftAgcLevel(int gain) {
+            _values.at(_section)->_afFftAgcLevel = gain;
         }
 
-        int GetAfFftGain() {
-            return _values.at(_section)->_afFftGain;
+        int GetAfFftAgcLevel() {
+            return _values.at(_section)->_afFftAgcLevel;
         }
 };
 

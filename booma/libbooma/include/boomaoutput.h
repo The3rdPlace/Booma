@@ -42,7 +42,7 @@ class BoomaOutput {
         double* _audioSpectrum;
         int _audioFftSize;
         int _audioSpectrumSize;
-        HGain<int16_t>* _audioFftGain;
+        HAgc<int16_t>* _audioFftGain;
 
         // Probes
         HProbe<int16_t>* _outputVolumeProbe;

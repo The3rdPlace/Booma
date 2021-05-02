@@ -89,7 +89,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
         std::cout << tr("Agc level for automatic decimator gain (default 1000)    -dal level") << std::endl;
         std::cout << tr("Automatic RF gain level (default 500)                    -ral level") << std::endl;
-        std::cout << tr("AF FFT gain (default 1)                                  -afg level") << std::endl;
+        std::cout << tr("AF FFT agc level (default 255)                           -afl level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
@@ -720,9 +720,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         }
 
         // AF fft gain level
-        if( strcmp(argv[i], "-afg") == 0 && i < argc - 1) {
-            _values.at(_section)->_afFftGain = atoi(argv[i + 1]);
-            HLog("AF FFT gain level set to  %d", _values.at(_section)->_afFftGain);
+        if( strcmp(argv[i], "-afl") == 0 && i < argc - 1) {
+            _values.at(_section)->_afFftAgcLevel = atoi(argv[i + 1]);
+            HLog("AF FFT agc level set to  %d", _values.at(_section)->_afFftAgcLevel);
             i++;
             continue;
         }
