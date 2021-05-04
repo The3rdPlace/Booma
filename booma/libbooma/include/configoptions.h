@@ -299,7 +299,7 @@ class ConfigOptions {
         }
 
         int GetDecimatorCutoff() {
-            return _values.at(_section)->_rtlsdrOffset * 2;
+            return (_values.at(_section)->_outputSampleRate / 2) * 0.8;
         }
 
         int GetRtlsdrCorrectionFactor() {

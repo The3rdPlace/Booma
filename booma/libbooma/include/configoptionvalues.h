@@ -166,7 +166,7 @@ enum DumpFileFormatType {
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
         // Also these are not stored, so they must be set upon each startup
-        int _rtlsdrOffset = 6000;
+        int _rtlsdrOffset = 3000;
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
         int _rtlsdrGain = 0;

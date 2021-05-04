@@ -30,6 +30,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _screen = new uchar[_gw * _gh * 3];
     memset((void*) _screen, 0, _gw * (_gh - 1) * 3);
 
+    _moveBuffer = new uchar[_gw * 3];
+
     for(int i =0; i < 256; i++ ) {
         if( i < 30 ) {
             _colorMap[i] = 30;
@@ -120,7 +122,7 @@ void Waterfall::draw() {
         int center = _iq
                      ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
                      : ((float) _app->GetFrequency()) / _hzPerBin;
-        fl_color(FL_DARK_RED);
+        fl_color(FL_RED);
         fl_line_style(FL_SOLID, 1, 0);
         fl_line(center - 4, 0, center - 4, _gh);
         fl_line(center + 4, 0, center + 4, _gh);
@@ -278,6 +280,9 @@ int Waterfall::handle(int event) {
             // Round to nearest 100 Hz
             _selectedFrequency = (_selectedFrequency / 100) * 100;
 
+            // Move the spectrum
+            MoveSpectrum(lastX - firstX);
+
             // Reset
             isDrag = false;
             _enableDrawing = true;
@@ -305,7 +310,7 @@ int Waterfall::handle(int event) {
                 if (_type == RF) {
                     int center = ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin;
                     center += this->x();
-                    fl_color(FL_YELLOW);
+                    fl_color(FL_RED);
                     fl_line_style(FL_SOLID, 1, 0);
                     fl_line(center - 4, this->y(), center - 4, this->h() + this->y());
                     fl_line(center + 4, this->y(), center + 4, this->h() + this->y());
@@ -316,5 +321,48 @@ int Waterfall::handle(int event) {
         }
         default:
             return 0;
+    }
+}
+
+void Waterfall::MoveSpectrum(int distance) {
+
+    if( distance == 0 ) {
+        return;
+    }
+
+    if( distance < 0 ) {
+        int startX = distance * -1;
+        int remainingLength = _gw - startX;
+        int fillStartX = _gw + distance;
+        int fillLength = _gw - fillStartX;
+
+        int lineStartPos = 0;
+
+        startX *= 3;
+        remainingLength *= 3;
+        fillStartX *= 3;
+        fillLength *= 3;
+
+        for (int i = 0; i < _gh; i++) {
+            memmove((void*) &_screen[lineStartPos], (void*) &_screen[lineStartPos + startX], remainingLength);
+            memset((void*) &_screen[lineStartPos + fillStartX], 0, fillLength);
+            lineStartPos += (_gw * 3);
+        }
+    } else {
+        int startX = distance;
+        int remainingLength = _gw - distance;
+        int fillLength = distance;
+
+        int lineStartPos = 0;
+
+        startX *= 3;
+        remainingLength *= 3;
+        fillLength *= 3;
+
+        for (int i = 0; i < _gh; i++) {
+            memmove((void*) &_screen[lineStartPos + startX], (void*) &_screen[lineStartPos], remainingLength);
+            memset((void*) &_screen[lineStartPos], 0, fillLength);
+            lineStartPos += (_gw * 3);
+        }
     }
 }

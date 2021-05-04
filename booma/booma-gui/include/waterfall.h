@@ -27,6 +27,7 @@ class Waterfall : public Fl_Widget {
         Fl_Offscreen _ofscr;
         double* _fft;
         uchar* _screen;
+        uchar* _moveBuffer;
         uchar _colorMap[256];
         Fl_Callback0* _cb;
 
@@ -54,6 +55,9 @@ class Waterfall : public Fl_Widget {
         int _fullScreenLengthMinusOne;
         int _ghMinusThree;
         int _gridLines[9];
+
+        // Utility methods
+        void MoveSpectrum(int distance);
 
     public:
 
