@@ -4,6 +4,7 @@
 #include "booma.h"
 #include "boomaapplication.h"
 #include "waterfall.h"
+#include "analysis.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
@@ -61,6 +62,7 @@ class MainWindow {
         Waterfall* _rfInputWaterfall;
         Waterfall* _afOutputWaterfall;
         Fl_Slider* _signalLevelSlider;
+        Analysis* _analysis;
 
         // Compose GUI
         void SetupMenus();

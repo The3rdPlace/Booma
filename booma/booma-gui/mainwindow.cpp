@@ -475,11 +475,11 @@ void MainWindow::SetupControls() {
     _frequencyInput->value(std::to_string(_app->GetFrequency()).c_str());
     _frequencyInput->when(FL_WHEN_ENTER_KEY_ALWAYS);
     _frequencyInputSet = new Fl_Button(200, _win->h() - 80, 50, 30, "set");
-    _frequencyInputDown1Khz = new Fl_Button(260, _win->h() - 80, 30, 30, "<<");
-    _frequencyInputDown100 = new Fl_Button(290, _win->h() - 80, 30, 30, "<");
-    _frequencyInputUp100 = new Fl_Button(325, _win->h() - 80, 30, 30, ">");
-    _frequencyInputUp1Khz = new Fl_Button(355, _win->h() - 80, 30, 30, ">>");
-    _frequencyOffset = new Fl_Input(395, _win->h() - 80, 50, 30);
+    _frequencyInputDown1Khz = new Fl_Button(260, _win->h() - 80, 80, 30, "<<");
+    _frequencyInputDown100 = new Fl_Button(340, _win->h() - 80, 80, 30, "<");
+    _frequencyInputUp100 = new Fl_Button(425, _win->h() - 80, 80, 30, ">");
+    _frequencyInputUp1Khz = new Fl_Button(505, _win->h() - 80, 80, 30, ">>");
+    _frequencyOffset = new Fl_Input(655, _win->h() - 80, 50, 30, "offset:");
     _frequencyOffset->when(FL_WHEN_ENTER_KEY_ALWAYS);
     _frequencyOffset->value(std::to_string(_app->GetOffset()).c_str());
     _frequencyInput->callback(HandleFrequencyInputCallback);
@@ -572,6 +572,8 @@ void MainWindow::SetupDisplays() {
                                        4,
                                        ((_app->GetOutputSampleRate() / 2) / 4) / 2,
                                        AF);
+    // Analysis window
+    _analysis = new Analysis(148, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 560, 140, "Analysis", _app->GetAudioFftSize() / 2, 4, _app);
 }
 
 void MainWindow::SetupNavigationMenu() {
@@ -1384,6 +1386,9 @@ inline void MainWindow::UpdateRfSpectrumDisplay() {
 inline void MainWindow::UpdateAfSpectrumDisplay() {
     _app->GetAudioSpectrum(_afOutputWaterfall->GetFftBuffer());
     _afOutputWaterfall->Refresh();
+
+    _app->GetAudioSpectrum(_analysis->GetFftBuffer());
+    _analysis->Refresh();
 }
 
 void MainWindow::Run() {

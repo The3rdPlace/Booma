@@ -271,6 +271,8 @@ int Waterfall::handle(int event) {
                 int diffFreq = (diff * _hzPerBin);
                 _selectedFrequency -= diffFreq;
             } else {
+                lastX = Fl::event_x();
+                lastY = Fl::event_y();
                 _selectedFrequency = (_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE
                                       ? (_app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2))
                                       : 0) +

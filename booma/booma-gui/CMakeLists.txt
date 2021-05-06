@@ -32,7 +32,8 @@ find_package(FLTK)
 			waterfall.cpp
 			inputdialog.cpp
 			getvaluedialog.cpp
-			selectvaluedialog.cpp)
+			selectvaluedialog.cpp
+			analysis.cpp)
 	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES})
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
