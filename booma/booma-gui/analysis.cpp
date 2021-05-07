@@ -51,6 +51,8 @@ void Analysis::DrawAverageSpectrum() {
     fl_rect(0, 0, w(), h(), FL_BLACK);
 
     // Spectrum
+    double topI[_n / 2];
+    int topIndex = -1;
     int maxI = -1;
     int maxX = -1;
     int maxC = -1;
@@ -71,23 +73,43 @@ void Analysis::DrawAverageSpectrum() {
             maxI = i,
             maxX = x;
             maxC = c;
+            topI[++topIndex] = i;
         }
     }
 
     // Most significant frequency
-    if( maxI >= 0 ) {
+    if( maxI > 0 ) {
         int freq = (int) (((float) maxI * _hzPerBin) - (_hzPerBin / 2));
         std::string max = std::to_string(freq) +
-                "  (+/- " +
-                std::to_string((int) _hzPerBin / 2) +
-                ")";
+                          "  (+/- " +
+                          std::to_string((int) _hzPerBin / 2) +
+                          ")";
         int width = fl_width(max.c_str()) / 2;
-        if( maxX - width < 10 ) {
+        fl_color(fl_rgb_color(0));
+        if (maxX - width < 10) {
             fl_draw(max.c_str(), 10, h() - 10);
-        } else if( maxX + width > w() - 10) {
+        } else if (maxX + width > w() - 10) {
             fl_draw(max.c_str(), w() - (2 * width), h() - 10);
         } else {
             fl_draw(max.c_str(), maxX - width, h() - 10);
+        }
+
+        // 3 Most dominant frequencies
+        if( topIndex >= 3 ) {
+            std::string top = "";
+            int cnt = 0;
+            for (int i = topIndex; i >= 0 && cnt++ < 3; i--) {
+                if (top.length() > 0) {
+                    top += ", ";
+                }
+                top += std::to_string((int) (((float) topI[i] * _hzPerBin) - (_hzPerBin / (float) 2)));
+            }
+            fl_color(fl_rgb_color(90));
+            if (maxX <= w() / 2) {
+                fl_draw(top.c_str(), w() - (fl_width(top.c_str())) - 10, h() - 10);
+            } else {
+                fl_draw(top.c_str(), 10, h() - 10);
+            }
         }
     }
 }
