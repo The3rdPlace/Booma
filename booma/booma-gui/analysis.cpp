@@ -46,8 +46,8 @@ void Analysis::draw() {
 void Analysis::DrawAverageSpectrum() {
 
     // Background
-    fl_rectf(0, 0, w(), h() - 30, FL_BLACK);
-    fl_rectf(0, h() - 30, w(), 30, FL_GRAY);
+    fl_rectf(0, 0, w(), h() - 23, FL_BLACK);
+    fl_rectf(0, h() - 23, w(), 23, FL_GRAY);
     fl_rect(0, 0, w(), h(), FL_BLACK);
 
     // Spectrum
@@ -67,7 +67,7 @@ void Analysis::DrawAverageSpectrum() {
         int c= ColorMap(avg);
         int y = (float) c * _yFactor;
         fl_color(fl_rgb_color(c));
-        fl_line(x, h() - 30, x, h() - 30 - y);
+        fl_line(x, h() - 23, x, h() - 23 - y);
 
         if( c > maxC ) {
             maxI = i,
@@ -87,28 +87,34 @@ void Analysis::DrawAverageSpectrum() {
         int width = fl_width(max.c_str()) / 2;
         fl_color(fl_rgb_color(0));
         if (maxX - width < 10) {
-            fl_draw(max.c_str(), 10, h() - 10);
+            fl_draw(max.c_str(), 10, h() - 6);
         } else if (maxX + width > w() - 10) {
-            fl_draw(max.c_str(), w() - (2 * width), h() - 10);
+            fl_draw(max.c_str(), w() - (2 * width), h() - 6);
         } else {
-            fl_draw(max.c_str(), maxX - width, h() - 10);
+            fl_draw(max.c_str(), maxX - width, h() - 6);
         }
 
-        // 3 Most dominant frequencies
-        if( topIndex >= 3 ) {
+        // Drop down a marker from the spectrum
+        fl_color(FL_BLACK);
+        fl_line(maxX, h() - 22, maxX, h() - 18);
+
+        // 2 Most dominant frequencies
+        if( topIndex >= 2 ) {
+            int first = (int) (((float) topI[topIndex] * _hzPerBin) - (_hzPerBin / (float) 2));
+            int second = (int) (((float) topI[topIndex - 1] * _hzPerBin) - (_hzPerBin / (float) 2));
+
             std::string top = "";
-            int cnt = 0;
-            for (int i = topIndex; i >= 0 && cnt++ < 3; i--) {
-                if (top.length() > 0) {
-                    top += ", ";
-                }
-                top += std::to_string((int) (((float) topI[i] * _hzPerBin) - (_hzPerBin / (float) 2)));
-            }
+            top += std::to_string(first);
+            top += " <-> ";
+            top += std::to_string(second);
+            top += " = ";
+            top += std::to_string(abs(first - second));
+
             fl_color(fl_rgb_color(90));
             if (maxX <= w() / 2) {
-                fl_draw(top.c_str(), w() - (fl_width(top.c_str())) - 10, h() - 10);
+                fl_draw(top.c_str(), w() - (fl_width(top.c_str())) - 10, h() - 6);
             } else {
-                fl_draw(top.c_str(), 10, h() - 10);
+                fl_draw(top.c_str(), 10, h() - 6);
             }
         }
     }
