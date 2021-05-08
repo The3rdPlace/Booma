@@ -407,6 +407,15 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
 HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
+    // Ignore shift for some input types
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never requires any input filter");
+        return previous;
+    }
+
     // If we use an RT_SDR the input has been decimated and needs further cleanup
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
 
@@ -456,6 +465,15 @@ bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
 }
 
 HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+
+    // Ignore shift for some input types
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never requires any shift");
+        return previous;
+    }
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks

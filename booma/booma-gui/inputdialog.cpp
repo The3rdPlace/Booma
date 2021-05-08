@@ -680,9 +680,12 @@ void InputDialog::SaveState() {
     }
     if( _isAudioDevice->value() ) {
         _app->SetInputSourceType(AUDIO_DEVICE);
+        _app->SetOriginalInputSourceType(NO_INPUT_SOURCE_TYPE);
+        _app->SetInputSourceDataType(REAL_INPUT_SOURCE_DATA_TYPE);
     }
     if( _isRtlsdrDevice->value() ) {
         _app->SetInputSourceType(RTLSDR);
+        _app->SetOriginalInputSourceType(NO_INPUT_SOURCE_TYPE);
     }
     if( _isPcmFile->value() ) {
         _app->SetInputSourceType(PCM_FILE);
@@ -692,9 +695,13 @@ void InputDialog::SaveState() {
     }
     if( _isSilence->value() ) {
         _app->SetInputSourceType(SILENCE);
+        _app->SetOriginalInputSourceType(NO_INPUT_SOURCE_TYPE);
+        _app->SetInputSourceDataType(REAL_INPUT_SOURCE_DATA_TYPE);
     }
     if( _isGenerator->value() ) {
         _app->SetInputSourceType(SIGNAL_GENERATOR);
+        _app->SetOriginalInputSourceType(NO_INPUT_SOURCE_TYPE);
+        _app->SetInputSourceDataType(REAL_INPUT_SOURCE_DATA_TYPE);
     }
 
     // Input device (audio or rtlsdr)
