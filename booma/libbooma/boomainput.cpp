@@ -228,6 +228,18 @@ void BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
     HLog("Input virtual frequency = %d", _virtualFrequency);
 
+    // Strictly local devices never have any shift, offset or adjustments
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Local device never have any shift, offset or adjustments");
+        _hardwareFrequency = frequency;
+        _ifFrequency = frequency;
+        return;
+    }
+
+    // Handle devices with possible shift, offset and adjustments
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
         _hardwareFrequency = (frequency + opts->GetShift()) - opts->GetRtlsdrOffset() + opts->GetRtlsdrAdjust();
         _ifFrequency = 0;
@@ -248,6 +260,15 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
     // If we have a bandpass filter as inputfilter (REAL input), then move it
     if( _inputFirFilter != nullptr ) {
         _inputFirFilter->SetCoefficients(HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
+    }
+
+    // No need to propagate a set-frequency command
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("No need to propagate a set-frequency command for local devices");
+        return 0;
     }
 
     // Device handling

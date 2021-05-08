@@ -421,6 +421,16 @@ int BoomaApplication::GetInputFilterWidth() {
 }
 
 long BoomaApplication::GetShift() {
+
+    // Ignore shift for some input types
+    if( GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never have any shift");
+        return 0;
+    }
+
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetShift();
     } else {
@@ -437,6 +447,16 @@ bool BoomaApplication::SetShift(long shift) {
 }
 
 long BoomaApplication::GetFrequencyAdjust() {
+
+    // Ignore shift for some input types
+    if( GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never have any frequency adjust");
+        return 0;
+    }
+
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetRtlsdrAdjust();
     } else {
