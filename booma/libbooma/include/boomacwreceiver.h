@@ -74,6 +74,8 @@ class BoomaCwReceiver : public BoomaReceiver {
 
         bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
             if( opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+                // This receiver will not tune lower than 6KHz since we use 6KHz as
+                // the internal IF in the heterodyne mixing stage.
                 return frequency < opts->GetOutputSampleRate() / 2 && (frequency > 6000);
             } else {
                 // With an rtlsdr source, the frequency can be almost anything

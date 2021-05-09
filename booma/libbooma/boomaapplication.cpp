@@ -166,10 +166,20 @@ bool BoomaApplication::InitializeReceiver() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
+
+    // Make sure that we can tune to this frequency
+    if( !_receiver->IsFrequencySupported(_opts, frequency) ) {
+        HLog("Rejecting tune to %ld since the receiver does not suppport this frequency", frequency);
+        return false;
+    }
+
+    // Tune the input and the receiver
     if( _input->SetFrequency(_opts, frequency) && _receiver->SetFrequency(_opts, _input->GetIfFrequency()) ) {
         _opts->SetFrequency(frequency);
         return true;
     }
+
+    // either input or receiver failed to tune
     return false;
 }
 
