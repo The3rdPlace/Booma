@@ -22,7 +22,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _selectedFrequency(_app->GetFrequency()),
     _enableDrawing(true),
     _cb(nullptr),
-    _enableNavigation(false) {
+    _enableNavigation(false),
+    _mouseInside(false) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -118,51 +119,65 @@ void Waterfall::draw() {
 
     if( _type == RF ) {
 
-        // Draw current center frequency lines
-        int center = _iq
-                     ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
-                     : ((float) _app->GetFrequency()) / _hzPerBin;
-        fl_color(FL_RED);
-        fl_line_style(FL_SOLID, 1, 0);
-        fl_line(center - 4, 0, center - 4, _gh);
-        fl_line(center + 4, 0, center + 4, _gh);
+        if( _mouseInside ) {
 
-        // Draw current if filter width
-        int halfFilterWidth = _app->GetInputFilterWidth() / 2;
-        int halfSampleRate = _app->GetOutputSampleRate() / 2;
-        if (halfFilterWidth > 0) {
-            int left;
-            int right;
-            if (_iq) {
-                left = ((halfSampleRate - halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
-                right = ((halfSampleRate + halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
-            } else {
-                if (_app->GetFrequency() - halfFilterWidth > 0) {
-                    left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);
+            // Draw current center frequency lines
+            int center = _iq
+                         ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
+                         : ((float) _app->GetFrequency()) / _hzPerBin;
+            fl_color(FL_RED);
+            fl_line_style(FL_SOLID, 3, 0);
+            fl_line(center - 5, 0, center - 5, _gh);
+            fl_line(center + 5, 0, center + 5, _gh);
+
+            // Draw current if filter width
+            int halfFilterWidth = _app->GetInputFilterWidth() / 2;
+            int halfSampleRate = _app->GetOutputSampleRate() / 2;
+            if (halfFilterWidth > 0) {
+                int left;
+                int right;
+                if (_iq) {
+                    left = ((halfSampleRate - halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
+                    right = ((halfSampleRate + halfFilterWidth) + (_app->GetOffset())) / _hzPerBin;
                 } else {
-                    left = 0;
+                    if (_app->GetFrequency() - halfFilterWidth > 0) {
+                        left = ((float) (_app->GetFrequency() - halfFilterWidth) / _hzPerBin);
+                    } else {
+                        left = 0;
+                    }
+                    if (_app->GetFrequency() + halfFilterWidth < halfSampleRate) {
+                        right = ((float) (_app->GetFrequency() + halfFilterWidth) / _hzPerBin);
+                    } else {
+                        right = halfSampleRate;
+                    }
                 }
-                if (_app->GetFrequency() + halfFilterWidth < halfSampleRate) {
-                    right = ((float) (_app->GetFrequency() + halfFilterWidth) / _hzPerBin);
-                } else {
-                    right = halfSampleRate;
-                }
+                fl_rectf(left, GH - 6, right - left, 3, FL_RED);
             }
-            fl_rectf(left, GH_MINUS_THREE, right - left, 3, FL_RED);
-        }
 
-        // Draw current decimation filter width
-        if (_iq) {
-            int left = ((_app->GetOutputSampleRate() / 2) - (_app->GetDecimatorCutoff())) / _hzPerBin;
-            int center = (_app->GetOutputSampleRate() / 2) / _hzPerBin;
-            int right = ((_app->GetOutputSampleRate() / 2) + (_app->GetDecimatorCutoff())) / _hzPerBin;
-            fl_color(FL_DARK_YELLOW);
-            fl_line_style(FL_DASH, 1, 0);
-            fl_line(center, 0, center, GH);
-            fl_line_style(FL_SOLID, 1, 0);
-            fl_line(left, GH - 10, left, GH);
-            fl_line(right, GH - 10, right, GH);
-            fl_rectf(left, GH - 2, right - left, 2, FL_DARK_YELLOW);
+            // Draw current decimation filter width
+            if (_iq) {
+                int left = ((_app->GetOutputSampleRate() / 2) - (_app->GetDecimatorCutoff())) / _hzPerBin;
+                int center = (_app->GetOutputSampleRate() / 2) / _hzPerBin;
+                int right = ((_app->GetOutputSampleRate() / 2) + (_app->GetDecimatorCutoff())) / _hzPerBin;
+                fl_color(FL_DARK_YELLOW);
+                fl_line_style(FL_DASH, 2, 0);
+                fl_line(center, 0, center, GH);
+                fl_line_style(FL_SOLID, 3, 0);
+                fl_line(left, GH - 10, left, GH);
+                fl_line(right, GH - 10, right, GH);
+                fl_rectf(left, GH - 3, right - left, 3, FL_DARK_YELLOW);
+            }
+        } else {
+
+            // Draw current center frequency markers
+            int center = _iq
+                         ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
+                         : ((float) _app->GetFrequency()) / _hzPerBin;
+            fl_color(FL_RED);
+            fl_line_style(FL_SOLID, 3, 0);
+            fl_line(center - 1, 0, center - 1, 5);
+            fl_line(center - 1, _gh, center - 1, _gh - 5);
+
         }
     }
 
@@ -321,6 +336,15 @@ int Waterfall::handle(int event) {
 
             return 1;
         }
+
+        case FL_ENTER:
+            _mouseInside = true;
+            return 1;
+
+        case FL_LEAVE:
+            _mouseInside = false;
+            return 1;
+
         default:
             return 0;
     }
