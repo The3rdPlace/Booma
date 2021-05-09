@@ -340,6 +340,8 @@ void MainWindow::SetupReceiverMenu() {
 
     _menubar->add("Receiver/Dump RF", "^p", HandleMenuButtonCallback, (void*) this);
     _menubar->add("Receiver/Dump AF", "^u", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
+
+    _menubar->add("Receiver/Screenshot", "^x", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 }
 
 void MainWindow::SetupReceiverInputMenu() {
@@ -563,6 +565,7 @@ void MainWindow::SetupDisplays() {
                                       _app->GetOutputSampleRate() / 2,
                                       RF);
     _rfInputWaterfall->callback(HandleRfWaterfallCallback);
+    _rfInputWaterfall->SetScreenshotPrefix("RF_INPUT");
 
     // AF output waterfall
     _afOutputWaterfall = new Waterfall(10, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 128, 140, "AF output",
@@ -572,6 +575,8 @@ void MainWindow::SetupDisplays() {
                                        4,
                                        ((_app->GetOutputSampleRate() / 2) / 4) / 2,
                                        AF);
+    _afOutputWaterfall->SetScreenshotPrefix("AF_OUTPUT");
+
     // Analysis window
     _analysis = new Analysis(148, _rfInputWaterfall->y() + _rfInputWaterfall->h() + 10, 560, 140, "Analysis", _app->GetAudioFftSize() / 2, 4, _app);
 }
@@ -625,6 +630,9 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Receiver/Restart", 16) == 0 ) {
         HandleMenuButtonReceiverRestart();
+    }
+    else if( strncmp(name, "Receiver/Screenshot", 19) == 0 ) {
+        HandleMenuButtonReceiverScreenshot();
     }
     else if( strncmp(name, "Receiver/Input/", 15) == 0 ) {
         HandleMenuButtonReceiverInput(name, &name[15]);
@@ -1415,6 +1423,11 @@ void MainWindow::HandleMenuButtonReceiverDumpRf() {
 void MainWindow::HandleMenuButtonReceiverDumpAf() {
     _app->ToggleDumpAudio();
     UpdateState();
+}
+
+void MainWindow::HandleMenuButtonReceiverScreenshot() {
+    _rfInputWaterfall->Screenshot();
+    _afOutputWaterfall->Screenshot();
 }
 
 void MainWindow::UpdateState() {

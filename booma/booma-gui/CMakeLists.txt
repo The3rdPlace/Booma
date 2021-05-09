@@ -6,6 +6,8 @@ SET(OpenGL_GL_PREFERENCE GLVND)
 find_package(FLTK)
 	if(FLTK_FOUND)
 
+	find_package (JPEG REQUIRED)
+
 	include_directories(${Hardt_INCLUDE_DIRS})
 	include_directories("${PROJECT_BINARY_DIR}/booma/libbooma/include")
 	include_directories("${PROJECT_SOURCE_DIR}/booma/libbooma/include")
@@ -13,6 +15,7 @@ find_package(FLTK)
 	include_directories("${PROJECT_SOURCE_DIR}/booma/booma-gui/include")
 	include_directories("${PROJECT_BINARY_DIR}/booma/booma-gui/include")
 	include_directories(${FLTK_INCLUDE_DIR})
+	include_directories(${JPEG_INCLUDE_DIR})
 
 	# Set the application major and minor version here
 	set (BoomaGui_VERSION_MAJOR 1)
@@ -34,7 +37,7 @@ find_package(FLTK)
 			getvaluedialog.cpp
 			selectvaluedialog.cpp
 			analysis.cpp)
-	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES})
+	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES} ${JPEG_LIBRARIES})
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 

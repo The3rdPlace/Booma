@@ -14,6 +14,7 @@ class Waterfall : public Fl_Widget {
         bool _enableDrawing;
         bool _enableNavigation;
         bool _mouseInside;
+        bool _scheduleScreenshot;
 
         BoomaApplication* _app;
         float _hzPerBin;
@@ -31,6 +32,9 @@ class Waterfall : public Fl_Widget {
         uchar* _moveBuffer;
         uchar _colorMap[256];
         Fl_Callback0* _cb;
+        std::string _screenshotPrefix = "waterfall";
+        std::string _screenshotSuffix = "";
+        int _screenshotSeq = 1;
 
         int _gw;
         int _gh;
@@ -84,6 +88,14 @@ class Waterfall : public Fl_Widget {
         long GetSelectedFrequency() {
             return _selectedFrequency;
         }
+
+        void Screenshot();
+
+        void SetScreenshotPrefix(std::string prefix) {
+            _screenshotPrefix = prefix;
+        }
+
+        void WriteScreenshot(unsigned char* image);
 };
 
 #endif

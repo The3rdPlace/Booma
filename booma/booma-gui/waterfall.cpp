@@ -3,6 +3,10 @@
 #include <FL/Fl.H>
 #include <iostream>
 #include <math.h>
+#include <iostream>
+#include <chrono>
+#include <ctime>
+#include <jpeglib.h>
 
 Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type)
     : Fl_Widget(X, Y, W, H, L),
@@ -23,7 +27,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _enableDrawing(true),
     _cb(nullptr),
     _enableNavigation(false),
-    _mouseInside(false) {
+    _mouseInside(false),
+    _scheduleScreenshot(false) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -54,6 +59,12 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     if( type == RF ) {
         _enableNavigation = true;
     }
+
+    // Set screenshot suffix
+    std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    char tmp[256];
+    std::strftime(tmp, 256, "%Y%m%d_%H%M%S", std::localtime(&now));
+    _screenshotSuffix = tmp;
 }
 
 #define W w()
@@ -244,6 +255,57 @@ void Waterfall::draw() {
     fl_end_offscreen();
     fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
     fl_delete_offscreen(_ofscr);
+
+    // Take screenshot ?
+    if( _scheduleScreenshot ) {
+        uchar* buffer = new uchar[W * H * 3];
+        fl_read_image(buffer, x(), y(), W, H);
+        WriteScreenshot(buffer);
+        delete[] buffer;
+        _scheduleScreenshot = false;
+        HLog("Screenshot completed");
+
+        fl_color(FL_WHITE);
+        fl_draw("SCREENSHOT COMPLETED", x() + 10, y() + 20);
+    }
+}
+
+void Waterfall::WriteScreenshot(unsigned char* image) {
+
+    std::string outname = "./" + _screenshotPrefix + "_" + _screenshotSuffix + "_" + std::to_string(_screenshotSeq++) + ".jpg";
+    FILE* outfile = fopen(outname.c_str(), "wb");
+    if (!outfile) {
+        HError("Failed to open file for screenshot");
+        return;
+    }
+
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr       jerr;
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+    jpeg_stdio_dest(&cinfo, outfile);
+
+    cinfo.image_width      = W;
+    cinfo.image_height     = H;
+    cinfo.input_components = 3;
+    cinfo.in_color_space   = JCS_RGB;
+
+
+    jpeg_set_defaults(&cinfo);
+    jpeg_set_quality (&cinfo, 75, true);
+    jpeg_start_compress(&cinfo, true);
+
+    JSAMPROW row[1];
+
+    while( cinfo.next_scanline < cinfo.image_height ) {
+        int index = cinfo.next_scanline * 3 * _gw;
+        row[0] = &image[index];
+        jpeg_write_scanlines(&cinfo, row, 1);
+    }
+
+    jpeg_finish_compress(&cinfo);
+    fclose(outfile);
 }
 
 void Waterfall::Refresh() {
@@ -391,4 +453,9 @@ void Waterfall::MoveSpectrum(int distance) {
             lineStartPos += (_gw * 3);
         }
     }
+}
+
+void Waterfall::Screenshot() {
+    _scheduleScreenshot = true;
+    HLog("Screenshot scheduled");
 }

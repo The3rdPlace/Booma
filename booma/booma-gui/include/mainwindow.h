@@ -87,6 +87,7 @@ class MainWindow {
         void HandleMenuButtonReceiverRestart();
         void HandleMenuButtonReceiverDumpRf();
         void HandleMenuButtonReceiverDumpAf();
+        void HandleMenuButtonReceiverScreenshot();
         void HandleMenuButtonReceiverInput(char* name, char* value);
         void HandleMenuButtonReceiverOutput(char* name, char* value);
         void HandleMenuButtonReceiverMode(char* name, char* value);
