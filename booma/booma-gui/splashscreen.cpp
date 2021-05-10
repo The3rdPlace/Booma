@@ -1,4 +1,5 @@
 #include "splashscreen.h"
+#include "splash.h"
 #include <hardt.h>
 
 SplashScreen* SplashScreen::_instance;
@@ -12,9 +13,9 @@ SplashScreen::SplashScreen(int x, int y, std::string title):
     _title(title) {
     _instance = this;
 
-    _img = new Fl_PNG_Image("/home/henrik/Git/Booma/site/booma.png");
+    _img = new Fl_PNG_Image(NULL, Splash, 84050);
     if( _img->fail() == Fl_PNG_Image::ERR_FILE_ACCESS || _img->fail() == Fl_PNG_Image::ERR_FORMAT || _img->fail() == Fl_PNG_Image::ERR_NO_IMAGE ) {
-        HError("Unable to load splash image");
+        HError("Unable to load splash image: error is %d", _img->fail());
         delete _img;
         _img = nullptr;
     }
