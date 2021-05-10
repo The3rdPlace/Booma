@@ -11,6 +11,7 @@
 #include "inputdialog.h"
 #include "getvaluedialog.h"
 #include "selectvaluedialog.h"
+#include "splashscreen.h"
 
 bool MainWindow::_threadsRunning = true;
 int MainWindow::_threadsAlive = 0;
@@ -301,8 +302,9 @@ void MainWindow::SetupMenus() {
     // Options
     SetupSettingsMenu();
 
-    // Help
+    // Help and about
     _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Help/About", 0, HandleMenuButtonCallback, (void*) this);
 
     // Make sure the menu state is current
     UpdateState();
@@ -659,8 +661,10 @@ void MainWindow::HandleMenuButton(char* name) {
         HandleBookmarkSelection(name, &name[21]);
     }
     else if( strcmp(name, "Help/Help") == 0 ) {
-        // Todo: Show proper splash
-        std::cout << GetTitle() << std::endl;
+        // Todo: open browser
+    } else if( strcmp(name, "Help/About") == 0 ) {
+        SplashScreen* splash = new SplashScreen(10, 10, GetTitle());
+        splash->Show();
     }
     else {
         HError("Unknown menubutton '%s' clicked", name);

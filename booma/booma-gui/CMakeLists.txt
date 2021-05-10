@@ -36,7 +36,8 @@ find_package(FLTK)
 			inputdialog.cpp
 			getvaluedialog.cpp
 			selectvaluedialog.cpp
-			analysis.cpp)
+			analysis.cpp
+			splashscreen.cpp)
 	target_link_libraries (booma-gui booma pthread ${Hardt_LIBRARIES} ${FLTK_LIBRARIES} ${JPEG_LIBRARIES})
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
