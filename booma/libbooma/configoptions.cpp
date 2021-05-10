@@ -206,7 +206,7 @@ std::map<int, std::string> ConfigOptions::GetAudioDevices(bool hardwareDevices, 
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
         if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
-            if( inputs && ((*it).Inputs > 0 || outputs && (*it).Outputs > 0) ) {
+            if( (inputs && (*it).Inputs > 0) || (outputs && (*it).Outputs > 0) ) {
                 cards.insert(std::pair<int, std::string>((*it).Device, (*it).Name));
             }
         }
