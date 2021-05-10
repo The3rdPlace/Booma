@@ -291,7 +291,6 @@ void Waterfall::WriteScreenshot(unsigned char* image) {
     cinfo.input_components = 3;
     cinfo.in_color_space   = JCS_RGB;
 
-
     jpeg_set_defaults(&cinfo);
     jpeg_set_quality (&cinfo, 75, true);
     jpeg_start_compress(&cinfo, true);
