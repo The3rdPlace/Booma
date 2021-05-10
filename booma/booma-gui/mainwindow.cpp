@@ -302,8 +302,7 @@ void MainWindow::SetupMenus() {
     // Options
     SetupSettingsMenu();
 
-    // Help and about
-    _menubar->add("Help/Help", 0, HandleMenuButtonCallback, (void*) this);
+    // About
     _menubar->add("Help/About", 0, HandleMenuButtonCallback, (void*) this);
 
     // Make sure the menu state is current
@@ -659,9 +658,6 @@ void MainWindow::HandleMenuButton(char* name) {
     }
     else if( strncmp(name, "Navigation/Bookmarks/", 21) == 0 ) {
         HandleBookmarkSelection(name, &name[21]);
-    }
-    else if( strcmp(name, "Help/Help") == 0 ) {
-        // Todo: open browser
     } else if( strcmp(name, "Help/About") == 0 ) {
         SplashScreen* splash = new SplashScreen(10, 10, GetTitle());
         splash->Show();
