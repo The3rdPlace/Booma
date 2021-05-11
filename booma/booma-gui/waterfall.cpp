@@ -267,9 +267,9 @@ void Waterfall::draw() {
             fl_color(FL_GREEN);
             fl_draw(mouseFreq.c_str(), _mouseX + 10, 25);
         } else {
-            fl_rectf(_mouseX - 5 - fl_width(mouseFreq.c_str()), 10, fl_width(mouseFreq.c_str()) + 10, 20, FL_BLACK);
+            fl_rectf(_mouseX - 10 - fl_width(mouseFreq.c_str()), 10, fl_width(mouseFreq.c_str()) + 10, 20, FL_BLACK);
             fl_color(FL_GREEN);
-            fl_draw(mouseFreq.c_str(), _mouseX - 10 - fl_width(mouseFreq.c_str()), 25);
+            fl_draw(mouseFreq.c_str(), _mouseX - 5 - fl_width(mouseFreq.c_str()), 25);
         }
     }
 
