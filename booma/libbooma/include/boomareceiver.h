@@ -22,24 +22,7 @@ class BoomaReceiver {
         HWriterConsumer<int16_t>* _preProcess;
         HWriterConsumer<int16_t>* _receive;
         HWriterConsumer<int16_t>* _postProcess;
-        HSplitter<int16_t>* _spectrum;
         HSplitter<int16_t>* _decoder;
-
-        // RF spectrum reporting
-        HFftOutput<int16_t>* _rfFft;
-        HCustomWriter<HFftResults>* _rfFftWriter;
-        int RfFftCallback(HFftResults* result, size_t length);
-        HRectangularWindow<int16_t>* _rfFftWindow;
-        double* _rfSpectrum;
-        int _rfFftSize;
-
-        // Audio spectrum reporting
-        HFftOutput<int16_t>* _audioFft;
-        HCustomWriter<HFftResults>* _audioFftWriter;
-        int AudioFftCallback(HFftResults* result, size_t length);
-        HRectangularWindow<int16_t>* _audioFftWindow;
-        double* _audioSpectrum;
-        int _audioFftSize;
 
         std::vector<Option> _options;
 
@@ -78,18 +61,7 @@ class BoomaReceiver {
             _hasBuilded(false),
             _frequency(initialFrequency),
             _rfAgc(nullptr),
-            _rfAgcProbe(nullptr),
-            _spectrum(nullptr),
-            _rfFft(nullptr),
-            _rfFftWindow(nullptr),
-            _rfFftWriter(nullptr),
-            _rfSpectrum(nullptr),
-            _rfFftSize(256),
-            _audioFft(nullptr),
-            _audioFftWindow(nullptr),
-            _audioFftWriter(nullptr),
-            _audioSpectrum(nullptr),
-            _audioFftSize(256) {
+            _rfAgcProbe(nullptr) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
         }
@@ -101,18 +73,6 @@ class BoomaReceiver {
         virtual ~BoomaReceiver() {
             SAFE_DELETE(_rfAgc);
             SAFE_DELETE(_rfAgcProbe);
-
-            SAFE_DELETE(_spectrum);
-
-            SAFE_DELETE(_rfFft);
-            SAFE_DELETE(_rfFftWriter);
-            SAFE_DELETE(_rfFftWindow);
-            SAFE_DELETE(_rfSpectrum);
-
-            SAFE_DELETE(_audioFft);
-            SAFE_DELETE(_audioFftWriter);
-            SAFE_DELETE(_audioFftWindow);
-            SAFE_DELETE(_audioSpectrum);
         }
 
         virtual int GetOutputFilterWidth() {
@@ -140,12 +100,11 @@ class BoomaReceiver {
             return _frequency;
         }
 
+        virtual long GetDefaultFrequency(ConfigOptions* opts) = 0;
+        virtual bool IsFrequencySupported(ConfigOptions* opts, long frequency) = 0;
+
         HWriterConsumer<int16_t>* GetLastWriterConsumer() {
             return _decoder->Consumer();
-        }
-
-        HWriterConsumer<int16_t>* GetSpectrumConsumer() {
-            return _spectrum->Consumer();
         }
 
         int SetRfGain(int gain);
@@ -158,10 +117,7 @@ class BoomaReceiver {
             return _rfAgc->GetGain();
         }
 
-        int GetRfSpectrum(double* spectrum);
-        int GetRfFftSize();
-        int GetAudioFftSize();
-        int GetAudioSpectrum(double* spectrum);
+        bool SetRfGainEnabled(bool enabled);
 };
 
 #endif

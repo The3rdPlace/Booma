@@ -29,8 +29,31 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 }
 
 BoomaApplication::~BoomaApplication() {
+
+    // Make sure that a running receiver has been shut down
+    HLog("Shutting down a running receiver (should we have one)");
+    Halt();
+
+    // Delete the config object
+    SyncConfiguration();
+    HLog("Deleting the configuration object");
     if( _opts != NULL ) {
         delete _opts;
+    }
+
+    // Reset all previous receiver components
+    HLog("Reset receiver components");
+    if( _input != NULL ) {
+        delete _input;
+        _input = NULL;
+    }
+    if( _receiver != NULL ) {
+        delete _receiver;
+        _receiver = NULL;
+    }
+    if( _output != NULL ) {
+        delete _output;
+        _output = NULL;
     }
 }
 
@@ -69,6 +92,14 @@ bool BoomaApplication::Reconfigure() {
 
 bool BoomaApplication::ChangeReceiver(ReceiverModeType receiverModeType) {
 
+    // Make sure we dont have any dump streams running
+    if( _opts->GetDumpRf() ) {
+        ToggleDumpRf();
+    }
+    if( _opts->GetDumpAudio() ) {
+        ToggleDumpAudio();
+    }
+
     // Register new receiver type
     HLog("Setting new receiver type");
     _opts->SetReceiverModeType(receiverModeType);
@@ -93,24 +124,29 @@ bool BoomaApplication::InitializeReceiver() {
         // Create receiver
         switch( _opts->GetReceiverModeType() ) {
             case CW:
-                SetInputFilterWidth(500);
                 _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AM:
-                SetInputFilterWidth(5000);
                 _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency());
                 break;
             case AURORAL:
-                SetInputFilterWidth(10000);
                 _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency());
                 break;
             case SSB:
-                SetInputFilterWidth(3000);
                 _receiver = new BoomaSsbReceiver(_opts, _input->GetIfFrequency());
                 break;
             default:
                 std::cout << "Unknown receiver type defined" << std::endl;
                 return false;
+        }
+
+        // Build receiver
+        if( !_receiver->IsFrequencySupported(_opts, _opts->GetFrequency()) ) {
+            HLog("Unsupported frequency %d when starting new receiver. Using receivers default = %d", _opts->GetFrequency(), _receiver->GetDefaultFrequency(_opts));
+            _opts->SetFrequency(_receiver->GetDefaultFrequency(_opts));
+            HLog("Initial receiver frequency is now %d", _opts->GetFrequency());
+        } else {
+            HLog("Initial frequency %d is valid for the selected receiver", _opts->GetFrequency());
         }
         _receiver->Build(_opts, _input);
 
@@ -130,10 +166,20 @@ bool BoomaApplication::InitializeReceiver() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
+
+    // Make sure that we can tune to this frequency
+    if( !_receiver->IsFrequencySupported(_opts, frequency) ) {
+        HLog("Rejecting tune to %ld since the receiver does not suppport this frequency", frequency);
+        return false;
+    }
+
+    // Tune the input and the receiver
     if( _input->SetFrequency(_opts, frequency) && _receiver->SetFrequency(_opts, _input->GetIfFrequency()) ) {
         _opts->SetFrequency(frequency);
         return true;
     }
+
+    // either input or receiver failed to tune
     return false;
 }
 
@@ -195,68 +241,112 @@ int BoomaApplication::GetSignalLevel() {
     // We need to do our own S calculation since the agc must be be "removed" from the max value
     // The factor 25 is just picked from relative measurements.. this is not
     // a level that can be used for anything but a local reference!
-    int max = GetSignalMax() * 20;
-    return (20 * log10((float) ceil((max == 0 ? 0.25 : max) / 1))) / 6;
+    int max = GetSignalMax();
+    return ((20 * log10((float) ceil((max == 0 ? 1 : max)))) / 6) - 4;
 }
 
 double BoomaApplication::GetSignalSum() {
-    return _output->GetSignalSum();
+    return _isRunning ? _output->GetSignalSum() : 0;
 }
 
 int BoomaApplication::GetSignalMax() {
-    return (_output->GetSignalMax() / _receiver->GetRfAgcCurrentGain());
+    return _isRunning ? (_output->GetSignalMax() / _receiver->GetRfAgcCurrentGain()) : 0;
 }
 
 int BoomaApplication::GetRfFftSize() {
-    return _receiver->GetRfFftSize();
+    return _input->GetRfFftSize();
 }
 
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
-    return _receiver->GetRfSpectrum(spectrum);
+    return _input->GetRfSpectrum(spectrum);
 }
 
 int BoomaApplication::GetAudioFftSize() {
-    return _receiver->GetAudioFftSize();
+    return _output->GetAudioFftSize();
 }
 
 int BoomaApplication::GetAudioSpectrum(double* spectrum) {
-    return _receiver->GetAudioSpectrum(spectrum);
+    return _output->GetAudioSpectrum(spectrum);
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {
+    return _opts->GetInputSourceType();
+}
+
+bool BoomaApplication::SetInputSourceType(InputSourceType inputSourceType) {
+    return _opts->SetInputSourceType(inputSourceType);
+}
+
+InputSourceType BoomaApplication::GetOriginalInputSourceType() {
     return _opts->GetOriginalInputSourceType();
+}
+
+bool BoomaApplication::SetOriginalInputSourceType(InputSourceType originalInputSourceType) {
+    return _opts->SetOriginalInputSourceType(originalInputSourceType);
 }
 
 InputSourceDataType BoomaApplication::GetInputSourceDataType() {
     return _opts->GetInputSourceDataType();
 }
 
+bool BoomaApplication::SetInputSourceDataType(InputSourceDataType inputSourceDataType) {
+    return _opts->SetInputSourceDataType(inputSourceDataType);
+}
+
 int BoomaApplication::GetInputDevice() {
     return _opts->GetInputDevice();
+}
+
+bool BoomaApplication::SetInputDevice(int device) {
+    return _opts->SetInputDevice(device);
 }
 
 std::string BoomaApplication::GetPcmFile() {
     return _opts->GetPcmFile();
 }
 
+bool BoomaApplication::SetPcmFile(std::string filename) {
+    return _opts->SetPcmFile(filename);
+}
+
 std::string BoomaApplication::GetWavFile() {
     return _opts->GetWavFile();
+}
+
+bool BoomaApplication::SetWavFile(std::string filename) {
+    return _opts->SetWavFile(filename);
 }
 
 int BoomaApplication::GetSignalGeneratorFrequency() {
     return _opts->GetSignalGeneratorFrequency();
 }
 
+bool BoomaApplication::SetSignalGeneratorFrequency(int frequency) {
+    return _opts->SetSignalGeneratorFrequency(frequency);
+}
+
 std::string BoomaApplication::GetRemoteServer() {
     return _opts->GetRemoteServer();
+}
+
+bool BoomaApplication::SetRemoteServer(std::string server) {
+    return _opts->SetRemoteServer(server);
 }
 
 int BoomaApplication::GetRemoteDataPort() {
     return _opts->GetRemoteDataPort();
 }
 
+bool BoomaApplication::SetRemoteDataPort(int portnumber) {
+    return _opts->SetRemoteDataPort(portnumber);
+}
+
 int BoomaApplication::GetRemoteCommandPort() {
-    return _opts->GetRemoteDataPort();
+    return _opts->GetRemoteCommandPort();
+}
+
+bool BoomaApplication::SetRemoteCommandPort(int portnumber) {
+    return _opts->SetRemoteCommandPort(portnumber);
 }
 
 HTimer BoomaApplication::GetSchedule() {
@@ -331,6 +421,7 @@ bool BoomaApplication::UseChannel(int id) {
 }
 
 bool BoomaApplication::SetInputFilterWidth(int width) {
+
     _opts->SetInputFilterWidth(width);
     return _input->SetInputFilterWidth(_opts, width);
 }
@@ -339,7 +430,17 @@ int BoomaApplication::GetInputFilterWidth() {
     return _opts->GetInputFilterWidth();
 }
 
-int BoomaApplication::GetShift() {
+long BoomaApplication::GetShift() {
+
+    // Ignore shift for some input types
+    if( GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never have any shift");
+        return 0;
+    }
+
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetShift();
     } else {
@@ -347,12 +448,39 @@ int BoomaApplication::GetShift() {
     }
 }
 
-int BoomaApplication::GetFrequencyAdjust() {
+long BoomaApplication::GetRealShift() {
+    return _opts->GetShift();
+}
+
+bool BoomaApplication::SetShift(long shift) {
+    return _opts->SetShift(shift);
+}
+
+long BoomaApplication::GetFrequencyAdjust() {
+
+    // Ignore shift for some input types
+    if( GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never have any frequency adjust");
+        return 0;
+    }
+
     if( _opts->GetInputSourceType() == InputSourceType::RTLSDR || _opts->GetOriginalInputSourceType() == InputSourceType::RTLSDR ) {
         return _opts->GetRtlsdrAdjust();
     } else {
         return 0;
     }
+}
+
+long BoomaApplication::GetRealFrequencyAdjust() {
+    return _opts->GetRtlsdrAdjust();
+}
+
+bool BoomaApplication::SetFrequencyAdjust(long adjust) {
+    _opts->SetRtlsdrAdjust(adjust);
+    return true;
 }
 
 std::vector<std::string> BoomaApplication::GetConfigSections() {
@@ -371,8 +499,16 @@ bool BoomaApplication::SetConfigSection(std::string section) {
     return false;
 }
 
-bool BoomaApplication::CreateConfigSection(std::string section) {
-    if( _opts->CreateConfigSection(section) ) {
+bool BoomaApplication::CreateConfigSection(std::string section, bool cloneOldSettings, bool replaceDefault) {
+    if( _opts->CreateConfigSection(section, cloneOldSettings, replaceDefault) ) {
+        Reconfigure();
+        return true;
+    }
+    return false;
+}
+
+bool BoomaApplication::RenameConfigSection(std::string newname) {
+    if( _opts->RenameConfigSection(newname) ) {
         Reconfigure();
         return true;
     }
@@ -385,4 +521,92 @@ bool BoomaApplication::DeleteConfigSection(std::string section) {
 
 int BoomaApplication::GetOutputFilterWidth() {
     return _receiver->GetOutputFilterWidth();
+}
+
+std::map<int, std::string> BoomaApplication::GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs) {
+    return _opts->GetAudioDevices(hardwareDevices, virtualDevices, inputs, outputs);
+}
+
+std::map<int, std::string> BoomaApplication::GetRtlsdrDevices() {
+    return _opts->GetRtlsdrDevices();
+}
+
+std::string BoomaApplication::GetOutputFilename() {
+    return _opts->GetOutputFilename();
+}
+
+int BoomaApplication::GetOutputDevice() {
+    return _opts->GetOutputAudioDevice();
+}
+
+void BoomaApplication::SetOutputAudioDevice(int card) {
+    _opts->SetOutputAudioDevice(card);
+    _opts->SetOutputFilename("");
+    Reconfigure();
+}
+
+void BoomaApplication::SetOutputFilename(std::string filename) {
+    _opts->SetOutputFilename(filename);
+    _opts->SetOutputAudioDevice(-1);
+    Reconfigure();
+}
+
+int BoomaApplication::GetInputSampleRate() {
+    return _opts->GetInputSampleRate();
+}
+
+bool BoomaApplication::SetInputSampleRate(int rate) {
+    return _opts->SetInputSampleRate(rate);
+}
+
+int BoomaApplication::GetOutputSampleRate() {
+    return _opts->GetOutputSampleRate();
+}
+
+bool BoomaApplication::SetOutputSampleRate(int rate) {
+    return _opts->SetOutputSampleRate(rate);
+}
+
+void BoomaApplication::SyncConfiguration() {
+    _opts->SyncStoredConfig();
+}
+
+bool BoomaApplication::IsRunning() {
+    return _isRunning;
+}
+
+bool BoomaApplication::SetPreampLevel(int level) {
+    if( _input != nullptr && _input->SetPreampLevel(_opts, level) ) {
+        _opts->SetPreamp(level);
+        return true;
+    }
+    return false;
+}
+
+int BoomaApplication::GetPreampLevel() {
+    return _opts->GetPreamp();
+}
+
+int BoomaApplication::GetOffset() {
+    return _opts->GetRtlsdrOffset();
+}
+
+void BoomaApplication::SetOffset(int offset) {
+    _opts->SetRtlsdrOffset(offset);
+}
+
+bool BoomaApplication::GetRfGainEnabled() {
+    return _opts->GetRfGainEnabled();
+}
+
+bool BoomaApplication::SetRfGainEnabled(bool enabled) {
+    if( _receiver->SetRfGainEnabled(enabled) ) {
+        _opts->SetRfGainEnabled(enabled);
+        return true;
+    }
+    return false;
+}
+
+int BoomaApplication::GetDecimatorCutoff() {
+    return _opts->GetDecimatorCutoff();
 }

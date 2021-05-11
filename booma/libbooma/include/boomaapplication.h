@@ -23,21 +23,42 @@ class BoomaApplication {
         // Run receiver chain
         void Run() {
             if( _input == NULL ) {
-                HLog("Unable to run, receiver is NULL");
-                return;
+                HLog("Unable to run, input is NULL");
+                throw new BoomaConfigurationException("Input is null");
             }
 	        HLog("Run receiver chain");
             _isTerminated = false;
             if( _opts->GetEnableProbes() ) {
                 HLog("Probes enabled, running 200 blocks");
                 _input->Run( 200 );
+
+                HLog("Resetting running state");
                 _isTerminated = true;
                 _isRunning = false;
                 _current = NULL;
             } else {
                 HLog("Starting normal run");
                 _current = new std::thread( [this]()  {
-                    _input->Run();
+                    try {
+                        _input->Run();
+                    } catch( BoomaConfigurationException e ) {
+                        std::cout << "BoomaConfigurationException thrown\n";
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( BoomaInputException e ) {
+                        std::cout << "BoomaInputException thrown\n";
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( BoomaReceiverException e ) {
+                        std::cout << "BoomaReceiverException thrown\n";
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.Type().c_str(), e.What().c_str());
+                    } catch( HException e ) {
+                        std::cout << "HException thrown\n";
+                        HError("Caught exception from Run() of type '%s' with error '%s'", e.type(), e.what());
+                    } catch( ... ) {
+                        std::cout << "Unknown exception thrown\n";
+                        HError("Caught unknown exception from Run()");
+                    }
+
+                    HLog("Resetting running state");
                     _isTerminated = true;
                     _isRunning = false;
                     _current = NULL;
@@ -50,6 +71,10 @@ class BoomaApplication {
         // Halt receiver chain
         void Halt(bool wait = true) {
 	        HLog("Halt receiver chain");
+	        if( !_isRunning ) {
+	            HLog("Already halted");
+	            return;
+	        }
             _isTerminated = true;
             if( wait )
             {
@@ -97,8 +122,12 @@ class BoomaApplication {
         bool ChangeFrequency(int stepSize);
 
         // Get frequency shift and frequency adjustments for rtl-sdr dongles
-        int GetShift();
-        int GetFrequencyAdjust();
+        long GetShift();
+        bool SetShift(long shift);
+        long GetRealShift();
+        long GetFrequencyAdjust();
+        long GetRealFrequencyAdjust();
+        bool SetFrequencyAdjust(long adjust);
 
         // Set 1.st IF filter width
         bool SetInputFilterWidth(int width);
@@ -117,8 +146,13 @@ class BoomaApplication {
         int GetRfGain();
         bool SetRfGain(int gain);
         bool ChangeRfGain(int stepSize);
+        bool GetRfGainEnabled();
+        bool SetRfGainEnabled(bool enabled);
 
-        int GetSampleRate() {
+        bool SetPreampLevel(int level);
+        int GetPreampLevel();
+
+        int GetDefaultSampleRate() {
             return SAMPLERATE;
         }
 
@@ -128,16 +162,31 @@ class BoomaApplication {
 
         // Public control functions that would require a receiver restart after modifications
         InputSourceType GetInputSourceType();
+        bool SetInputSourceType(InputSourceType inputSourceType);
+        InputSourceType GetOriginalInputSourceType();
+        bool SetOriginalInputSourceType(InputSourceType originalInputSourceType);
         InputSourceDataType GetInputSourceDataType();
+        bool SetInputSourceDataType(InputSourceDataType inputSourceDataType);
         int GetInputDevice();
+        bool SetInputDevice(int device);
         std::string GetPcmFile();
+        bool SetPcmFile(std::string filename);
         std::string GetWavFile();
+        bool SetWavFile(std::string filename);
         int GetSignalGeneratorFrequency();
+        bool SetSignalGeneratorFrequency(int frequency);
         std::string GetRemoteServer();
+        bool SetRemoteServer(std::string server);
         int GetRemoteDataPort();
+        bool SetRemoteDataPort(int portnumber);
         int GetRemoteCommandPort();
+        bool SetRemoteCommandPort(int portnumber);
+        std::string GetOutputFilename();
+        int GetOutputDevice();
+        void SetOutputAudioDevice(int card);
+        void SetOutputFilename(std::string filename);
 
-        // Public reporting functions for spectrum and signallevel
+        // Public reporting and setting functions for spectrum and signallevel
         int GetSignalLevel();
         double GetSignalSum();
         int GetSignalMax();
@@ -156,6 +205,16 @@ class BoomaApplication {
         bool SetOption(std::string name, std::string value);
         std::string GetOptionInfoString();
         int GetOutputFilterWidth();
+        std::map<int, std::string> GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs);
+        std::map<int, std::string> GetRtlsdrDevices();
+        int GetInputSampleRate();
+        bool SetInputSampleRate(int rate);
+        int GetOutputSampleRate();
+        bool SetOutputSampleRate(int rate);
+        bool IsRunning();
+        int GetOffset();
+        void SetOffset(int offset);
+        int GetDecimatorCutoff();
 
         // Bookmarks
         void SetBookmark(std::string name);
@@ -173,8 +232,12 @@ class BoomaApplication {
         std::vector<std::string> GetConfigSections();
         std::string GetConfigSection();
         bool SetConfigSection(std::string section);
-        bool CreateConfigSection(std::string section);
+        bool CreateConfigSection(std::string section, bool cloneOldSettings = true, bool replaceDefault = true);
         bool DeleteConfigSection(std::string section);
+        bool RenameConfigSection(std::string newname);
+
+        // Configuration
+        void SyncConfiguration();
 
     private:
 

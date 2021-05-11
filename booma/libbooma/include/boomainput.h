@@ -34,6 +34,10 @@ public:
         HProbe<int16_t>* _decimatorProbe;
         HDecimator<int16_t>* _decimator;
 
+        // Preamp
+        HProbe<int16_t>* _preampProbe;
+        HGain<int16_t>* _preamp;
+
         // Input filtering
         HIqFirFilter<int16_t>* _inputIqFirFilter;
         HFirFilter<int16_t>* _inputFirFilter;
@@ -46,6 +50,16 @@ public:
         HWriter<int16_t>* _rfWriter;
         HDelay<int16_t>* _rfDelay;
 
+        // RF spectrum reporting
+        HFftOutput<int16_t>* _rfFft;
+        HCustomWriter<HFftResults>* _rfFftWriter;
+        int RfFftCallback(HFftResults* result, size_t length);
+        HRectangularWindow<int16_t>* _rfFftWindow;
+        double* _rfSpectrum;
+        int _rfFftSize;
+        int _rfSpectrumSize;
+        HGain<int16_t>* _rfFftGain;
+
         // Final consumer
         HWriterConsumer<int16_t>* _lastConsumer;
 
@@ -54,12 +68,12 @@ public:
         int _ifFrequency;
 
         HReader<int16_t>* SetInputReader(ConfigOptions* opts);
-        bool SetReaderFrequencies(ConfigOptions *opts, int frequency);
+        void SetReaderFrequencies(ConfigOptions *opts, int frequency);
         bool GetDecimationRate(int inputRate, int outputRate, int* first, int* second);
         HReader<int16_t>* SetDecimation(ConfigOptions* opts, HReader<int16_t>* reader);
         HWriterConsumer<int16_t>* SetInputFilter(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
         HWriterConsumer<int16_t>* SetShift(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
-        HWriterConsumer<int16_t>* SetGain(ConfigOptions* options, HWriterConsumer<int16_t>* previous);
+        HWriterConsumer<int16_t>* SetPreamp(ConfigOptions* opts, HWriterConsumer<int16_t>* previous);
 
     public:
 
@@ -91,6 +105,11 @@ public:
         }
 
         bool SetInputFilterWidth(ConfigOptions* opts, int width);
+
+        bool SetPreampLevel(ConfigOptions* opts, int level);
+
+        int GetRfSpectrum(double* spectrum);
+        int GetRfFftSize();
 };
 
 #endif

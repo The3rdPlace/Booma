@@ -3,38 +3,6 @@
 
 #include "boomareceiver.h"
 
-int BoomaReceiver::RfFftCallback(HFftResults* result, size_t length) {
-
-    // Store the current spectrum in the output buffer
-    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
-    return length;
-}
-
-int BoomaReceiver::AudioFftCallback(HFftResults* result, size_t length) {
-
-    // Store the current spectrum in the output buffer
-    memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
-    return length;
-}
-
-int BoomaReceiver::GetRfSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfFftSize / 2);
-    return _rfFftSize / 2;
-}
-
-int BoomaReceiver::GetRfFftSize() {
-    return _rfFftSize / 2;
-}
-
-int BoomaReceiver::GetAudioFftSize() {
-    return _audioFftSize / 2;
-}
-
-int BoomaReceiver::GetAudioSpectrum(double* spectrum) {
-    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioFftSize / 2);
-    return _audioFftSize / 2;
-}
-
 bool BoomaReceiver::SetOption(ConfigOptions* opts, std::string name, int value){
     for( std::vector<Option>::iterator it = _options.begin(); it != _options.end(); it++ ) {
         if( (*it).Name == name ) {
@@ -80,16 +48,12 @@ bool BoomaReceiver::SetOption(ConfigOptions* opts, std::string name, int value){
 };
 
 int BoomaReceiver::GetRfAgcLevel(ConfigOptions* opts) {
+
     switch(opts->GetInputSourceDataType()) {
         case IQ_INPUT_SOURCE_DATA_TYPE:
         case I_INPUT_SOURCE_DATA_TYPE:
         case Q_INPUT_SOURCE_DATA_TYPE:
-            // Set level of individual branches, so that the absolute size
-            // of the IQ vector has the requested level..
-            // I^2 + Q^2 = MAG^2  ==>  I = Q = sqrt(MAG^2 / 2)
-            // Then divide by 2 to go from peak-to-peak to size of positive or
-            // negative part of the cycle.
-            return sqrt( pow(opts->GetRfAgcLevel(), 2) / 2 ) / 2;
+            return opts->GetRfAgcLevel() * 4;
         default:
             return opts->GetRfAgcLevel();
     }
@@ -153,27 +117,28 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
         SetOption(opts, (*it).first, (*it).second);
     }
 
+    // Check that the initial frequency is supported
+    if( !IsFrequencySupported(opts, opts->GetFrequency()) ) {
+        HLog("Configured frequency %ld is not valid for this receiver. Using default frequency %ld", opts->GetFrequency(), GetDefaultFrequency(opts));
+        opts->SetFrequency(GetDefaultFrequency(opts));
+    }
+
     // Add receiver gain/agc
     _gainValue = opts->GetRfGain();
     _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
     _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
     if( opts->GetRfGain() != 0 ) {
-        float g = opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
-        _rfAgc->SetGain(g);
+        if( opts->GetRfGainEnabled() ) {
+            float g =
+                    opts->GetRfGain() > 0 ? opts->GetRfGain() : ((float) 1 / ((float) opts->GetRfGain() * (float) -1));
+            _rfAgc->SetGain(g);
+        } else {
+            _rfAgc->SetGain(1);
+        }
     }
 
-    // Add a splitter so that we can take the full spectrum out before running through the receiver filters
-    _spectrum = new HSplitter<int16_t>(_rfAgc->Consumer());
-
-    // Add RF spectrum calculation
-    _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _spectrum->Consumer(), _rfFftWindow);
-    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::RfFftCallback, _rfFft->Consumer());
-    _rfSpectrum = new double[_rfFftSize / 2];
-    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfFftSize / 2);
-
     // Add preprocessing part of the receiver
-    _preProcess = PreProcess(opts, _spectrum);
+    _preProcess = PreProcess(opts, _rfAgc);
 
     // Add the receiver chain
     _receive = Receive(opts, _preProcess);
@@ -187,15 +152,17 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
         _decoder->SetWriter(decoder->Writer());
     }
 
-    // Add audio spectrum calculation
-    _audioFftWindow = new HRectangularWindow<int16_t>();
-    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _decoder->Consumer(), _audioFftWindow);
-    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaReceiver>(this, &BoomaReceiver::AudioFftCallback, _audioFft->Consumer());
-    _audioSpectrum = new double[_audioFftSize / 2];
-    memset((void*) _audioSpectrum, 0, sizeof(double) * _audioFftSize / 2);
-
     // Receiver has been build and all components is initialized (or so they should be!)
     _hasBuilded = true;
 };
+
+bool BoomaReceiver::SetRfGainEnabled(bool enabled) {
+    if( enabled ) {
+        SetRfGain(_gainValue);
+    } else {
+        _rfAgc->SetGain(1);
+    }
+    return true;
+}
 
 #endif

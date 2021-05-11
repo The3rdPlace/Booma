@@ -141,7 +141,7 @@ void Info::Spectrum(std::string name, int fSample, double* spectrum, int n, int 
     // Display current frequency (approximate)
     if( frequencyMarker != 0 )
     {
-        int fs = _app->GetSampleRate() / 2;
+        int fs = _app->GetDefaultSampleRate() / 2;
         int f = _app->GetFrequency();
         float q = (float) f / (float) fs;
         int pos = (n / 2) * q;

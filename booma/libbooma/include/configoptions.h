@@ -24,10 +24,8 @@ class ConfigOptions {
         std::string _activeSection = "default";
 
         void PrintUsage(bool showSecretSettings = false);
-        void PrintAudioDevices(bool includeVirtual = false);
+        void PrintAudioDevices(bool hardwareDevices = true, bool virtualDevices = false);
         void PrintRtlsdrDevices();
-        std::string GetAudioDevice(int device);
-        std::string GetRtlsdrDevice(int device);
 
         bool ReadStoredConfig(std::string configname, bool isBookmark);
         void WriteStoredConfig(std::string configname, bool isBookmark);
@@ -38,15 +36,21 @@ class ConfigOptions {
         std::string WriteStoredReceiverOptionsFor(std::map<std::string,std::map<std::string, std::string>> options);
         std::vector<Channel*> ReadChannels(std::string configname, std::string channels);
         std::vector<Channel*> ReadPersistentChannels(std::string configname, std::string section);
+        void AddDefaultChannels(std::vector<Channel *>* list);
         std::string WriteChannels(std::string configname, std::string section, std::vector<Channel*> channels);
         void DumpConfigInfo();
 
     public:
 
         ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv);
-
         ~ConfigOptions();
 
+        void SyncStoredConfig();
+
+        std::string GetAudioDevice(int device);
+        std::string GetRtlsdrDevice(int device);
+        std::map<int, std::string> GetAudioDevices(bool hardwareDevices = true, bool virtualDevices = false, bool inputs = true, bool outputs = true);
+        std::map<int, std::string> GetRtlsdrDevices();
         static bool IsVerbose(int argc, char** argv);
 
         int GetOutputAudioDevice() {
@@ -57,18 +61,39 @@ class ConfigOptions {
             return _values.at(_section)->_inputSourceType;
         }
 
+        bool SetInputSourceType(InputSourceType inputSourceType) {
+            _values.at(_section)->_inputSourceType = inputSourceType;
+            _values.at(_section)->_isRemoteHead = (inputSourceType == NETWORK);
+            return true;
+        }
+
         InputSourceType GetOriginalInputSourceType() {
             return _values.at(_section)->_originalInputSourceType == NO_INPUT_SOURCE_TYPE
             ? _values.at(_section)->_inputSourceType
             : _values.at(_section)->_originalInputSourceType;
         }
 
+        bool SetOriginalInputSourceType(InputSourceType originalInputSourceType) {
+            _values.at(_section)->_originalInputSourceType = originalInputSourceType;
+            return true;
+        }
+
         InputSourceDataType GetInputSourceDataType() {
             return _values.at(_section)->_inputSourceDataType;
         }
 
+        bool SetInputSourceDataType(InputSourceDataType inputSourceDataType) {
+            _values.at(_section)->_inputSourceDataType = inputSourceDataType;
+            return true;
+        }
+
         int GetInputDevice() {
             return _values.at(_section)->_inputDevice;
+        }
+
+        bool SetInputDevice(int device) {
+            _values.at(_section)->_inputDevice = device;
+            return true;
         }
 
         long int GetFrequency() {
@@ -95,12 +120,27 @@ class ConfigOptions {
             return _values.at(_section)->_remoteServer;
         }
 
+        bool SetRemoteServer(std::string server) {
+            _values.at(_section)->_remoteServer = server;
+            return true;
+        }
+
         int GetRemoteDataPort() {
             return _values.at(_section)->_remoteDataPort;
         }
 
+        bool SetRemoteDataPort(int portnumber) {
+            _values.at(_section)->_remoteDataPort = portnumber;
+            return true;
+        }
+
         int GetRemoteCommandPort() {
             return _values.at(_section)->_remoteCommandPort;
+        }
+
+        bool SetRemoteCommandPort(int portnumber) {
+            _values.at(_section)->_remoteCommandPort = portnumber;
+            return true;
         }
 
         bool GetUseRemoteHead() {
@@ -155,6 +195,11 @@ class ConfigOptions {
             return _values.at(_section)->_signalGeneratorFrequency;
         }
 
+        bool SetSignalGeneratorFrequency(int frequency) {
+            _values.at(_section)->_signalGeneratorFrequency = frequency;
+            return true;
+        }
+
         int GetInputSampleRate() {
             return _values.at(_section)->_inputSampleRate;
         }
@@ -163,20 +208,32 @@ class ConfigOptions {
             return _values.at(_section)->_outputSampleRate;
         }
 
-        void SetInputSampleRate(int sampleRate) {
+        bool SetInputSampleRate(int sampleRate) {
             _values.at(_section)->_inputSampleRate = sampleRate;
+            return true;
         }
 
-        void SetOutputSampleRate(int sampleRate) {
+        bool SetOutputSampleRate(int sampleRate) {
             _values.at(_section)->_outputSampleRate = sampleRate;
+            return true;
         }
 
         std::string GetPcmFile() {
             return _values.at(_section)->_pcmFile;
         }
 
+        bool SetPcmFile(std::string filename) {
+            _values.at(_section)->_pcmFile = filename;
+            return true;
+        }
+
         std::string GetWavFile() {
             return _values.at(_section)->_wavFile;
+        }
+
+        bool SetWavFile(std::string filename) {
+            _values.at(_section)->_wavFile = filename;
+            return true;
         }
 
         bool GetEnableProbes() {
@@ -207,12 +264,26 @@ class ConfigOptions {
             return _values.at(_section)->_rtlsdrOffset;
         }
 
-        int GetRtlsdrAdjust() {
+        void SetRtlsdrOffset(int offset) {
+            _values.at(_section)->_rtlsdrOffset = offset;
+        }
+
+        long GetRtlsdrAdjust() {
             return _values.at(_section)->_rtlsdrAdjust;
         }
 
-        int GetShift() {
+        bool SetRtlsdrAdjust(long adjust) {
+            _values.at(_section)->_rtlsdrAdjust = adjust;
+            return true;
+        }
+
+        long GetShift() {
             return _values.at(_section)->_shift;
+        }
+
+        bool SetShift(long shift) {
+            _values.at(_section)->_shift = shift;
+            return true;
         }
 
         std::string GetDumpFileSuffix() {
@@ -228,7 +299,7 @@ class ConfigOptions {
         }
 
         int GetDecimatorCutoff() {
-            return _values.at(_section)->_rtlsdrOffset * 2;
+            return (_values.at(_section)->_outputSampleRate / 2) * 0.9;
         }
 
         int GetRtlsdrCorrectionFactor() {
@@ -276,9 +347,10 @@ class ConfigOptions {
                 std::vector<Channel*>::iterator it = _values.at(_section)->_channels.begin();
                 int number = 0;
                 while( it != _values.at(_section)->_channels.end() ) {
-                    std::cout << "NAME " << (*it)->Name << " with number " << (number + 1) << " <== " << id << std::endl;
                     if( number + 1 == id ) {
+                        Channel* c = (*it);
                         _values.at(_section)->_channels.erase(it);
+                        delete c;
                         return true;
                     }
                     number++;
@@ -331,18 +403,23 @@ class ConfigOptions {
             return true;
         }
 
-        bool CreateConfigSection(std::string section) {
+        bool CreateConfigSection(std::string section, bool cloneOldSettings, bool replaceDefault) {
             if( _values.find(section) != _values.end() ) {
                 HLog("Config section %s exists", section.c_str());
                 return false;
             }
 
             // Clone current settings
-            ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
-            _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            if( cloneOldSettings ) {
+                ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
+                _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            } else {
+                ConfigOptionValues* newValues = new ConfigOptionValues();
+                _values.insert(std::pair<std::string, ConfigOptionValues*>(section, newValues));
+            }
 
             // Replace current 'default' section ?
-            if( _section == "default" ) {
+            if( _section == "default" && replaceDefault ) {
                 std::map<std::string, ConfigOptionValues*>::iterator old = _values.find(_section);
                 _values.erase(old);
                 HLog("Erase old 'default' config section");
@@ -350,6 +427,22 @@ class ConfigOptions {
 
             HLog("Set section %s as active", _section.c_str()   );
             _section = section;
+            return true;
+        }
+
+        bool RenameConfigSection(std::string newname) {
+            if( _values.find(newname) != _values.end() ) {
+                HLog("Config section %s exists", newname.c_str());
+                return false;
+            }
+
+            // Clone current settings
+            ConfigOptionValues* newValues = new ConfigOptionValues(_values.at(_section));
+            _values.insert(std::pair<std::string, ConfigOptionValues*>(newname, newValues));
+            std::map<std::string, ConfigOptionValues*>::iterator old = _values.find(_section);
+            _values.erase(old);
+            HLog("Renamed section '%s' to '%s'", _section.c_str(), newname.c_str());
+            _section = newname;
             return true;
         }
 
@@ -368,6 +461,38 @@ class ConfigOptions {
             _values.erase(it);
             return true;
         }
-    };
+
+        void SetOutputAudioDevice(int card) {
+            _values.at(_section)->_outputAudioDevice = card;
+        }
+
+        void SetOutputFilename(std::string filename) {
+            _values.at(_section)->_outputFilename = filename;
+        }
+
+        void SetPreamp(int preamp) {
+            _values.at(_section)->_preamp = preamp;
+        }
+
+        int GetPreamp() {
+            return _values.at(_section)->_preamp;
+        }
+
+        void SetRfGainEnabled(bool enabled) {
+            _values.at(_section)->_rfGainEnabled = enabled;
+        }
+
+        bool GetRfGainEnabled() {
+            return _values.at(_section)->_rfGainEnabled;
+        }
+
+        void SetAfFftAgcLevel(int gain) {
+            _values.at(_section)->_afFftAgcLevel = gain;
+        }
+
+        int GetAfFftAgcLevel() {
+            return _values.at(_section)->_afFftAgcLevel;
+        }
+};
 
 #endif

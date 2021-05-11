@@ -1,5 +1,5 @@
-#ifndef __CWRECEIVER2_H
-#define __CWRECEIVER2_H
+#ifndef __CWRECEIVER_H
+#define __CWRECEIVER_H
 
 #include <hardtapi.h>
 
@@ -66,6 +66,21 @@ class BoomaCwReceiver : public BoomaReceiver {
         int GetIfOffset() {
             // Calculate mixer offsets due to if filter shifting
             return GetOption("Ifshift") * (_bandpassWidths[GetOption("Bandwidth")] / 4);
+        }
+
+        long GetDefaultFrequency(ConfigOptions* opts) {
+            return (opts->GetOutputSampleRate() / 2) / 2;
+        }
+
+        bool IsFrequencySupported(ConfigOptions* opts, long frequency) {
+            if( opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+                // This receiver will not tune lower than 6KHz since we use 6KHz as
+                // the internal IF in the heterodyne mixing stage.
+                return frequency < opts->GetOutputSampleRate() / 2 && (frequency > 6000);
+            } else {
+                // With an rtlsdr source, the frequency can be almost anything
+                return frequency >= 0;
+            }
         }
 
     public:

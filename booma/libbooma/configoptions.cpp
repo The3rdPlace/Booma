@@ -13,8 +13,9 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << std::endl;
 
     std::cout << tr("==[Information]==") << std::endl;
-    std::cout << tr("Show a list of audio devices                             -c --cards") << std::endl;
-    std::cout << tr("Show a list of audio devices including virtual devices   -ac --allcards") << std::endl;
+    std::cout << tr("Show a list of hardware audio devices                    -c --cards") << std::endl;
+    std::cout << tr("Show a list of all audio devices                         -ac --allcards") << std::endl;
+    std::cout << tr("Show a list of virtual audio devices                     -vc --allcards") << std::endl;
     std::cout << tr("Show a list of RTL-SDR devices                           -r --rtlsdrs") << std::endl;
     std::cout << tr("Show this help and exit                                  -h --help") << std::endl;
     std::cout << tr("Show version and exit                                    -v --version") << std::endl;
@@ -37,6 +38,8 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     std::cout << tr("Select frequency (default 17.2KHz)                       -f frequecy") << std::endl;
     std::cout << tr("Rf gain (default 0 = auto)                               -g gain") << std::endl;
     std::cout << tr("Set receiver option (can be repeated)                    -ro NAME=VALUE") << std::endl;
+    std::cout << tr("Enable or disable RF gain (AGC) (default enabled)        -rfg 1 (enable) or -rfg 0 (disable)") << std::endl;
+    std::cout << tr("Set preamp level (default off)                           -pa -1 (-12dB) or -pa 0 (off) or -pa 1 (+12dB)") << std::endl;
     std::cout << std::endl;
 
     std::cout << tr("==[Output, recordings]==") << std::endl;
@@ -59,6 +62,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
 
     std::cout << tr("==[Configuration sections]==") << std::endl;
     std::cout << tr("Use existing or create new configuration section         -config section") << std::endl;
+    std::cout << std::endl;
 
     std::cout << tr("==[Remote head operation]==") << std::endl;
     std::cout << tr("Server for remote input                                  -s dataport commandport") << std::endl;
@@ -72,11 +76,12 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
 
     std::cout << tr("==[Performance and quality (not persisted)]==") << std::endl;
     std::cout << tr("FIR filter size for decimation (default 51)              -ffs points") << std::endl;
-    std::cout << tr("1.st IF filter width (default 3000)                      -ifw width") << std::endl;
+    std::cout << tr("1.st IF filter width (default 10000)                     -ifw width") << std::endl;
     std::cout << std::endl;
 
     if( showSecretSettings ) {
-        std::cout << tr("==[Internal settings, try to leave untouched!]==") << std::endl;
+        std::cout << tr("==[Internal settings, try to leave untouched!!]==") << std::endl;
+        std::cout << tr("=========(These settings are NOT stored)=========") << std::endl;
         std::cout << tr("RTL-SDR frequency correction (default 0)                 -rtlc correction") << std::endl;
         std::cout << tr("RTL-SDR tuning offset (default 6000)                     -rtlo offset") << std::endl;
         std::cout << tr("RTL-SDR frequency correction factor (default 0)          -rtlf factor") << std::endl;
@@ -84,6 +89,7 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
         std::cout << tr("Decimation gain for high rate inputs (default 0 = auto)  -dg gain") << std::endl;
         std::cout << tr("Agc level for automatic decimator gain (default 1000)    -dal level") << std::endl;
         std::cout << tr("Automatic RF gain level (default 500)                    -ral level") << std::endl;
+        std::cout << tr("AF FFT agc level (default 255)                           -afl level") << std::endl;
         std::cout << std::endl;
 
         std::cout << tr("==[Debugging]==") << std::endl;
@@ -100,18 +106,19 @@ void ConfigOptions::PrintUsage(bool showSecretSettings) {
     }
 }
 
-void ConfigOptions::PrintAudioDevices(bool includeVirtual) {
+void ConfigOptions::PrintAudioDevices(bool hardwareDevices, bool virtualDevices) {
 
     if( HSoundcard::AvailableDevices() == 0 )
     {
         std::cout << "There is no soundcards available on this system" << std::endl; 
         return;
     }
+
     std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
     std::cout << std::endl;
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
-        if( (*it).Name.find("(hw:") != std::string::npos || includeVirtual ) {
+        if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
             std::cout << "Device: " << (*it).Device << std::endl;
             std::cout << "        \"" << (*it).Name << "\"" << std::endl;
             std::cout << "        Inputs:   " << (*it).Inputs << std::endl;
@@ -127,6 +134,7 @@ std::string ConfigOptions::GetAudioDevice(int device) {
     {
         return "(no devices)";
     }
+
     std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
     for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
@@ -138,11 +146,13 @@ std::string ConfigOptions::GetAudioDevice(int device) {
 }
 
 void ConfigOptions::PrintRtlsdrDevices() {
+
     if( HRtl2832::AvailableDevices() == 0)
     {
         std::cout << "There is no RTL-SDR devices connected to this system" << std::endl;
         return;
     }
+
     std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
     std::cout << std::endl;
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
@@ -167,10 +177,12 @@ void ConfigOptions::PrintRtlsdrDevices() {
 }
 
 std::string ConfigOptions::GetRtlsdrDevice(int device) {
+
     if( HRtl2832::AvailableDevices() == 0)
     {
         return "(no devices)";
     }
+
     std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
     for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
     {
@@ -179,6 +191,44 @@ std::string ConfigOptions::GetRtlsdrDevice(int device) {
         }
     }
     return "(not found)";
+}
+
+std::map<int, std::string> ConfigOptions::GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs) {
+    std::map<int, std::string> cards;
+
+    if( HSoundcard::AvailableDevices() == 0 )
+    {
+        HLog("There is no soundcards available on this system");
+        return cards;
+    }
+
+    std::vector<HSoundcard::DeviceInformation> info = HSoundcard::GetDeviceInformation();
+    for( std::vector<HSoundcard::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        if( ((*it).Name.find("(hw:") != std::string::npos && hardwareDevices) || ((*it).Name.find("(hw:") == std::string::npos && virtualDevices)) {
+            if( (inputs && (*it).Inputs > 0) || (outputs && (*it).Outputs > 0) ) {
+                cards.insert(std::pair<int, std::string>((*it).Device, (*it).Name));
+            }
+        }
+    }
+    return cards;
+}
+
+std::map<int, std::string> ConfigOptions::GetRtlsdrDevices() {
+    std::map<int, std::string> devices;
+
+    if( HRtl2832::AvailableDevices() == 0)
+    {
+        HLog("There is no RTL-SDR devices connected to this system");
+        return devices;
+    }
+
+    std::vector<HRtl2832::DeviceInformation> info = HRtl2832::GetDeviceInformation();
+    for( std::vector<HRtl2832::DeviceInformation>::iterator it = info.begin(); it != info.end(); it++)
+    {
+        devices.insert(std::pair<int, std::string>((*it).Device, (*it).Vendor + ": " + (*it).Product));
+    }
+    return devices;
 }
 
 bool ConfigOptions::IsVerbose(int argc, char** argv) {
@@ -193,16 +243,27 @@ bool ConfigOptions::IsVerbose(int argc, char** argv) {
 
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
+    // Initial check - make sure that we have a recent version of Hardt
+    if( !isVersionOrNewer(1, 2, 11) ) {
+        std::cout << "The version of Hardt that is installed (" << getVersion() << ") is too old" << std::endl;
+        std::cout << "Please install version 1.2.8 or newer" << std::endl;
+        exit(1);
+    }
+
     // First pass: help or version
     for( int i = 1; i < argc; i++ ) {
 
         // Show available audio devices
         if( strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--cards") == 0 ) {
-            PrintAudioDevices();
+            PrintAudioDevices(true, false);
             exit(0);
         }
         if( strcmp(argv[i], "-ac") == 0 || strcmp(argv[i], "--allcards") == 0 ) {
-            PrintAudioDevices(true);
+            PrintAudioDevices(true, true);
+            exit(0);
+        }
+        if( strcmp(argv[i], "-vc") == 0 || strcmp(argv[i], "--virtualcards") == 0 ) {
+            PrintAudioDevices(false, true);
             exit(0);
         }
 
@@ -212,7 +273,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             exit(0);
         }
 
-        // Get helpt
+        // Get help
         if( strcmp(argv[i], "-hh") == 0 ) {
             PrintUsage(true);
             exit(0);
@@ -249,7 +310,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Config sections
         if (strcmp(argv[i], "-config") == 0 && i < argc - 1) {
             if (!SetConfigSection(argv[i + 1])) {
-                if (!CreateConfigSection(argv[i + 1])) {
+                if (!CreateConfigSection(argv[i + 1], false, false)) {
                     std::cout << "Could not create config section '" << argv[i + 1] << "'" << std::endl;
                     exit(1);
                 }
@@ -261,6 +322,7 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 
     // Check if we have some channels, if not then add a default set
     if( _values.at(_section)->_channels.empty() ) {
+        std::cout << "NO CHANNELS\n";
         _values.at(_section)->_channels = ReadPersistentChannels(CONFIGNAME, _section);
     }
 
@@ -306,6 +368,34 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         // Rf gain
         if( strcmp(argv[i], "-g") == 0 && i < argc - 1) {
             _values.at(_section)->_rfGain = atoi(argv[i + 1]);
+            i++;
+            continue;
+        }
+
+        // Rf gain enable/disable
+        if( strcmp(argv[i], "-rfg") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "1") == 0 ) {
+                _values.at(_section)->_rfGainEnabled = true;
+            } else if( strcmp(argv[i + 1], "0") == 0 ) {
+                _values.at(_section)->_rfGainEnabled = false;
+            } else {
+                std::cout << "Unknown parameter value '" << argv[i + 1] << "' for RF gain enable/disable\n";
+            }
+            i++;
+            continue;
+        }
+
+        // Preamp level
+        if( strcmp(argv[i], "-pa") == 0 && i < argc - 1) {
+            if( strcmp(argv[i + 1], "-1") == 0 ) {
+                _values.at(_section)->_preamp = -1;
+            } else if( strcmp(argv[i + 1], "0") == 0 ) {
+                _values.at(_section)->_preamp = 0;
+            } else if( strcmp(argv[i + 1], "+1") == 0 ) {
+                _values.at(_section)->_preamp = 1;
+            } else {
+                std::cout << "Unknown parameter value '" << argv[i + 1] << "' for preamp level\n";
+            }
             i++;
             continue;
         }
@@ -629,6 +719,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
+        // AF fft gain level
+        if( strcmp(argv[i], "-afl") == 0 && i < argc - 1) {
+            _values.at(_section)->_afFftAgcLevel = atoi(argv[i + 1]);
+            HLog("AF FFT agc level set to  %d", _values.at(_section)->_afFftAgcLevel);
+            i++;
+            continue;
+        }
+
         // Server for remote input
         if( strcmp(argv[i], "-s") == 0 && i < argc - 2) {
             _values.at(_section)->_remoteDataPort = atoi(argv[i + 1]);
@@ -648,8 +746,9 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
             continue;
         }
 
-        // Parameters used outside the config object
+        // Verbose output
         if( strcmp(argv[i], "-d") == 0 ) {
+            _values.at(_section)->_verbose = true;
             continue;
         }
 
@@ -657,14 +756,14 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
         if( strcmp(argv[i], "-fa") == 0 ) {
             _values.at(_section)->_frequencyAlign = true;
             _values.at(_section)->_rtlsdrAdjust = 0;
-            std::cout << tr("*{msg}* Frequency align mode is enabled.") << std::endl;
-            std::cout << tr("*{msg}* ") << std::endl;
-            std::cout << tr("*{msg}* RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
-            std::cout << tr("*{msg}* ") <<std::endl;
-            std::cout << tr("*{msg}* An 800Hz tone is superimposed on the output audio") << std::endl;
-            std::cout << tr("*{msg}* to help you find the offset error in your RTL-SDR") << std::endl;
-            std::cout << tr("*{msg}* dongle. Use this value with the -rtla parameter") << std::endl;
-            std::cout << tr("*{msg}* to enable precise tuning.") << std::endl;
+            std::cout << tr("Frequency align mode is enabled.") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("RTL-SDR tuning error alignment (-rtla) set to 0") << std::endl;
+            std::cout << std::endl;
+            std::cout << tr("An 800Hz tone is superimposed on the output audio") << std::endl;
+            std::cout << tr("to help you find the offset error in your RTL-SDR") << std::endl;
+            std::cout << tr("dongle. Use this value with the -rtla parameter") << std::endl;
+            std::cout << tr("to enable precise tuning.") << std::endl;
             HLog("Frequency alignment mode enabled");
             continue;
         }
@@ -791,6 +890,10 @@ ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int ar
 }
 
 void ConfigOptions::DumpConfigInfo() {
+    if( !_values.at(_section)->_verbose ) {
+        return;
+    }
+
     std::cout << "Using libbooma version " << BOOMA_MAJORVERSION << "." << BOOMA_MINORVERSION << "." << BOOMA_BUILDNO << std::endl;
 
     // Remote/local
@@ -912,6 +1015,10 @@ ConfigOptions::~ConfigOptions() {
     }
 }
 
+void ConfigOptions::SyncStoredConfig() {
+    WriteStoredConfig(CONFIGNAME, false);
+}
+
 void ConfigOptions::RemoveStoredConfig(std::string configname) {
 
     // Get the users homedirectory
@@ -1003,6 +1110,8 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
         // Check for section name
         if( opt[0] == '[' && opt[opt.length() - 1] == ']' ) {
             _section = opt.substr(1, opt.length() - 2);
+            std::replace(_section.begin(), _section.end(), '_', ' ');
+            std::replace(_section.begin(), _section.end(), '_', ' ');
             HLog("Next config section is '%s'", _section.c_str());
 
             if (_values.find(_section) == _values.end()) {
@@ -1045,20 +1154,18 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
                 if (name == "pcmFile") _values.at(_section)->_pcmFile = value;
                 if (name == "wavFile") _values.at(_section)->_wavFile = value;
                 if (name == "reservedBuffers") _values.at(_section)->_reservedBuffers = atoi(value.c_str());
-                if (name == "rtlsdrCorrection") _values.at(_section)->_rtlsdrCorrection = atoi(value.c_str());
-                if (name == "rtlsdrOffset") _values.at(_section)->_rtlsdrOffset = atoi(value.c_str());
-                if (name == "rtlsdrCorrectionFactor") _values.at(_section)->_rtlsdrCorrectionFactor = atoi(value.c_str());
                 if (name == "rtlsdrAdjust") _values.at(_section)->_rtlsdrAdjust = atoi(value.c_str());
                 if (name == "shift") _values.at(_section)->_shift = atoi(value.c_str());
-                if (name == "rfagclevel") _values.at(_section)->_rfAgcLevel = atoi(value.c_str());
                 if (name == "channels") _values.at(_section)->_channels = ReadChannels(configname, value);
                 if (name == "isRemoteHead") _values.at(_section)->_isRemoteHead = (value == "true" ? true : false);
             }
             if (name == "frequency") _values.at(_section)->_frequency = atoi(value.c_str());
             if (name == "receiverModeType") _values.at(_section)->_receiverModeType = (ReceiverModeType) atoi(value.c_str());
             if (name == "rfGain") _values.at(_section)->_rfGain = atoi(value.c_str());
+            if (name == "rfGainEnabled") _values.at(_section)->_rfGainEnabled = (value == "true" ? true : false);
             if (name == "volume") _values.at(_section)->_volume = atoi(value.c_str());
             if (name == "receiverOptionsFor") _values.at(_section)->_receiverOptionsFor = ReadStoredReceiverOptionsFor(value);
+            if (name == "preamp") _values.at(_section)->_preamp = atoi(value.c_str());
             if (name == "activeSection" && value == "true") _activeSection = _section;
         }
         configStream >> opt;
@@ -1067,24 +1174,6 @@ bool ConfigOptions::ReadStoredConfig(std::string configname, bool isBookmark) {
     // Done reading the config file
     _section = _activeSection;
     configStream.close();
-
-    // Set flags
-    if( _values.at(_section)->_inputDevice > -1 ) {
-        _values.at(_section)->_isRemoteHead = false;
-        _values.at(_section)->_useRemoteHead = false;
-        HLog("Has input device from stored config, use local input");
-    }
-    else if( _values.at(_section)->_inputDevice == -1 && _values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
-        _values.at(_section)->_useRemoteHead = true;
-        _values.at(_section)->_isRemoteHead = false;
-        HLog("Has remote port but no remote server, use remote head");
-    }
-    else if( _values.at(_section)->_inputDevice == -1 && !_values.at(_section)->_remoteServer.empty() && _values.at(_section)->_remoteDataPort > 0 ) {
-        _values.at(_section)->_useRemoteHead = false;
-        _values.at(_section)->_isRemoteHead = true;
-        _values.at(_section)->_inputSourceType = NETWORK;
-        HLog("Has remote port and remote server, is remote head");
-    }
 
     // Read a stored config
     return true;
@@ -1145,7 +1234,9 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
     for( std::map<std::string, ConfigOptionValues*>::iterator it = _values.begin(); it != _values.end(); it++ ) {
 
         // Section name
-        configStream << "[" << (*it).first << "]" << std::endl;
+        std::string name = (*it).first;
+        std::replace(name.begin(), name.end(), ' ', '_');
+        configStream << "[" << name << "]" << std::endl;
 
         // Write config settings
         if (!isBookmark) {
@@ -1165,20 +1256,18 @@ void ConfigOptions::WriteStoredConfig(std::string configname, bool isBookmark) {
             configStream << "pcmFile=" << _values.at((*it).first)->_pcmFile << std::endl;
             configStream << "wavFile=" << _values.at((*it).first)->_wavFile << std::endl;
             configStream << "reservedBuffers=" << _values.at((*it).first)->_reservedBuffers << std::endl;
-            configStream << "rtlsdrCorrection=" << _values.at((*it).first)->_rtlsdrCorrection << std::endl;
-            configStream << "rtlsdrOffset=" << _values.at((*it).first)->_rtlsdrOffset << std::endl;
-            configStream << "rtlsdrCorrectionFactor" << _values.at((*it).first)->_rtlsdrCorrectionFactor << std::endl;
             configStream << "rtlsdrAdjust=" << _values.at((*it).first)->_rtlsdrAdjust << std::endl;
             configStream << "shift=" << _values.at((*it).first)->_shift << std::endl;
-            configStream << "rfagclevel=" << _values.at((*it).first)->_rfAgcLevel << std::endl;
             configStream << "channels=" << WriteChannels(configname, (*it).first, _values.at(_section)->_channels) << std::endl;
             configStream << "isRemoteHead=" << (_values.at((*it).first)->_isRemoteHead ? "true" : "false") << std::endl;
         }
         configStream << "frequency=" << _values.at((*it).first)->_frequency << std::endl;
         configStream << "receiverModeType=" << _values.at((*it).first)->_receiverModeType << std::endl;
         configStream << "rfGain=" << _values.at((*it).first)->_rfGain << std::endl;
+        configStream << "rfGainEnabled=" << (_values.at((*it).first)->_rfGainEnabled ? "true" : "false")  << std::endl;
         configStream << "volume=" << _values.at((*it).first)->_volume << std::endl;
         configStream << "receiverOptionsFor=" << WriteStoredReceiverOptionsFor(_values.at((*it).first)->_receiverOptionsFor) << std::endl;
+        configStream << "preamp=" << _values.at((*it).first)->_preamp << std::endl;
         configStream << "activeSection=" << (_section == (*it).first ? "true" : "false") << std::endl;
         configStream << std::endl;
     }
@@ -1372,72 +1461,7 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
     configStream.open(configFile, std::ifstream::in);
     if (!configStream.is_open()) {
         std::cout << "No persistent channels file found, adding default channels" << std::endl;
-
-        // VLF transmitters
-        list.push_back(new Channel("JXN Novik. Norway", 16400));
-        list.push_back(new Channel("SAQ Grimeton. Sweeden", 17200));
-        list.push_back(new Channel("RDL ???. Russia", 18100));
-        list.push_back(new Channel("GBZ Anthorn. UK", 19580));
-        list.push_back(new Channel("NWC Harold E. Holt. North West Cape. Exmouth. Australia", 19800));
-        list.push_back(new Channel("ICV Isola di Tavolara. Italy", 20270));
-        list.push_back(new Channel("FTA Sainte-Assise. France", 20900));
-        list.push_back(new Channel("HWU Rosnay. France", 21750));
-        list.push_back(new Channel("GQD Skelton. UK", 22100));
-        list.push_back(new Channel("DHO38 Rhauderfehn. Germany", 23400));
-        list.push_back(new Channel("NAA Cutler. ME. USA", 24000));
-        list.push_back(new Channel("unid25 Mokpo. South Korea", 25000));
-        list.push_back(new Channel("NML La Moure. ND. USA", 25200));
-        list.push_back(new Channel("TBB Bafa. Turkey", 26700));
-        list.push_back(new Channel("??? ???. ???", 30700));
-        list.push_back(new Channel("NRK/TFK Grindavik. Iceland", 37500));
-        list.push_back(new Channel("SRC Varberg. Sweden", 40400));
-        list.push_back(new Channel("??? ???. ???", 44270));
-        list.push_back(new Channel("NSY Niscemi. Italy", 45900));
-        list.push_back(new Channel("SXA Marathon. Greece", 49000));
-        list.push_back(new Channel("GYW1 Crimond. UK", 51950));
-        list.push_back(new Channel("MSF Anthorn. UK", 60000));
-        list.push_back(new Channel("FUG La Régine. France", 62600));
-        list.push_back(new Channel("FUE Kerlouan. France", 65800));
-        list.push_back(new Channel("RBU Moscow/Taldom. Russia", 66666));
-        list.push_back(new Channel("CFH Halifax. Canada", 73600));
-        list.push_back(new Channel("DCF77 Mainflingen. Germany", 77500));
-        list.push_back(new Channel("GYN2 Inskip. UK", 81000));
-        list.push_back(new Channel("LORAN", 100000));
-        list.push_back(new Channel("EFR Teleswitch ainflingen. Germany", 129100));
-        list.push_back(new Channel("EFR Teleswitch Lakihegy. Hungary", 135600));
-        list.push_back(new Channel("EFR Teleswitch Burg. Germany", 139000));
-        list.push_back(new Channel("DDH47 DWD Pinneberg. Germany", 147300));
-
-        // Longwave Am transmitters
-        list.push_back(new Channel("ROU SRR Radio Antena Satelor. Hungary (AM)", 153000));
-        list.push_back(new Channel("TDF Timesignal  Allouis. France (AM)", 162000));
-        list.push_back(new Channel("BBC Radio 4. UK (AM)", 198000));
-        list.push_back(new Channel("POL Polskie Radio Jedynka. Poland (AM)", 225000));
-        list.push_back(new Channel("LUX RTL (AM/DRM). Luxemburg ", 234000));
-        list.push_back(new Channel("DNK DR Langboelge. Denmark (AM)", 243000));
-        list.push_back(new Channel("IRL RTE Radio 1. Ireland (AM)", 252000));
-        list.push_back(new Channel("CZE CRo Radiozurnal. czech republic (AM)", 270000));
-        list.push_back(new Channel("Radio 208 Ishoej. Denmark (AM)", 1440000));
-        list.push_back(new Channel("Radio OZ-Viola Hilleroed. Denmark (AM)", 5980000));
-
-        // RTTY or other small bandwidth signals
-        list.push_back(new Channel("??? ???. ???", 290000));
-        list.push_back(new Channel("??? ???. ???", 298500));
-
-        // NDB
-        list.push_back(new Channel("RK NDB Roskilde. Denmark (beacon)", 368000));
-        list.push_back(new Channel("RK NDB Roskilde. Denmark (id)", 368400));
-        list.push_back(new Channel("LB NDB Angelholm. Sweeden (beacon)", 370500));
-        list.push_back(new Channel("LB NDB Angelholm. Sweeden (id)", 370900));
-
-        // Aviation services
-        list.push_back(new Channel("VOLMET Shannon. Ireland (AM)", 3413000));
-        list.push_back(new Channel("VOLMET Kastrup. Denmark (AM)", 127000000));
-
-        // Ham radio beacons
-        list.push_back(new Channel("OZ7IGY 6m Jystrup. Denmark (USB-CW)", 50470250));
-        list.push_back(new Channel("OZ7IGY 2m Jystrup. Denmark (USB-CW)", 144470250));
-
+        AddDefaultChannels(&list);
         return list;
     }
 
@@ -1455,8 +1479,80 @@ std::vector<Channel*> ConfigOptions::ReadPersistentChannels(std::string configna
     configStream.close();
     if (!list.empty()) {
         std::cout << "Restored channels from persistent channels file" << std::endl;
+    } else {
+        std::cout << "Persistent channels file was empty. Adding default channels\n";
+        AddDefaultChannels(&list);
     }
+
     return list;
+}
+
+void ConfigOptions::AddDefaultChannels(std::vector<Channel *>* list) {
+
+    // VLF transmitters
+    list->push_back(new Channel("JXN Novik. Norway", 16400));
+    list->push_back(new Channel("SAQ Grimeton. Sweeden", 17200));
+    list->push_back(new Channel("RDL ???. Russia", 18100));
+    list->push_back(new Channel("GBZ Anthorn. UK", 19580));
+    list->push_back(new Channel("NWC Harold E. Holt. North West Cape. Exmouth. Australia", 19800));
+    list->push_back(new Channel("ICV Isola di Tavolara. Italy", 20270));
+    list->push_back(new Channel("FTA Sainte-Assise. France", 20900));
+    list->push_back(new Channel("HWU Rosnay. France", 21750));
+    list->push_back(new Channel("GQD Skelton. UK", 22100));
+    list->push_back(new Channel("DHO38 Rhauderfehn. Germany", 23400));
+    list->push_back(new Channel("NAA Cutler. ME. USA", 24000));
+    list->push_back(new Channel("unid25 Mokpo. South Korea", 25000));
+    list->push_back(new Channel("NML La Moure. ND. USA", 25200));
+    list->push_back(new Channel("TBB Bafa. Turkey", 26700));
+    list->push_back(new Channel("(unknown 1)", 30700));
+    list->push_back(new Channel("NRK/TFK Grindavik. Iceland", 37500));
+    list->push_back(new Channel("SRC Varberg. Sweden", 40400));
+    list->push_back(new Channel("(unknown 2)", 44270));
+    list->push_back(new Channel("NSY Niscemi. Italy", 45900));
+    list->push_back(new Channel("SXA Marathon. Greece", 49000));
+    list->push_back(new Channel("GYW1 Crimond. UK", 51950));
+    list->push_back(new Channel("MSF Anthorn. UK", 60000));
+    list->push_back(new Channel("FUG La Régine. France", 62600));
+    list->push_back(new Channel("FUE Kerlouan. France", 65800));
+    list->push_back(new Channel("RBU Moscow/Taldom. Russia", 66666));
+    list->push_back(new Channel("CFH Halifax. Canada", 73600));
+    list->push_back(new Channel("DCF77 Mainflingen. Germany", 77500));
+    list->push_back(new Channel("GYN2 Inskip. UK", 81000));
+    list->push_back(new Channel("LORAN", 100000));
+    list->push_back(new Channel("EFR Teleswitch ainflingen. Germany", 129100));
+    list->push_back(new Channel("EFR Teleswitch Lakihegy. Hungary", 135600));
+    list->push_back(new Channel("EFR Teleswitch Burg. Germany", 139000));
+    list->push_back(new Channel("DDH47 DWD Pinneberg. Germany", 147300));
+
+    // Longwave Am transmitters
+    list->push_back(new Channel("ROU SRR Radio Antena Satelor. Hungary (AM)", 153000));
+    list->push_back(new Channel("TDF Timesignal  Allouis. France (AM)", 162000));
+    list->push_back(new Channel("BBC Radio 4. UK (AM)", 198000));
+    list->push_back(new Channel("POL Polskie Radio Jedynka. Poland (AM)", 225000));
+    list->push_back(new Channel("LUX RTL (AM/DRM). Luxemburg ", 234000));
+    list->push_back(new Channel("DNK DR Langboelge. Denmark (AM)", 243000));
+    list->push_back(new Channel("IRL RTE Radio 1. Ireland (AM)", 252000));
+    list->push_back(new Channel("CZE CRo Radiozurnal. czech republic (AM)", 270000));
+    list->push_back(new Channel("Radio 208 Ishoej. Denmark (AM)", 1440000));
+    list->push_back(new Channel("Radio OZ-Viola Hilleroed. Denmark (AM)", 5980000));
+
+    // RTTY or other small bandwidth signals
+    list->push_back(new Channel("??? ???. ???", 290000));
+    list->push_back(new Channel("??? ???. ???", 298500));
+
+    // NDB
+    list->push_back(new Channel("RK NDB Roskilde. Denmark (beacon)", 368000));
+    list->push_back(new Channel("RK NDB Roskilde. Denmark (id)", 368400));
+    list->push_back(new Channel("LB NDB Angelholm. Sweeden (beacon)", 370500));
+    list->push_back(new Channel("LB NDB Angelholm. Sweeden (id)", 370900));
+
+    // Aviation services
+    list->push_back(new Channel("VOLMET Shannon. Ireland (AM)", 3413000));
+    list->push_back(new Channel("VOLMET Kastrup. Denmark (AM)", 127000000));
+
+    // Ham radio beacons
+    list->push_back(new Channel("OZ7IGY 6m Jystrup. Denmark (USB-CW)", 50470250));
+    list->push_back(new Channel("OZ7IGY 2m Jystrup. Denmark (USB-CW)", 144470250));
 }
 
 void ConfigOptions::WriteBookmark(std::string name) {

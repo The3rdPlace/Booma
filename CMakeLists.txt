@@ -6,7 +6,7 @@ project (Booma)
 # Set the framework major and minor version here
 set (Booma_VERSION_MAJOR 1)
 set (Booma_VERSION_MINOR 1)
-set (Booma_VERSION_BUILD 22)
+set (Booma_VERSION_BUILD 23)
 
 # Define the version string
 set (Booma_VERSION Booma_VERSION_MAJOR + "." + Booma_VERSION_MINOR + "." + Booma_VERSION_BUILD)
@@ -64,6 +64,6 @@ else()
 endif()
 
 ADD_CUSTOM_TARGET( distclean
-COMMAND sudo rm -r -f ../dist
-COMMAND sudo rm -r -f booma
+    COMMAND sudo rm -r -f ../dist
+    COMMAND sudo rm -r -f booma
 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

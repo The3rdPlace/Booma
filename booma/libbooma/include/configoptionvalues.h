@@ -95,7 +95,7 @@ enum DumpFileFormatType {
         int _outputSampleRate = H_SAMPLE_RATE_48K;
     
         // Output audio device
-        int _outputAudioDevice = 0;
+        int _outputAudioDevice = -1;
         std::string _outputFilename = "";
     
         // Input device- and datatype
@@ -104,7 +104,7 @@ enum DumpFileFormatType {
         InputSourceDataType _inputSourceDataType = NO_INPUT_SOURCE_DATA_TYPE;
     
         // Input device
-        int _inputDevice = 0;
+        int _inputDevice = -1;
     
         // RTL-SDR and IQ/I/Q specific settings
         long int _rtlsdrAdjust = 0;
@@ -125,12 +125,14 @@ enum DumpFileFormatType {
         int _remoteCommandPort = 0;
         bool _useRemoteHead = false;
     
-        // First stage gain (default 0 = auto)
+        // Preamp gain, agc setting and input filter width
         int _rfGain = 0;
-        int _rfAgcLevel = 500;
-    
+        int _inputFilterWidth = 10000;
+        int _preamp = 0;
+        bool _rfGainEnabled = 1;
+
         // Output volume
-        int _volume = 20;
+        int _volume = 10;
     
         // Dump pcm and audio
         bool _dumpRf = false;
@@ -148,28 +150,32 @@ enum DumpFileFormatType {
         std::string _wavFile = "";
         bool _frequencyAlign = false;
         int _frequencyAlignVolume = 500;
-    
         bool _enableProbes = false;
-    
+        bool _verbose = false;
+
+        // Buffered output
         int _reservedBuffers = 200;
-    
+
+        // Options
         std::map<std::string, std::string> _receiverOptions;
         std::map<std::string, std::map<std::string, std::string>> _receiverOptionsFor;
     
         // Decimation settings
         int _decimatorGain = 0; // = auto
-        int _decimatorAgcLevel = 1000;
-    
+
         // Internal values, usually left at standard values.
         // These are not settable while running, so they must be set when starting the application
-        int _rtlsdrOffset = 6000;
+        // Also these are not stored, so they must be set upon each startup
+        int _rtlsdrOffset = 3000;
         int _rtlsdrCorrection = 0;
         int _rtlsdrCorrectionFactor = 0;
         int _rtlsdrGain = 0;
         int _firFilterSize = 51;
-        int _inputFilterWidth = 3000;
+        int _rfAgcLevel = 500;
+        int _decimatorAgcLevel = 1000;
+        int _afFftAgcLevel = 255;
 
-         // Memory channels
+        // Memory channels
          std::vector<Channel*> _channels;
 };
 

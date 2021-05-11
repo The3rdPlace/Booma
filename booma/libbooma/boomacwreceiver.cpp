@@ -116,25 +116,25 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
             OptionValue {"Center", "Center IF passband", 0},
             OptionValue {"Right", "Shift IF passband to the right", 1}};
         std::vector<OptionValue> passbandGainValues {
-            OptionValue {"0", "Passband gain factor 1", 1},
-            OptionValue {"1", "Passband gain factor 10", 10},
-            OptionValue {"2", "Passband gain factor 2", 20},
-            OptionValue {"3", "Passband gain factor 3", 30},
-            OptionValue {"4", "Passband gain factor 4", 40},
-            OptionValue {"5", "Passband gain factor 5", 50},
-            OptionValue {"6", "Passband gain factor 6", 60}};
+                OptionValue {"0", "Passband gain factor 1", 1},
+                OptionValue {"1", "Passband gain factor 10", 10},
+                OptionValue {"2", "Passband gain factor 2", 20},
+                OptionValue {"3", "Passband gain factor 3", 30},
+                OptionValue {"4", "Passband gain factor 4", 40},
+                OptionValue {"5", "Passband gain factor 5", 50},
+                OptionValue {"6", "Passband gain factor 6", 60}};
         std::vector<OptionValue> iqPassbandGainValues {
-            OptionValue {"0", "Passband gain factor 0.5", 0},
-            OptionValue {"1", "Passband gain factor 1", 1},
-            OptionValue {"2", "Passband gain factor 2", 2},
-            OptionValue {"3", "Passband gain factor 3", 3},
-            OptionValue {"4", "Passband gain factor 4", 4},
-            OptionValue {"5", "Passband gain factor 5", 5},
-            OptionValue {"6", "Passband gain factor 6", 6},
-            OptionValue {"7", "Passband gain factor 6", 7},
-            OptionValue {"8", "Passband gain factor 6", 8},
-            OptionValue {"9", "Passband gain factor 6", 9},
-            OptionValue {"10", "Passband gain factor 6", 10},};
+                OptionValue {"0", "Passband gain factor 0.5", 0},
+                OptionValue {"1", "Passband gain factor 1", 1},
+                OptionValue {"2", "Passband gain factor 2", 2},
+                OptionValue {"3", "Passband gain factor 3", 3},
+                OptionValue {"4", "Passband gain factor 4", 4},
+                OptionValue {"5", "Passband gain factor 5", 5},
+                OptionValue {"6", "Passband gain factor 6", 6},
+                OptionValue {"7", "Passband gain factor 6", 7},
+                OptionValue {"8", "Passband gain factor 6", 8},
+                OptionValue {"9", "Passband gain factor 6", 9},
+                OptionValue {"10", "Passband gain factor 6", 10},};
 
         Option bandwidthOption {
             "Bandwidth",
@@ -158,13 +158,13 @@ BoomaCwReceiver::BoomaCwReceiver(ConfigOptions* opts, int initialFrequency):
                 "PassbandGain",
                 "Gain factor after preselect",
                 passbandGainValues,
-                4
+                20
         };
         Option iqPassbandGainOption {
                 "IQPassbandGain",
                 "Gain factor after iq-to-real conversion",
                 iqPassbandGainValues,
-                6
+                4
         };
 
         // Register options
@@ -268,7 +268,7 @@ HWriterConsumer<int16_t>* BoomaCwReceiver::Receive(ConfigOptions* opts, HWriterC
 }
 
 HWriterConsumer<int16_t>* BoomaCwReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
-    HLog("Creating CW2 receiver postprocessing chain");
+    HLog("Creating CW receiver postprocessing chain");
 
     return previous;
 }
@@ -283,7 +283,6 @@ BoomaCwReceiver::~BoomaCwReceiver() {
     SAFE_DELETE(_ifFilter);
     SAFE_DELETE(_beatToneMixer);
     SAFE_DELETE(_postSelect);
-
     SAFE_DELETE(_humfilterProbe);
     SAFE_DELETE(_iqMultiplierProbe);
     SAFE_DELETE(_iq2IConverterProbe);
@@ -298,7 +297,7 @@ BoomaCwReceiver::~BoomaCwReceiver() {
 bool BoomaCwReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
 
     // This receiver only operates from 6000 - samplerate/2. Or exactly on o (zero, IQ devices)
-    if( frequency >= opts->GetOutputSampleRate() / 2 || (frequency <= 6000 && frequency != 0) ) {
+    if( !IsFrequencySupported(opts, frequency) ) {
         HError("Unsupported frequency %ld, must be greater than  %d and less than %d or zero", frequency, 6000, opts->GetOutputSampleRate() / 2);
         return false;
     }
@@ -333,6 +332,7 @@ void BoomaCwReceiver::OptionChanged(ConfigOptions* opts, std::string name, int v
     if( _ifMixer != nullptr ) {
         _ifMixer->SetFrequency(GetFrequency() - 6000 + offset);
     }
+
     _ifFilter->SetCoefficients(_bandpassCoeffs[GetOption("Bandwidth")], 20);
     _beatToneMixer->SetFrequency(6000 - GetOption("Beattone") - offset);
 

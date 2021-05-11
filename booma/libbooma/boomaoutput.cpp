@@ -7,6 +7,8 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _soundcardWriter(nullptr),
         _nullWriter(nullptr),
         _audioWriter(nullptr),
+        _pcmWriter(nullptr),
+        _wavWriter(nullptr),
         _audioSplitter(nullptr),
         _audioBreaker(nullptr),
         _audioBuffer(nullptr),
@@ -17,7 +19,18 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _ifSplitter(nullptr),
         _signalLevel(nullptr),
         _signalLevelWriter(nullptr),
-        _outputFilterWidth(receiver->GetOutputFilterWidth()) {
+        _outputFilterWidth(receiver->GetOutputFilterWidth()),
+        _audioFft(nullptr),
+        _audioFftWindow(nullptr),
+        _audioFftWriter(nullptr),
+        _audioSpectrum(nullptr),
+        _audioFftSize(256),
+        _audioFftGain(nullptr) {
+
+    // AF fft spectrum output
+    _audioSpectrumSize = _audioFftSize / 2;
+    _audioSpectrum = new double[_audioSpectrumSize];
+    memset((void*) _audioSpectrum, 0, sizeof(double) * _audioSpectrumSize);
 
     // Final output filter to remove high frequencies
     _outputFilterProbe = new HProbe<int16_t>("output_01_output_filter", opts->GetEnableProbes());
@@ -38,8 +51,14 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Add signallevel measurement just before the volume
     HLog("Setting up signallevel measurement");
-    _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 1);
+    _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 16);
     _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
+
+    // Add audio spectrum calculation
+    _audioFftGain = new HAgc<int16_t>(_audioSplitter->Consumer(), opts->GetAfFftAgcLevel(), 3,  BLOCKSIZE);
+    _audioFftWindow = new HRectangularWindow<int16_t>();
+    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _audioFftGain->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), 4, opts->GetOutputSampleRate() / 16);
+    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
 
     // Add volume control
     HLog("Output volume");
@@ -94,27 +113,27 @@ BoomaOutput::~BoomaOutput() {
 
     SAFE_DELETE(_outputVolume);
     SAFE_DELETE(_outputFilter);
-
     SAFE_DELETE(_soundcardMultiplexer);
     SAFE_DELETE(_soundcardWriter);
     SAFE_DELETE(_nullWriter);
     SAFE_DELETE(_pcmWriter);
     SAFE_DELETE(_wavWriter);
-
     SAFE_DELETE(_audioWriter);
     SAFE_DELETE(_audioSplitter);
     SAFE_DELETE(_audioBreaker);
     SAFE_DELETE(_audioBuffer);
-
     SAFE_DELETE(_outputVolumeProbe);
     SAFE_DELETE(_outputFilterProbe);
-
     SAFE_DELETE(_frequencyAlignmentGenerator);
     SAFE_DELETE(_frequencyAlignmentMixer);
-
     SAFE_DELETE(_ifSplitter);
     SAFE_DELETE(_signalLevel);
     SAFE_DELETE(_signalLevelWriter);
+    SAFE_DELETE(_audioFft);
+    SAFE_DELETE(_audioFftWriter);
+    SAFE_DELETE(_audioFftWindow);
+    SAFE_DELETE(_audioSpectrum);
+    SAFE_DELETE(_audioFftGain);
 }
 
 bool BoomaOutput::SetDumpAudio(bool enabled) {
@@ -167,4 +186,20 @@ int BoomaOutput::GetSignalSum() {
 
 int BoomaOutput::GetSignalMax() {
     return _signalMax;
+}
+
+int BoomaOutput::AudioFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _audioSpectrum, (void*) result->Spectrum, sizeof(double) * _audioFftSize / 2);
+    return length;
+}
+
+int BoomaOutput::GetAudioFftSize() {
+    return _audioFftSize;
+}
+
+int BoomaOutput::GetAudioSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _audioSpectrum, sizeof(double) * _audioSpectrumSize);
+    return _audioSpectrumSize;
 }

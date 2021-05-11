@@ -25,14 +25,27 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _inputIqFirFilter(nullptr),
         _inputFirFilter(nullptr),
         _inputFirFilterProbe(nullptr),
-        _rfDelay(nullptr) {
+        _rfDelay(nullptr),
+        _preamp(nullptr),
+        _preampProbe(nullptr),
+        _rfFft(nullptr),
+        _rfFftWindow(nullptr),
+        _rfFftWriter(nullptr),
+        _rfSpectrum(nullptr),
+        _rfFftSize(1024),
+        _rfFftGain(nullptr) {
+
+    // If using a PCM file with IQ data, then always set the frequency to 0 (zero)
+    if( opts->GetInputSourceType() == PCM_FILE && opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE ) {
+        HLog("Input source is a PCM file with I/Q data. Zero'ing frequency, shift and rtlsdr-adjust");
+        opts->SetFrequency(0);
+        opts->SetShift(0);
+        opts->SetRtlsdrAdjust(0);
+    }
 
     // Set default frequencies
     HLog("Calculating initial internal frequencies");
-    if( !SetReaderFrequencies(opts, opts->GetFrequency()) )
-    {
-        throw new BoomaInputException("Unable to configure initial frequencies");
-    }
+    SetReaderFrequencies(opts, opts->GetFrequency());
 
     // If we are a server for a remote head, then initialize the input and a network processor
     if( opts->GetUseRemoteHead()) {
@@ -64,6 +77,11 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor = new HStreamProcessor<int16_t>(reader, BLOCKSIZE, isTerminated);
     }
 
+    // Calculate RF fft spectrum size
+    _rfSpectrumSize = _rfFftSize / 2;
+    _rfSpectrum = new double[_rfSpectrumSize];
+    memset((void*) _rfSpectrum, 0, sizeof(double) * _rfSpectrumSize);
+
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter and RF optional output dump");
     _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
@@ -77,10 +95,19 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer(), true);
     }
 
+    // Add RF spectrum calculation
+    _rfFftWindow = new HRectangularWindow<int16_t>();
+    _rfFftGain = new HGain<int16_t>(_rfSplitter->Consumer(), 1, BLOCKSIZE);
+    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfFftGain->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaInput>(this, &BoomaInput::RfFftCallback, _rfFft->Consumer());
+
+    // Add preamp
+    HLog("Setting up the preamp");
+    HWriterConsumer<int16_t>* preamp = SetPreamp(opts, _rfSplitter->Consumer());
+
     // Add optional zero-shift
     HLog("Setting optional zero shift");
-    HWriterConsumer<int16_t>* shift = SetShift(opts, _rfSplitter->Consumer());
-
+    HWriterConsumer<int16_t>* shift = SetShift(opts, preamp);
 
     // Add inputfilter
     HLog("Setting 1.st. IF (input) filter");
@@ -116,6 +143,13 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfBreaker);
     SAFE_DELETE(_rfBuffer);
     SAFE_DELETE(_rfDelay);
+    SAFE_DELETE(_preamp);
+    SAFE_DELETE(_preampProbe);
+
+    SAFE_DELETE(_rfFft);
+    SAFE_DELETE(_rfFftWriter);
+    SAFE_DELETE(_rfFftWindow);
+    SAFE_DELETE(_rfSpectrum);
 }
 
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
@@ -128,8 +162,6 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
             break;
         case SIGNAL_GENERATOR:
             HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
-            // The generator amplitude is adjusted so that, with the scalefactor '10' for the signallevel meter,
-            // and a default gain setting of '25' for the receivers RF gain, it should produce a S9 signal
             _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(), opts->GetSignalGeneratorFrequency(), 200);
             break;
         case PCM_FILE:
@@ -192,10 +224,22 @@ void BoomaInput::Halt() {
     (_networkProcessor != NULL ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Halt();
 }
 
-bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
+void BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
     _virtualFrequency = frequency;
     HLog("Input virtual frequency = %d", _virtualFrequency);
 
+    // Strictly local devices never have any shift, offset or adjustments
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Local device never have any shift, offset or adjustments");
+        _hardwareFrequency = frequency;
+        _ifFrequency = frequency;
+        return;
+    }
+
+    // Handle devices with possible shift, offset and adjustments
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
         _hardwareFrequency = (frequency + opts->GetShift()) - opts->GetRtlsdrOffset() + opts->GetRtlsdrAdjust();
         _ifFrequency = 0;
@@ -206,20 +250,25 @@ bool BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
 
     HLog("Input hardware frequency = %d", _hardwareFrequency);
     HLog("Input IF frequency = %d", _ifFrequency);
-    return true;
 }
 
 bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
 
     // Calculate new IF and hardware frequencies
-    if( !SetReaderFrequencies(opts, frequency) ) {
-        HError("Failed to set input reader frequency %d", frequency);
-        return false;
-    }
+    SetReaderFrequencies(opts, frequency);
 
     // If we have a bandpass filter as inputfilter (REAL input), then move it
     if( _inputFirFilter != nullptr ) {
         _inputFirFilter->SetCoefficients(HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
+    }
+
+    // No need to propagate a set-frequency command
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("No need to propagate a set-frequency command for local devices");
+        return 0;
     }
 
     // Device handling
@@ -379,40 +428,57 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
 HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
+    // Ignore shift for some input types
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never requires any input filter");
+        return previous;
+    }
+
     // If we use an RT_SDR the input has been decimated and needs further cleanup
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
 
         // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_07_inputfirfilter", opts->GetEnableProbes());
-        _inputIqFirFilter = new HIqFirFilter<int16_t>(previous,
-            HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
-            51, BLOCKSIZE, _inputFirFilterProbe);
+        _inputFirFilterProbe = new HProbe<int16_t>("input_09_inputfirfilter", opts->GetEnableProbes());
+        _inputIqFirFilter = new HIqFirFilter<int16_t>(previous, opts->GetInputFilterWidth() == 0
+                ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
+                : HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+                51, BLOCKSIZE, _inputFirFilterProbe);
         return _inputIqFirFilter->Consumer();
     } else {
 
         // Add extra filter the removes (mostly) anything outside the current frequency passband frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_08_inputfirfilter", opts->GetEnableProbes());
+        _inputFirFilterProbe = new HProbe<int16_t>("input_10_inputfirfilter", opts->GetEnableProbes());
         _inputFirFilter = new HFirFilter<int16_t>(previous,
-            HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+            opts->GetInputFilterWidth() == 0
+                ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
+                : HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
             51, BLOCKSIZE, _inputFirFilterProbe);
+
         return _inputFirFilter->Consumer();
     }
-
-    return previous;
 }
 
 bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
 
     // Change input filter width for an IQ fir input filter
     if(_inputIqFirFilter != nullptr ) {
-        HLog("Setting new input filter width %d", width);
-        _inputIqFirFilter->SetCoefficients(HLowpassKaiserBessel<int16_t>(width, opts->GetOutputSampleRate(), 51, 50).Calculate(), 51);
+        HLog("Setting new input filter width %d for iq filter", width);
+        _inputIqFirFilter->SetCoefficients(width == 0
+                ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
+                : HLowpassKaiserBessel<int16_t>(width, opts->GetOutputSampleRate(), 51, 50).Calculate(), 51);
         return true;
     }
 
     // If we have a bandpass filter as inputfilter (REAL input), then move it
     if( _inputFirFilter != nullptr ) {
-        _inputFirFilter->SetCoefficients(HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),51);
+        HLog("Setting new input filter width %d for real valued filter", width);
+        _inputFirFilter->SetCoefficients(width == 0
+                ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
+                : HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
+                51);
         return true;
     }
 
@@ -420,6 +486,15 @@ bool BoomaInput::SetInputFilterWidth(ConfigOptions* opts, int width) {
 }
 
 HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+
+    // Ignore shift for some input types
+    if( opts->GetInputSourceType() == InputSourceType::NO_INPUT_SOURCE_TYPE ||
+        opts->GetInputSourceType() == InputSourceType::AUDIO_DEVICE ||
+        opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
+        opts->GetInputSourceType() == InputSourceType::SILENCE) {
+        HLog("Input source never requires any shift");
+        return previous;
+    }
 
     // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
     // tuned frequency to avoid LO leaks
@@ -429,11 +504,65 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
         // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_09_if_multiplier", opts->GetEnableProbes());
+        _ifMultiplierProbe = new HProbe<int16_t>("input_08_if_multiplier", opts->GetEnableProbes());
         _ifMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
 
         return _ifMultiplier->Consumer();
     }
 
     return previous;
+}
+
+HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
+
+    float gain;
+    if( opts->GetPreamp() == 0 ) {
+        gain = 1;
+    } else if ( opts->GetPreamp() > 0 && opts->GetPreamp() < 2) {
+        gain = 4;
+    } else if ( opts->GetPreamp() > 1 ) {
+        gain = 8;
+    } else {
+        gain = 0.25;
+    }
+
+    _preampProbe = new HProbe<int16_t>("input_07_preamp", opts->GetEnableProbes());
+    _preamp = new HGain<int16_t>(previous, gain, BLOCKSIZE, _preampProbe);
+    _rfFftGain->SetGain(gain);
+
+    return _preamp;
+}
+
+bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
+
+    float gain;
+    if( level == 0 ) {
+        gain = 1;
+    } else if ( level > 0 && level < 2 ) {
+        gain = 4;
+    } else if ( level > 1 ) {
+        gain = 8;
+    } else {
+        gain = 0.25;
+    }
+
+    _preamp->SetGain(gain);
+    _rfFftGain->SetGain(gain);
+    return true;
+}
+
+int BoomaInput::RfFftCallback(HFftResults* result, size_t length) {
+
+    // Store the current spectrum in the output buffer
+    memcpy((void*) _rfSpectrum, (void*) result->Spectrum, sizeof(double) * _rfFftSize / 2);
+    return length;
+}
+
+int BoomaInput::GetRfSpectrum(double* spectrum) {
+    memcpy((void*) spectrum, _rfSpectrum, sizeof(double) * _rfSpectrumSize);
+    return _rfSpectrumSize;
+}
+
+int BoomaInput::GetRfFftSize() {
+    return _rfFftSize;
 }
