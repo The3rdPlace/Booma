@@ -369,12 +369,12 @@ int Waterfall::handle(int event) {
                 int diffFreq = (diff * _hzPerBin);
                 _selectedFrequency -= diffFreq;
             } else {
-                lastX = Fl::event_x();
-                lastY = Fl::event_y();
+                lastX = Fl::event_x() - x();
+                lastY = Fl::event_y() - y();
                 _selectedFrequency = (_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE
                                       ? (_app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2))
                                       : 0) +
-                                     ((lastX - this->x()) * _hzPerBin);
+                                     (lastX * _hzPerBin);
             }
 
             // Round to nearest 100 Hz
