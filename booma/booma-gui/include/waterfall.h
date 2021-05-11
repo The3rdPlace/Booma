@@ -14,6 +14,8 @@ class Waterfall : public Fl_Widget {
         bool _enableDrawing;
         bool _enableNavigation;
         bool _mouseInside;
+        int _mouseX;
+        int _mouseY;
         bool _scheduleScreenshot;
 
         BoomaApplication* _app;

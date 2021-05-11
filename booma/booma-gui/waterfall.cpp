@@ -137,9 +137,9 @@ void Waterfall::draw() {
                          ? ((_app->GetOutputSampleRate() / 2) + (_app->GetOffset())) / _hzPerBin
                          : ((float) _app->GetFrequency()) / _hzPerBin;
             fl_color(FL_RED);
-            fl_line_style(FL_SOLID, 3, 0);
-            fl_line(center - 5, 0, center - 5, _gh);
-            fl_line(center + 5, 0, center + 5, _gh);
+            fl_line_style(FL_SOLID, 2, 0);
+            fl_line(center - 4, 0, center - 4, _gh);
+            fl_line(center + 4, 0, center + 4, _gh);
 
             // Draw current if filter width
             int halfFilterWidth = _app->GetInputFilterWidth() / 2;
@@ -162,7 +162,7 @@ void Waterfall::draw() {
                         right = halfSampleRate;
                     }
                 }
-                fl_rectf(left, GH - 6, right - left, 3, FL_RED);
+                fl_rectf(left, GH - (_iq ? 6 : 3), right - left, 3, FL_RED);
             }
 
             // Draw current decimation filter width
@@ -251,6 +251,28 @@ void Waterfall::draw() {
     fl_line_style(FL_SOLID, 2, 0);
     fl_rect(1, 1, w() - 1, h() - 1, FL_BLACK);
 
+    // Mouse cursor
+    if( _mouseInside ) {
+        fl_line_style(FL_SOLID, 1, 0);
+        fl_color(FL_GREEN);
+        fl_line(_mouseX, 0, _mouseX, GH);
+
+        long left = _iq
+                ? _app->GetFrequency() - _app->GetOffset() - (_app->GetOutputSampleRate() / 2)
+                : 0;
+        std::string mouseFreq = std::to_string((int) ((_mouseX * _hzPerBin) + left));
+
+        if( (_mouseX > (w() / 2) && _mouseX < (w() - (w() / 4))) || _mouseX < (w() / 4)) {
+            fl_rectf(_mouseX + 5, 10, fl_width(mouseFreq.c_str()) + 10, 20, FL_BLACK);
+            fl_color(FL_GREEN);
+            fl_draw(mouseFreq.c_str(), _mouseX + 10, 25);
+        } else {
+            fl_rectf(_mouseX - 5 - fl_width(mouseFreq.c_str()), 10, fl_width(mouseFreq.c_str()) + 10, 20, FL_BLACK);
+            fl_color(FL_GREEN);
+            fl_draw(mouseFreq.c_str(), _mouseX - 10 - fl_width(mouseFreq.c_str()), 25);
+        }
+    }
+
     // Done, copy the updated waterfall to the screen
     fl_end_offscreen();
     fl_copy_offscreen(x(), y(), w(), h(), _ofscr, 0, 0);
@@ -335,8 +357,8 @@ int Waterfall::handle(int event) {
 
     switch(event) {
         case FL_PUSH:
-            firstX = lastX = Fl::event_x();
-            firstY = lastY = Fl::event_y();
+            firstX = lastX = Fl::event_x() - x();
+            firstY = lastY = Fl::event_y() - y();
             _enableDrawing = false;
             return 1;
         case FL_RELEASE:
@@ -374,8 +396,8 @@ int Waterfall::handle(int event) {
             return 1;
 
         case FL_DRAG: {
-            lastX = Fl::event_x();
-            lastY = Fl::event_y();
+            lastX = Fl::event_x() - x();
+            lastY = Fl::event_y() - y();
 
             if( _iq ) {
                 isDrag = true;
@@ -400,10 +422,18 @@ int Waterfall::handle(int event) {
 
         case FL_ENTER:
             _mouseInside = true;
+            _mouseX = Fl::event_x() - x();
+            _mouseY = Fl::event_y() - y();
+            std::cout << _mouseX << ", " << _mouseY << "\n";
             return 1;
 
         case FL_LEAVE:
             _mouseInside = false;
+            return 1;
+
+        case FL_MOVE:
+            _mouseX = Fl::event_x() - x();
+            _mouseY = Fl::event_y() - y();
             return 1;
 
         default:
