@@ -672,6 +672,14 @@ void MainWindow::HandleMenuButtonReceiverStartStop() {
     if( _app->IsRunning() ) {
         Halt();
     } else {
+
+        // If we are using a network input, then simply Run() would not
+        // work since the socket may have been closed while halted.
+        if( _app->GetInputSourceType() == NETWORK ) {
+            _app->ChangeReceiver();
+        }
+
+        // Continue running
         Run();
     }
 }
