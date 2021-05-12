@@ -20,7 +20,7 @@ find_package(FLTK)
 	# Set the application major and minor version here
 	set (BoomaGui_VERSION_MAJOR 1)
 	set (BoomaGui_VERSION_MINOR 0)
-	set (BoomaGui_VERSION_BUILD 0)
+	set (BoomaGui_VERSION_BUILD 1)
 
 	# Configure the main.h header
 	configure_file (

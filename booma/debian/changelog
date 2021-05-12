@@ -1,3 +1,8 @@
+booma (1.1-24) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Fix minor bugs found after release of gui version
+
 booma (1.1-23) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
