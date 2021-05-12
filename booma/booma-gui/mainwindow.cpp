@@ -1158,6 +1158,8 @@ void MainWindow::AddReceiverInput() {
     _volumeSlider->redraw();
     _gainSlider->redraw();
 
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, 1);
+    
     SetupReceiverOutputMenu();
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
