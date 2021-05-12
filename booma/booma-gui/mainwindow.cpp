@@ -202,6 +202,26 @@ MainWindow::MainWindow(BoomaApplication* app):
         }
         _threadsAlive--;
     } );
+    _isRunningThread = new std::thread([this]() {
+        _threadsAlive++;
+        bool isRunning = false;
+        while( _threadsRunning ) {
+            if( !isRunning && _app->IsRunning() ) {
+                HLog("Receiver changed state from not running to running");
+                isRunning = true;
+            } else if( isRunning && !_app->IsRunning() ) {
+                HLog("Receiver changed state from running to not running");
+                isRunning = false;
+                _threadsPaused = true;
+                Fl::lock();
+                UpdateState();
+                Fl::unlock();
+                Fl::awake();
+            }
+            std::this_thread::sleep_for(std::chrono::seconds (1));
+        }
+        _threadsAlive--;
+    });
     _halterThread = new std::thread([this]() {
         while( _threadsRunning || _threadsAlive > 0 ) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

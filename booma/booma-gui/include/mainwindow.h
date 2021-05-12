@@ -120,6 +120,7 @@ class MainWindow {
         std::thread* _signalLevelThread;
         std::thread* _rfSpectrumThread;
         std::thread* _afSpectrumThread;
+        std::thread* _isRunningThread;
         std::thread* _halterThread;
         static bool _threadsRunning;
         static int _threadsAlive;
