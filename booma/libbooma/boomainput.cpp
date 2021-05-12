@@ -155,55 +155,81 @@ BoomaInput::~BoomaInput() {
 HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
 
     // Select input reader
-    switch( opts->GetInputSourceType() ) {
-        case AUDIO_DEVICE:
-            HLog("Initializing audio input device %d", opts->GetInputDevice());
-            _inputReader = new HSoundcardReader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), 1, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
-            break;
-        case SIGNAL_GENERATOR:
-            HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
-            _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(), opts->GetSignalGeneratorFrequency(), 200);
-            break;
-        case PCM_FILE:
-            HLog("Initializing pcm file reader for input file %s", opts->GetPcmFile().c_str());
-            _inputReader = new HFileReader<int16_t>(opts->GetPcmFile());
-            break;
-        case WAV_FILE:
-            HLog("Initializing wav file reader for input file %s", opts->GetWavFile().c_str());
-            _inputReader = new HWavReader<int16_t>(opts->GetWavFile().c_str());
-            break;
-        case SILENCE:
-            HLog("Initializing nullreader");
-            _inputReader = new HNullReader<int16_t>();
-            break;
-        case RTLSDR:
-            switch(opts->GetInputSourceDataType()) {
-                case InputSourceDataType::IQ_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::IQ_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
-                    break;
-                case InputSourceDataType::I_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::I_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
-                    break;
-                case InputSourceDataType::Q_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::Q_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
-                    break;
-                case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE:
-                    HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d and gain %d", opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(), opts->GetRtlsdrGain());
-                    _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), HRtl2832::MODE::REAL_SAMPLES, opts->GetRtlsdrGain(), _hardwareFrequency, BLOCKSIZE, 0, opts->GetRtlsdrCorrection());
-                    break;
-                default:
-                    HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
-                    throw new BoomaInputException("Unknown input source datatype specified");
-            }
-            break;
-        default:
-            HError("Unknown input source type specified (%d)", opts->GetInputSourceType());
-            throw new BoomaInputException("Unknown input source type specified");
+    try {
+        switch (opts->GetInputSourceType()) {
+            case AUDIO_DEVICE:
+                HLog("Initializing audio input device %d", opts->GetInputDevice());
+                _inputReader = new HSoundcardReader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), 1,
+                                                             H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
+                break;
+            case SIGNAL_GENERATOR:
+                HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
+                _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(),
+                                                           opts->GetSignalGeneratorFrequency(), 200);
+                break;
+            case PCM_FILE:
+                HLog("Initializing pcm file reader for input file %s", opts->GetPcmFile().c_str());
+                _inputReader = new HFileReader<int16_t>(opts->GetPcmFile());
+                break;
+            case WAV_FILE:
+                HLog("Initializing wav file reader for input file %s", opts->GetWavFile().c_str());
+                _inputReader = new HWavReader<int16_t>(opts->GetWavFile().c_str());
+                break;
+            case SILENCE:
+                HLog("Initializing nullreader");
+                _inputReader = new HNullReader<int16_t>();
+                break;
+            case RTLSDR:
+                switch (opts->GetInputSourceDataType()) {
+                    case InputSourceDataType::IQ_INPUT_SOURCE_DATA_TYPE:
+                        HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d and gain %d",
+                             opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
+                             opts->GetRtlsdrGain());
+                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                                                                   HRtl2832::MODE::IQ_SAMPLES, opts->GetRtlsdrGain(),
+                                                                   _hardwareFrequency, BLOCKSIZE, 0,
+                                                                   opts->GetRtlsdrCorrection());
+                        break;
+                    case InputSourceDataType::I_INPUT_SOURCE_DATA_TYPE:
+                        HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d and gain %d",
+                             opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
+                             opts->GetRtlsdrGain());
+                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                                                                   HRtl2832::MODE::I_SAMPLES, opts->GetRtlsdrGain(),
+                                                                   _hardwareFrequency, BLOCKSIZE, 0,
+                                                                   opts->GetRtlsdrCorrection());
+                        break;
+                    case InputSourceDataType::Q_INPUT_SOURCE_DATA_TYPE:
+                        HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d and gain %d",
+                             opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
+                             opts->GetRtlsdrGain());
+                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                                                                   HRtl2832::MODE::Q_SAMPLES, opts->GetRtlsdrGain(),
+                                                                   _hardwareFrequency, BLOCKSIZE, 0,
+                                                                   opts->GetRtlsdrCorrection());
+                        break;
+                    case InputSourceDataType::REAL_INPUT_SOURCE_DATA_TYPE:
+                        HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d and gain %d",
+                             opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
+                             opts->GetRtlsdrGain());
+                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                                                                   HRtl2832::MODE::REAL_SAMPLES, opts->GetRtlsdrGain(),
+                                                                   _hardwareFrequency, BLOCKSIZE, 0,
+                                                                   opts->GetRtlsdrCorrection());
+                        break;
+                    default:
+                        HError("Unknown input source datatype specified (%d)", opts->GetInputSourceDataType());
+                        throw new BoomaInputException("Unknown input source datatype specified");
+                }
+                break;
+            default:
+                HError("Unknown input source type specified (%d)", opts->GetInputSourceType());
+                throw new BoomaInputException("Unknown input source type specified");
+        }
+    } catch( ... ) {
+        HError("Caught unexpected exception while trying to initialize input reader");
+        throw new BoomaInputException("Unexpected exception while initializing input reader");
     }
-
     return _inputReader;
 }
 
@@ -237,15 +263,16 @@ void BoomaInput::SetReaderFrequencies(ConfigOptions *opts, int frequency) {
         _hardwareFrequency = frequency;
         _ifFrequency = frequency;
         return;
-    }
-
-    // Handle devices with possible shift, offset and adjustments
-    if( opts->GetOriginalInputSourceType() == RTLSDR ) {
-        _hardwareFrequency = (frequency + opts->GetShift()) - opts->GetRtlsdrOffset() + opts->GetRtlsdrAdjust();
-        _ifFrequency = 0;
     } else {
-        _hardwareFrequency = frequency + opts->GetShift();
-        _ifFrequency = frequency;
+
+        // Handle devices with possible shift, offset and adjustments
+        if (opts->GetOriginalInputSourceType() == RTLSDR) {
+            _hardwareFrequency = (frequency + opts->GetShift()) - opts->GetRtlsdrOffset() + opts->GetRtlsdrAdjust();
+            _ifFrequency = 0;
+        } else {
+            _hardwareFrequency = frequency + opts->GetShift();
+            _ifFrequency = frequency;
+        }
     }
 
     HLog("Input hardware frequency = %d", _hardwareFrequency);
@@ -268,7 +295,7 @@ bool BoomaInput::SetFrequency(ConfigOptions* opts, int frequency) {
         opts->GetInputSourceType() == InputSourceType::SIGNAL_GENERATOR ||
         opts->GetInputSourceType() == InputSourceType::SILENCE) {
         HLog("No need to propagate a set-frequency command for local devices");
-        return 0;
+        return true;
     }
 
     // Device handling

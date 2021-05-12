@@ -112,6 +112,31 @@ bool BoomaApplication::InitializeReceiver() {
 
     try {
 
+        // If we are set up to use a local device, make sure it exists
+        if( _opts->GetInputSourceType() == AUDIO_DEVICE ) {
+            std::map<int, std::string> audioDevices = GetAudioDevices(true, true, true, false);
+            if( audioDevices.find(_opts->GetInputDevice()) == audioDevices.end() ) {
+                HError("Requested audio input device %d does not exist", _opts->GetInputDevice());
+                return false;
+            }
+        }
+        if( _opts->GetInputSourceType() == RTLSDR ) {
+            std::map<int, std::string> rtlsdrDevices = GetRtlsdrDevices();
+            if( rtlsdrDevices.find(_opts->GetInputDevice()) == rtlsdrDevices.end() ) {
+                HError("Requested rtlsdr input device %d does not exist", _opts->GetInputDevice());
+                return false;
+            }
+        }
+
+        // Check that the output device exists
+        if( _opts->GetOutputAudioDevice() != -1 ) {
+            std::map<int, std::string> audioDevices = GetAudioDevices(true, true, false, true);
+            if( audioDevices.find(_opts->GetOutputAudioDevice()) == audioDevices.end() ) {
+                HError("Requested audio output device %d does not exist", _opts->GetOutputAudioDevice());
+                return false;
+            }
+        }
+
         // Setup input
         _input = new BoomaInput(_opts, &_isTerminated);
 

@@ -1,3 +1,8 @@
+booma (1.1-25) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Fix problem with controlling local devices
+
 booma (1.1-24) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]
