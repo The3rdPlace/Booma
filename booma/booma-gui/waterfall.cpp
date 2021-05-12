@@ -424,7 +424,6 @@ int Waterfall::handle(int event) {
             _mouseInside = true;
             _mouseX = Fl::event_x() - x();
             _mouseY = Fl::event_y() - y();
-            std::cout << _mouseX << ", " << _mouseY << "\n";
             return 1;
 
         case FL_LEAVE:
