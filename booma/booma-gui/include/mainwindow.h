@@ -51,8 +51,8 @@ class MainWindow {
         Fl_Output* _statusbarMode = nullptr;
         Fl_Output* _statusbarHardwareFreq = nullptr;
         Fl_Output* _statusbarRunningState = nullptr;
-        Fl_Output* _statusbarRecordingRf = nullptr;
-        Fl_Output* _statusbarRecordingAf = nullptr;
+        Fl_Output* _statusbarRecording = nullptr;
+        Fl_Output* _statusbarPreamp = nullptr;
 
         // Dynamic labels
         char _gainLabel[50];

@@ -329,8 +329,8 @@ void MainWindow::SetupConfigurationMenu() {
 void MainWindow::SetupReceiverMenu() {
 
     RenameMenuItem("Receiver/Stop", "Start");
-    RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
-    RenameMenuItem("Receiver/Stop dumping AF", "Dump AF");
+    RenameMenuItem("Receiver/Stop recording RF", "Record RF");
+    RenameMenuItem("Receiver/Stop recording AF", "Record AF");
 
     if( _app->IsRunning() ) {
         _menubar->add("Receiver/Stop", "^s", HandleMenuButtonCallback, (void*) this);
@@ -339,8 +339,8 @@ void MainWindow::SetupReceiverMenu() {
     }
     _menubar->add("Receiver/Restart", "^r", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 
-    _menubar->add("Receiver/Dump RF", "^p", HandleMenuButtonCallback, (void*) this);
-    _menubar->add("Receiver/Dump AF", "^u", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
+    _menubar->add("Receiver/Record RF", "^p", HandleMenuButtonCallback, (void*) this);
+    _menubar->add("Receiver/Record AF", "^u", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 
     _menubar->add("Receiver/Screenshot", "^x", HandleMenuButtonCallback, (void*) this, FL_MENU_DIVIDER);
 }
@@ -456,13 +456,13 @@ void MainWindow::SetupStatusbar(){
     _statusbarRunningState = new Fl_Output(_statusbarHardwareFreq->x() + _statusbarHardwareFreq->w(), _statusbar->y(), 100, 20);
     _statusbarRunningState->box(FL_THIN_DOWN_FRAME);
 
-    _statusbarRecordingRf = new Fl_Output(_statusbarRunningState->x() + _statusbarRunningState->w(), _statusbar->y(), 120, 20);
-    _statusbarRecordingRf->box(FL_THIN_DOWN_FRAME);
-    _statusbarRecordingRf->color(FL_GRAY0);
+    _statusbarRecording = new Fl_Output(_statusbarRunningState->x() + _statusbarRunningState->w(), _statusbar->y(), 130, 20);
+    _statusbarRecording->box(FL_THIN_DOWN_FRAME);
+    _statusbarRecording->color(FL_GRAY0);
 
-    _statusbarRecordingAf = new Fl_Output(_statusbarRecordingRf->x() + _statusbarRecordingRf->w(), _statusbar->y(), 120, 20);
-    _statusbarRecordingAf->box(FL_THIN_DOWN_FRAME);
-    _statusbarRecordingAf->color(FL_GRAY0);
+    _statusbarPreamp = new Fl_Output(_statusbarRecording->x() + _statusbarRecording->w(), _statusbar->y(), 110, 20);
+    _statusbarPreamp->box(FL_THIN_DOWN_FRAME);
+    _statusbarPreamp->color(FL_GRAY0);
 
     _statusbar->end();
     _statusbar->show();
@@ -620,10 +620,10 @@ void MainWindow::HandleMenuButton(char* name) {
     else if( strncmp(name, "Configuration/Bookmarks/", 24) == 0 ) {
         HandleMenuButtonConfigurationBookmarks(name, &name[24]);
     }
-    else if( strncmp(name, "Receiver/Dump RF", 16) == 0 || strncmp(name, "Receiver/Stop dumping RF", 24) == 0 ) {
+    else if( strncmp(name, "Receiver/Record RF", 18) == 0 || strncmp(name, "Receiver/Stop recording RF", 26) == 0 ) {
         HandleMenuButtonReceiverDumpRf();
     }
-    else if( strncmp(name, "Receiver/Dump AF", 16) == 0 || strncmp(name, "Receiver/Stop dumping AF", 24) == 0 ) {
+    else if( strncmp(name, "Receiver/Record AF", 18) == 0 || strncmp(name, "Receiver/Stop recording AF", 26) == 0 ) {
         HandleMenuButtonReceiverDumpAf();
     }
     else if( strncmp(name, "Receiver/Start", 14) == 0 || strncmp(name, "Receiver/Stop", 13) == 0 ) {
@@ -862,6 +862,8 @@ void MainWindow::HandleMenuButtonReceiverPreamp(char* name, char* value) {
     } else {
         _app->SetPreampLevel(0);
     }
+
+    UpdateStatusbar();
 }
 
 /**
@@ -1443,16 +1445,16 @@ void MainWindow::UpdateState() {
 
     // Dump RF
     if( _app->GetDumpRf() ) {
-        RenameMenuItem("Receiver/Dump RF", "Stop dumping RF");
+        RenameMenuItem("Receiver/Record RF", "Stop recording RF");
     } else {
-        RenameMenuItem("Receiver/Stop dumping RF", "Dump RF");
+        RenameMenuItem("Receiver/Stop recording RF", "Record RF");
     }
 
     // Dump AF
     if( _app->GetDumpAudio() ) {
-        RenameMenuItem("Receiver/Dump AF", "Stop dumping AF");
+        RenameMenuItem("Receiver/Record AF", "Stop recording AF");
     } else {
-        RenameMenuItem("Receiver/Stop dumping AF", "Dump AF");
+        RenameMenuItem("Receiver/Stop recording AF", "Record AF");
     }
 
     // Statusbar
@@ -1525,6 +1527,19 @@ void MainWindow::UpdateStatusbar() {
         _statusbarRunningState->value("Stopped");
     }
 
-    _statusbarRecordingRf->value( _app->GetDumpRf() ? "Recording RF" : "");
-    _statusbarRecordingAf->value( _app->GetDumpAudio() ? "Recording AF" : "");
+    if( _app->GetDumpRf() && !_app->GetDumpAudio() ) {
+        _statusbarRecording->value("Recording RF");
+    } else if( !_app->GetDumpRf() && _app->GetDumpAudio() ) {
+        _statusbarRecording->value("Recording AF");
+    } else if( _app->GetDumpRf() && _app->GetDumpAudio() ) {
+        _statusbarRecording->value("Recording RF+AF");
+    } else {
+        _statusbarRecording->value("");
+    }
+
+    if( _app->GetPreampLevel() == 0 ) {
+        _statusbarPreamp->value("Preamp off");
+    } else {
+        _statusbarPreamp->value(("Preamp " + std::to_string(_app->GetPreampLevel() * 12) + "dB").c_str());
+    }
 }
