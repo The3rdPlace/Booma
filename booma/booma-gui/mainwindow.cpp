@@ -239,6 +239,9 @@ MainWindow::MainWindow(BoomaApplication* app):
 
     // Start the receiver
     Run();
+
+    // Update current status after trying to start the receiver
+    UpdateState();
 }
 
 /**
@@ -746,7 +749,9 @@ void MainWindow::HandleMenuButtonReceiverInput(char* name, char* value) {
     _gainSlider->redraw();
     SetGainSliderLabel();
     SetVolumeSliderLabel();
-    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, 1);
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftSize(), 1, _app->GetOutputSampleRate() / 2);
+    _afOutputWaterfall->ReConfigure(false, _app->GetAudioFftSize(), 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2);
+    _analysis->ReConfigure(_app->GetAudioFftSize() / 2, 4);
 
     Run();
 }
@@ -793,6 +798,10 @@ void MainWindow::HandleMenuButtonReceiverOutput(char* name, char* value) {
 
     // Restart
     _app->ChangeReceiver();
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftSize(), 1, _app->GetOutputSampleRate() / 2);
+    _afOutputWaterfall->ReConfigure(false, _app->GetAudioFftSize(), 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2);
+    _analysis->ReConfigure(_app->GetAudioFftSize() / 2, 4);
+
     Run();
 }
 
@@ -1161,6 +1170,10 @@ void MainWindow::EditReceiverInput(const char* name) {
     _volumeSlider->redraw();
     _gainSlider->redraw();
 
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftSize(), 1, _app->GetOutputSampleRate() / 2);
+    _afOutputWaterfall->ReConfigure(false, _app->GetAudioFftSize(), 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2);
+    _analysis->ReConfigure(_app->GetAudioFftSize() / 2, 4);
+
     SetupReceiverInputMenu();
     SetupConfigurationMenu();
 
@@ -1188,7 +1201,9 @@ void MainWindow::AddReceiverInput() {
     _volumeSlider->redraw();
     _gainSlider->redraw();
 
-    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, 1);
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftSize(), 1, _app->GetOutputSampleRate() / 2);
+    _afOutputWaterfall->ReConfigure(false, _app->GetAudioFftSize(), 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2);
+    _analysis->ReConfigure(_app->GetAudioFftSize() / 2, 4);
 
     SetupReceiverOutputMenu();
     SetupReceiverInputMenu();
@@ -1521,30 +1536,48 @@ void MainWindow::UpdateStatusbar() {
     }
     _statusbar->redraw();
 
-    _statusbarConfig->value(_app->GetConfigSection().c_str());
-
-    switch(_app->GetReceiver()) {
-        case ReceiverModeType::AM:
-            _statusbarMode->value("AM");
-            break;
-        case ReceiverModeType::AURORAL:
-            _statusbarMode->value("AURORAL");
-            break;
-        case ReceiverModeType::CW:
-            _statusbarMode->value("CW");
-            break;
-        case ReceiverModeType::SSB:
-            _statusbarMode->value("SSB");
-            break;
-        default:
-            _statusbarMode->value("(none)");
-            break;
+    // Faulty configuation ?
+    if( _app->IsFaulty() ) {
+        _statusbarConfig->textcolor(FL_RED);
+        _statusbarConfig->value(_app->GetConfigSection().c_str());
+        _statusbarConfig->tooltip("Configuration is FAULTY, receiver could not run");
+    } else {
+        _statusbarConfig->textcolor(FL_BLACK);
+        _statusbarConfig->value(_app->GetConfigSection().c_str());
+        _statusbar->tooltip("");
     }
 
-    if (_app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE) {
-        _statusbarHardwareFreq->value(std::to_string(_app->GetFrequency()).c_str());
+    if( !_app->IsFaulty() ) {
+        switch (_app->GetReceiver()) {
+            case ReceiverModeType::AM:
+                _statusbarMode->value("AM");
+                break;
+            case ReceiverModeType::AURORAL:
+                _statusbarMode->value("AURORAL");
+                break;
+            case ReceiverModeType::CW:
+                _statusbarMode->value("CW");
+                break;
+            case ReceiverModeType::SSB:
+                _statusbarMode->value("SSB");
+                break;
+            default:
+                _statusbarMode->value("(none)");
+                break;
+        }
     } else {
-        _statusbarHardwareFreq->value(std::to_string(_app->GetFrequency() + _app->GetShift() + _app->GetFrequencyAdjust()).c_str());
+        _statusbarMode->value("");
+    }
+
+    if( !_app->IsFaulty() ) {
+        if (_app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE) {
+            _statusbarHardwareFreq->value(std::to_string(_app->GetFrequency()).c_str());
+        } else {
+            _statusbarHardwareFreq->value(
+                    std::to_string(_app->GetFrequency() + _app->GetShift() + _app->GetFrequencyAdjust()).c_str());
+        }
+    } else {
+        _statusbarHardwareFreq->value("");
     }
 
     if( _app->IsRunning() ) {
@@ -1565,9 +1598,13 @@ void MainWindow::UpdateStatusbar() {
         _statusbarRecording->value("");
     }
 
-    if( _app->GetPreampLevel() == 0 ) {
-        _statusbarPreamp->value("Preamp off");
+    if( !_app->IsFaulty() ) {
+        if (_app->GetPreampLevel() == 0) {
+            _statusbarPreamp->value("Preamp off");
+        } else {
+            _statusbarPreamp->value(("Preamp " + std::to_string(_app->GetPreampLevel() * 12) + "dB").c_str());
+        }
     } else {
-        _statusbarPreamp->value(("Preamp " + std::to_string(_app->GetPreampLevel() * 12) + "dB").c_str());
+        _statusbarPreamp->value("");
     }
 }

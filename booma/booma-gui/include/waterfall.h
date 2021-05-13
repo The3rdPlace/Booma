@@ -71,7 +71,7 @@ class Waterfall : public Fl_Widget {
         Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type);
         ~Waterfall();
 
-        void ReConfigure(bool iq, int zoom);
+        void ReConfigure(bool iq, int n, int zoom, int center);
 
         void draw();
 

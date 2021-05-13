@@ -177,6 +177,9 @@ enum DumpFileFormatType {
 
         // Memory channels
          std::vector<Channel*> _channels;
+
+         // Faulty configuration flag
+         bool _faulty = false;
 };
 
 #endif

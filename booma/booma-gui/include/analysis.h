@@ -35,6 +35,8 @@ class Analysis : public Fl_Widget {
         Analysis(int X, int Y, int W, int H, const char *L, int n, int zoom, BoomaApplication* app);
         ~Analysis();
 
+        void ReConfigure(int n, int zoom);
+
         void draw();
         int handle(int event);
         void Refresh();

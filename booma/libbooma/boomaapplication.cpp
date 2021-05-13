@@ -24,7 +24,7 @@ BoomaApplication::BoomaApplication(std::string appName, std::string appVersion, 
 
     // Initialize receiver
     if( !InitializeReceiver() ) {
-        throw new BoomaReceiverException("Failed to create receiver, check the log");
+        HError("Failed to create receiver, check the log");
     }
 }
 
@@ -112,11 +112,15 @@ bool BoomaApplication::InitializeReceiver() {
 
     try {
 
+        // Assume configuration is not faulty untill proven otherwise
+        _opts->SetFaulty(false);
+
         // If we are set up to use a local device, make sure it exists
         if( _opts->GetInputSourceType() == AUDIO_DEVICE ) {
             std::map<int, std::string> audioDevices = GetAudioDevices(true, true, true, false);
             if( audioDevices.find(_opts->GetInputDevice()) == audioDevices.end() ) {
                 HError("Requested audio input device %d does not exist", _opts->GetInputDevice());
+                _opts->SetFaulty(true);
                 return false;
             }
         }
@@ -124,6 +128,7 @@ bool BoomaApplication::InitializeReceiver() {
             std::map<int, std::string> rtlsdrDevices = GetRtlsdrDevices();
             if( rtlsdrDevices.find(_opts->GetInputDevice()) == rtlsdrDevices.end() ) {
                 HError("Requested rtlsdr input device %d does not exist", _opts->GetInputDevice());
+                _opts->SetFaulty(true);
                 return false;
             }
         }
@@ -133,12 +138,23 @@ bool BoomaApplication::InitializeReceiver() {
             std::map<int, std::string> audioDevices = GetAudioDevices(true, true, false, true);
             if( audioDevices.find(_opts->GetOutputAudioDevice()) == audioDevices.end() ) {
                 HError("Requested audio output device %d does not exist", _opts->GetOutputAudioDevice());
+                _opts->SetFaulty(true);
                 return false;
             }
         }
 
         // Setup input
-        _input = new BoomaInput(_opts, &_isTerminated);
+        try {
+            _input = new BoomaInput(_opts, &_isTerminated);
+        } catch( BoomaInputException e ) {
+            HError("Failed to initialize inputreader '%s', config is faulty", e.What().c_str());
+            _opts->SetFaulty(true);
+            return false;
+        } catch( ... ) {
+            HError("Failed to initialize inputreader, unexpected exception was thrown. Config is faulty");
+            _opts->SetFaulty(true);
+            return false;
+        }
 
         // If we have a remote head, then we have neither a receiver of output
         if( _opts->GetUseRemoteHead() ) {
@@ -147,42 +163,70 @@ bool BoomaApplication::InitializeReceiver() {
         }
 
         // Create receiver
-        switch( _opts->GetReceiverModeType() ) {
-            case CW:
-                _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency());
-                break;
-            case AM:
-                _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency());
-                break;
-            case AURORAL:
-                _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency());
-                break;
-            case SSB:
-                _receiver = new BoomaSsbReceiver(_opts, _input->GetIfFrequency());
-                break;
-            default:
-                std::cout << "Unknown receiver type defined" << std::endl;
-                return false;
+        try {
+            switch (_opts->GetReceiverModeType()) {
+                case CW:
+                    _receiver = new BoomaCwReceiver(_opts, _input->GetIfFrequency());
+                    break;
+                case AM:
+                    _receiver = new BoomaAmReceiver(_opts, _input->GetIfFrequency());
+                    break;
+                case AURORAL:
+                    _receiver = new BoomaAuroralReceiver(_opts, _input->GetIfFrequency());
+                    break;
+                case SSB:
+                    _receiver = new BoomaSsbReceiver(_opts, _input->GetIfFrequency());
+                    break;
+                default:
+                    std::cout << "Unknown receiver type defined" << std::endl;
+                    return false;
+            }
+        } catch( BoomaReceiverException e ) {
+            HError("Failed to create new receiver '%s', config is faulty", e.What().c_str());
+            _opts->SetFaulty(true);
+            return false;
+        } catch( ... ) {
+            HError("Failed to create new receiver, unexpected exception was thrown. Config is faulty");
+            _opts->SetFaulty(true);
+            return false;
         }
 
         // Build receiver
-        if( !_receiver->IsFrequencySupported(_opts, _opts->GetFrequency()) ) {
-            HLog("Unsupported frequency %d when starting new receiver. Using receivers default = %d", _opts->GetFrequency(), _receiver->GetDefaultFrequency(_opts));
-            _opts->SetFrequency(_receiver->GetDefaultFrequency(_opts));
-            HLog("Initial receiver frequency is now %d", _opts->GetFrequency());
-        } else {
-            HLog("Initial frequency %d is valid for the selected receiver", _opts->GetFrequency());
+        try {
+            if (!_receiver->IsFrequencySupported(_opts, _opts->GetFrequency())) {
+                HLog("Unsupported frequency %d when starting new receiver. Using receivers default = %d",
+                     _opts->GetFrequency(), _receiver->GetDefaultFrequency(_opts));
+                _opts->SetFrequency(_receiver->GetDefaultFrequency(_opts));
+                HLog("Initial receiver frequency is now %d", _opts->GetFrequency());
+            } else {
+                HLog("Initial frequency %d is valid for the selected receiver", _opts->GetFrequency());
+            }
+            _receiver->Build(_opts, _input);
+        } catch( BoomaReceiverException e ) {
+            HError("Failed to build receiver '%s', config is faulty", e.What().c_str());
+            _opts->SetFaulty(true);
+            return false;
+        } catch( ... ) {
+            HError("Failed to build receiver, unexpected exception was thrown. Config is faulty");
+            _opts->SetFaulty(true);
+            return false;
         }
-        _receiver->Build(_opts, _input);
 
         // Setup output
-        _output = new BoomaOutput(_opts, _receiver);
+        try {
+            _output = new BoomaOutput(_opts, _receiver);
+        } catch( ... ) {
+            HError("Failed to initialize output, unexpected exception was thrown. Config is faulty");
+            _opts->SetFaulty(true);
+            return false;
+        }
 
         // Set frequency - important when using a remote receiver
         SetFrequency(_opts->GetFrequency());
     }
     catch( BoomaException* e ) {
         HError("InitializeReceiver() Caught %s = %s", e->Type().c_str(), e->What().c_str() );
+        _opts->SetFaulty(true);
         return false;
     }
 
@@ -191,6 +235,9 @@ bool BoomaApplication::InitializeReceiver() {
 }
 
 bool BoomaApplication::SetFrequency(long int frequency) {
+    if( IsFaulty() ) {
+        return false;
+    }
 
     // Make sure that we can tune to this frequency
     if( !_receiver->IsFrequencySupported(_opts, frequency) ) {
@@ -217,11 +264,19 @@ bool BoomaApplication::ChangeFrequency(int stepSize) {
 }
 
 bool BoomaApplication::SetVolume(int volume) {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     _opts->SetVolume( _output->SetVolume(volume) );
     return true;
 }
 
 bool BoomaApplication::ChangeVolume(int stepSize) {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     _opts->SetVolume( _output->SetVolume(_opts->GetVolume() + stepSize) );
     return true;
 }
@@ -231,6 +286,10 @@ int BoomaApplication::GetVolume() {
 }
 
 bool BoomaApplication::ToggleDumpRf() {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     _opts->SetDumpRf( _input->SetDumpRf(!_opts->GetDumpRf()) );
     return true;
 }
@@ -240,6 +299,10 @@ bool BoomaApplication::GetDumpRf() {
 }
 
 bool BoomaApplication::ToggleDumpAudio() {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     _opts->SetDumpAudio( _output->SetDumpAudio(!_opts->GetDumpAudio()) );
     return true;
 }
@@ -249,6 +312,10 @@ bool BoomaApplication::GetDumpAudio() {
 }
 
 bool BoomaApplication::SetRfGain(int gain) {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     _opts->SetRfGain(gain);
     _receiver->SetRfGain(_opts->GetRfGain());
     return true;
@@ -279,19 +346,25 @@ int BoomaApplication::GetSignalMax() {
 }
 
 int BoomaApplication::GetRfFftSize() {
-    return _input->GetRfFftSize();
+    return _input != nullptr ? _input->GetRfFftSize() : 0;
 }
 
 int BoomaApplication::GetRfSpectrum(double* spectrum) {
-    return _input->GetRfSpectrum(spectrum);
+    if( spectrum == nullptr ) {
+        HError("RF spectrum destination buffer is null");
+    }
+    return _input != nullptr ? _input->GetRfSpectrum(spectrum) : 0;
 }
 
 int BoomaApplication::GetAudioFftSize() {
-    return _output->GetAudioFftSize();
+    return _output != nullptr ? _output->GetAudioFftSize() : 0;
 }
 
 int BoomaApplication::GetAudioSpectrum(double* spectrum) {
-    return _output->GetAudioSpectrum(spectrum);
+    if( spectrum == nullptr ) {
+        HError("Audio spectrum destination buffer is null");
+    }
+    return _output != nullptr ? _output->GetAudioSpectrum(spectrum) : 0;
 }
 
 InputSourceType BoomaApplication::GetInputSourceType() {
@@ -387,6 +460,11 @@ ReceiverModeType BoomaApplication::GetReceiver() {
 }
 
 std::vector<Option>* BoomaApplication::GetOptions() {
+    static std::vector<Option> noOpts;
+    if( IsFaulty() ) {
+        return &noOpts;
+    }
+
     return _receiver->GetOptions();
 }
 
@@ -446,6 +524,9 @@ bool BoomaApplication::UseChannel(int id) {
 }
 
 bool BoomaApplication::SetInputFilterWidth(int width) {
+    if( IsFaulty() ) {
+        return false;
+    }
 
     _opts->SetInputFilterWidth(width);
     return _input->SetInputFilterWidth(_opts, width);
@@ -545,7 +626,7 @@ bool BoomaApplication::DeleteConfigSection(std::string section) {
 }
 
 int BoomaApplication::GetOutputFilterWidth() {
-    return _receiver->GetOutputFilterWidth();
+    return _receiver != nullptr ? _receiver->GetOutputFilterWidth() : 0;
 }
 
 std::map<int, std::string> BoomaApplication::GetAudioDevices(bool hardwareDevices, bool virtualDevices, bool inputs, bool outputs) {
@@ -625,6 +706,10 @@ bool BoomaApplication::GetRfGainEnabled() {
 }
 
 bool BoomaApplication::SetRfGainEnabled(bool enabled) {
+    if( IsFaulty() ) {
+        return false;
+    }
+
     if( _receiver->SetRfGainEnabled(enabled) ) {
         _opts->SetRfGainEnabled(enabled);
         return true;
@@ -634,4 +719,8 @@ bool BoomaApplication::SetRfGainEnabled(bool enabled) {
 
 int BoomaApplication::GetDecimatorCutoff() {
     return _opts->GetDecimatorCutoff();
+}
+
+bool BoomaApplication::IsFaulty() {
+    return _opts->IsFaulty();
 }

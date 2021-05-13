@@ -22,6 +22,10 @@ class BoomaApplication {
 
         // Run receiver chain
         void Run() {
+            if( _opts->IsFaulty() ) {
+                HError("Configuration is marked faulty - refusing to run()");
+                return;
+            }
             if( _input == NULL ) {
                 HLog("Unable to run, input is NULL");
                 throw new BoomaConfigurationException("Input is null");
@@ -215,6 +219,7 @@ class BoomaApplication {
         int GetOffset();
         void SetOffset(int offset);
         int GetDecimatorCutoff();
+        bool IsFaulty();
 
         // Bookmarks
         void SetBookmark(std::string name);

@@ -493,6 +493,14 @@ class ConfigOptions {
         int GetAfFftAgcLevel() {
             return _values.at(_section)->_afFftAgcLevel;
         }
+
+        bool IsFaulty() {
+            return _values.at(_section)->_faulty;
+        }
+
+        void SetFaulty(bool faulty) {
+            _values.at(_section)->_faulty = faulty;
+        }
 };
 
 #endif

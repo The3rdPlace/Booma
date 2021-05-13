@@ -334,13 +334,21 @@ void Waterfall::Refresh() {
     Fl::awake();
 }
 
-void Waterfall::ReConfigure(bool iq, int zoom) {
+void Waterfall::ReConfigure(bool iq, int n, int zoom, int center) {
     _iq = iq;
+    _n = n;
     _zoom = zoom;
+    _center = center;
 
     _hzPerBin = !iq
                 ? (((float) _app->GetOutputSampleRate() / (float) 2) / (float) _zoom) / (float) _gw
                 : ((float) _app->GetOutputSampleRate() / (float) _zoom) / (float) _gw;
+
+    if( _fft != nullptr ) {
+        delete _fft;
+    }
+    _fft = new double[_n];
+    memset((void*) _fft, 0, _n * sizeof(double));
 }
 
 int Waterfall::handle(int event) {

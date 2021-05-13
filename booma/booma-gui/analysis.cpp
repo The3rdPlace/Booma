@@ -8,7 +8,9 @@ Analysis::Analysis(int X, int Y, int W, int H, const char *L, int n, int zoom, B
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
     _zoom(zoom),
-    _app(app) {
+    _app(app),
+    _fft(nullptr),
+    _averageSpectrum(nullptr) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -23,6 +25,28 @@ Analysis::Analysis(int X, int Y, int W, int H, const char *L, int n, int zoom, B
 }
 
 Analysis::~Analysis() {
+}
+
+void Analysis::ReConfigure(int n, int zoom) {
+    _n = n;
+    _zoom = zoom;
+
+    if( _fft != nullptr ) {
+        delete _fft;
+    }
+    _fft = new double[_n];
+    memset((void*) _fft, 0, _n * sizeof(double));
+
+    _hzPerBin =  ((((float) _app->GetOutputSampleRate() / (float) _zoom) / (float) 2 )) / ((float) _n);
+
+    if( _averageSpectrum != nullptr ) {
+        delete _averageSpectrum;
+    }
+    _averageSpectrum = new double[_n * 10];
+    memset((void*) _averageSpectrum, 0, _n * sizeof(double) * 10);
+
+    _xFactor = (float) w() / ((float) _n / 2);
+    _yFactor = ((float) h() - (float) 30) / (float) 255;
 }
 
 void Analysis::draw() {

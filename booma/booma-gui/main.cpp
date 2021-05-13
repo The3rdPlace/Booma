@@ -43,7 +43,9 @@ int main(int argc, char** argv) {
 
         // Todo: For strange reasons, the input filter fails to initialize properly
         //       when having a default input filter size of 0 (=off)
-        app->SetInputFilterWidth(app->GetInputFilterWidth());
+        if( !app->IsFaulty() ) {
+            app->SetInputFilterWidth(app->GetInputFilterWidth());
+        }
 
         // Create the mainwindow
         mainWindow = new MainWindow(app);
