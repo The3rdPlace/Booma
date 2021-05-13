@@ -376,6 +376,7 @@ int Waterfall::handle(int event) {
                 int diff = ((lastX - this->x()) - (firstX - this->x()));
                 int diffFreq = (diff * _hzPerBin);
                 _selectedFrequency -= diffFreq;
+                MoveSpectrum(lastX - firstX);
             } else {
                 lastX = Fl::event_x() - x();
                 lastY = Fl::event_y() - y();
@@ -387,9 +388,6 @@ int Waterfall::handle(int event) {
 
             // Round to nearest 100 Hz
             _selectedFrequency = (_selectedFrequency / 100) * 100;
-
-            // Move the spectrum
-            MoveSpectrum(lastX - firstX);
 
             // Reset
             isDrag = false;
