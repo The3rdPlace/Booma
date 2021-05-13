@@ -3,6 +3,7 @@ booma (1.1-26) RELEASED; urgency=medium
   [ Henrik Witt-Hansen ]
   * Fix crashes caused by bad configuration
   * No waterfall move in non-iq mode
+  * Handle missing input files gracefully
 
 booma (1.1-25) RELEASED; urgency=medium
 

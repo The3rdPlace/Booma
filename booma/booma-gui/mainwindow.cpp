@@ -1448,8 +1448,10 @@ inline void MainWindow::UpdateAfSpectrumDisplay() {
 
 void MainWindow::Run() {
     try {
-        _app->Run();
-        _threadsPaused = false;
+        if( !_app->IsFaulty() ) {
+            _app->Run();
+            _threadsPaused = false;
+        }
     } catch( ... ) {
         fl_alert("Could not start the receiver. Check the settings");
     }

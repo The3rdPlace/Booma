@@ -143,6 +143,22 @@ bool BoomaApplication::InitializeReceiver() {
             }
         }
 
+        // If we are set up to use a local file as input, check that it exists
+        if( _opts->GetInputSourceType() == PCM_FILE ) {
+            if( access( _opts->GetPcmFile().c_str(), F_OK ) == -1 ) {
+                HError("Requested pcm inputfile file %s does not exist", _opts->GetPcmFile().c_str());
+                _opts->SetFaulty(true);
+                return false;
+            }
+        }
+        if( _opts->GetInputSourceType() == WAV_FILE ) {
+            if( access( _opts->GetWavFile().c_str(), F_OK ) == -1 ) {
+                HError("Requested wav inputfile file %s does not exist", _opts->GetWavFile().c_str());
+                _opts->SetFaulty(true);
+                return false;
+            }
+        }
+
         // Setup input
         try {
             _input = new BoomaInput(_opts, &_isTerminated);
