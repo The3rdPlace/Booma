@@ -1,3 +1,9 @@
+booma (1.1-27) RELEASED; urgency=medium
+
+  [ Henrik Witt-Hansen ]
+  * Handle invalid receiving mode better
+  * Disable invalid receiving modes for selected input type
+
 booma (1.1-26) RELEASED; urgency=medium
 
   [ Henrik Witt-Hansen ]

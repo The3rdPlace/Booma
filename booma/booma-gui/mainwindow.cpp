@@ -407,14 +407,18 @@ void MainWindow::SetupReceiverOutputMenu() {
 }
 
 void MainWindow::SetupReceiverModeMenu() {
+    RemoveMenuSubItems("Receiver/Mode/*");
+
     _menubar->add("Receiver/Mode/AURORAL", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AURORAL ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Mode/AM", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AM ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::AM ? FL_MENU_VALUE : 0) |
+                  (_app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ? FL_MENU_INACTIVE : 0));
     _menubar->add("Receiver/Mode/CW", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::CW ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Mode/SSB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetReceiver() == ReceiverModeType::SSB ? FL_MENU_VALUE : 0) |
+                  (_app->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ? FL_MENU_INACTIVE : 0));
 }
 
 void MainWindow::SetupSettingsMenu() {
@@ -815,55 +819,34 @@ void MainWindow::HandleMenuButtonReceiverMode(char* name, char* value) {
     // Halt running receiver
     Halt();
 
-    char fallback[16];
-    switch(_app->GetReceiver()) {
-        case AURORAL:
-            strcpy(fallback, "AURORAL");
-            break;
-        case AM:
-            strcpy(fallback, "AM");
-            break;
-        case CW:
-            strcpy(fallback, "CW");
-            break;
-        case SSB:
-            strcpy(fallback, "SSB");
-            break;
-        default:
-            HError("No receiver mode set");
-            throw new BoomaReceiverException("No receiver mode set");
-    }
-
     char requested[16];
     strcpy(requested, value);
 
-    bool created = false;
-    do {
-        try {
-            // Change receiver mode
-            if (strcmp(requested, "AURORAL") == 0) {
-                created = _app->ChangeReceiver(ReceiverModeType::AURORAL);
-            } else if (strcmp(requested, "AM") == 0) {
-                created = _app->ChangeReceiver(ReceiverModeType::AM);
-            } else if (strcmp(requested, "CW") == 0) {
-                created = _app->ChangeReceiver(ReceiverModeType::CW);
-            } else if (strcmp(requested, "SSB") == 0) {
-                created = _app->ChangeReceiver(ReceiverModeType::SSB);
-            } else {
-                HError("Unknown receiver mode '%s'", requested);
-                throw new BoomaReceiverException("Unknown receiver mode");
-            }
+    try {
+        // Change receiver mode
+        if (strcmp(requested, "AURORAL") == 0) {
+            _app->ChangeReceiver(ReceiverModeType::AURORAL);
+        } else if (strcmp(requested, "AM") == 0) {
+            _app->ChangeReceiver(ReceiverModeType::AM);
+        } else if (strcmp(requested, "CW") == 0) {
+            _app->ChangeReceiver(ReceiverModeType::CW);
+        } else if (strcmp(requested, "SSB") == 0) {
+            _app->ChangeReceiver(ReceiverModeType::SSB);
+        } else {
+            HError("Unknown receiver mode '%s'", requested);
+            fl_alert("Unknown receiver mode!!");
+        }
+    }
+    catch ( ... ) {
+        HError("Caught unknown exception while changing receiver");
+        fl_alert("An unknown error occurred while changing receiver");
+    }
 
-            if( !created ) {
-                HError("Receiver creation failed, falling back to %s", fallback);
-                strcpy(requested, fallback);
-            }
-        }
-        catch ( ... ) {
-            HError("Caught unknown exception while changing receiver");
-            throw new BoomaReceiverException("Caught unknown exception while changing receiver");
-        }
-    } while(!created);
+    // Output may have been uninitialize if we had an invalid receiving mode prior
+    // to changing the receiving mode
+    _rfInputWaterfall->ReConfigure(_app->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE, _app->GetRfFftSize(), 1, _app->GetOutputSampleRate() / 2);
+    _afOutputWaterfall->ReConfigure(false, _app->GetAudioFftSize(), 4, ((_app->GetOutputSampleRate() / 2) / 4) / 2);
+    _analysis->ReConfigure(_app->GetAudioFftSize() / 2, 4);
 
     // Add options for selected receiver
     SetupSettingsMenu();
