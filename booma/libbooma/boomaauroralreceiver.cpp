@@ -24,8 +24,8 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
             1
     };
     Option HighpassFilterOption {
-            "HighpassFilter",
-            "Highpass filter removing/reducing the lowest 1KHz",
+            "Bandpassfilter",
+            "Bandpass filter 0 - 10KHz",
             HighpassFilterValues,
             1
     };
@@ -45,7 +45,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
     // Narrow butterworth bandpass filter, from 1KHz to 10KHz.
     HLog("- Bandpass");
     _bandpassProbe = new HProbe<int16_t>("auroralreceiver_02_bandpass", _enableProbes);
-    _bandpass = new HFirFilter<int16_t>(_humfilter->Consumer(), HBandpassKaiserBessel<int16_t>(1000, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE, _bandpassProbe);
+    _bandpass = new HFirFilter<int16_t>(_humfilter->Consumer(), HBandpassKaiserBessel<int16_t>(100, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE, _bandpassProbe);
 
     if( GetOption("Humfilter") == 1 ) {
         _humfilter->Enable();
@@ -53,7 +53,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
         _humfilter->Disable();
     }
 
-    if( GetOption("HighpassFilter") == 1 ) {
+    if( GetOption("Bandpassfilter") == 1 ) {
         _bandpass->Enable();
     } else {
         _bandpass->Disable();
@@ -100,12 +100,12 @@ void BoomaAuroralReceiver::OptionChanged(ConfigOptions* opts, std::string name, 
         }
     }
 
-    if( name == "HighpassFilter" ) {
+    if( name == "Bandpassfilter" ) {
         if( value == 1 ) {
-            HLog("Enabled the highpass filter");
+            HLog("Enabled the bandpass filter");
             _bandpass->Enable();
         } else {
-            HLog("Disabled the highpass filter");
+            HLog("Disabled the andpass filter");
             _bandpass->Disable();
         }
     }
