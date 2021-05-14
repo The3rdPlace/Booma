@@ -4,7 +4,11 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
     BoomaReceiver(opts, initialFrequency),
     _enableProbes(opts->GetEnableProbes()),
     _humfilterProbe(nullptr),
-    _humfilter(nullptr) {
+    _humfilter(nullptr),
+    _bandpass(nullptr),
+    _bandpassProbe(nullptr),
+    _averaging(nullptr),
+    _averagingProbe(nullptr) {
 
     opts->SetFrequency(5000);
     opts->SetInputFilterWidth(10000);
@@ -13,9 +17,12 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
     std::vector<OptionValue> HumfilterValues {
             OptionValue {"On", "Enable the humfilter", 1},
             OptionValue {"Off", "Disable the humfilter", 0}};
-    std::vector<OptionValue> HighpassFilterValues {
-            OptionValue {"On", "Enable the highpass filter (1-10KHz)", 1},
-            OptionValue {"Off", "Disable the highpass filter", 0}};
+    std::vector<OptionValue> BandpassFilterValues {
+            OptionValue {"On", "Enable the bandpass filter (1-10KHz)", 1},
+            OptionValue {"Off", "Disable the bandpass filter", 0}};
+    std::vector<OptionValue> MovingAverageFilterValues {
+            OptionValue {"On", "Enable the moving average filter (1-10KHz)", 1},
+            OptionValue {"Off", "Disable the movig average filter", 0}};
 
     Option HumfilterOption {
             "Humfilter",
@@ -23,15 +30,22 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
             HumfilterValues,
             1
     };
-    Option HighpassFilterOption {
+    Option BandpassFilterOption {
             "Bandpassfilter",
             "Bandpass filter 0 - 10KHz",
-            HighpassFilterValues,
+            BandpassFilterValues,
+            1
+    };
+    Option MovingAverageFilterOption {
+            "MovingAveragefilter",
+            "Moving average filter 0 - 10KHz",
+            MovingAverageFilterValues,
             1
     };
 
     RegisterOption(HumfilterOption);
-    RegisterOption(HighpassFilterOption);
+    RegisterOption(BandpassFilterOption);
+    RegisterOption(MovingAverageFilterOption);
 }
 
 HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
@@ -72,15 +86,27 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::Receive(ConfigOptions* opts, HWr
 HWriterConsumer<int16_t>* BoomaAuroralReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AURORAL receiver postprocessing chain");
 
-    return previous;
+    _averagingProbe = new HProbe<int16_t>("auroralreceiver_03_averaging", _enableProbes);
+    _averaging = new HMovingAverageFilter<int16_t>(previous, 3, BLOCKSIZE, _averagingProbe);
+
+
+    if( GetOption("MovingAveragefilter") == 1 ) {
+        _averaging->Enable();
+    } else {
+        _averaging->Disable();
+    }
+
+    return _averaging->Consumer();
 }
 
 BoomaAuroralReceiver::~BoomaAuroralReceiver() {
     SAFE_DELETE(_bandpass);
     SAFE_DELETE(_humfilter);
+    SAFE_DELETE(_averaging);
 
     SAFE_DELETE(_bandpassProbe);
     SAFE_DELETE(_humfilterProbe);
+    SAFE_DELETE(_averagingProbe);
 }
 
 bool BoomaAuroralReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
@@ -105,8 +131,18 @@ void BoomaAuroralReceiver::OptionChanged(ConfigOptions* opts, std::string name, 
             HLog("Enabled the bandpass filter");
             _bandpass->Enable();
         } else {
-            HLog("Disabled the andpass filter");
+            HLog("Disabled the bandpass filter");
             _bandpass->Disable();
+        }
+    }
+
+    if( name == "MovingAveragefilter" ) {
+        if( value == 1 ) {
+            HLog("Enabled the moving average filter");
+            _averaging->Enable();
+        } else {
+            HLog("Disabled the moving average filter");
+            _averaging->Disable();
         }
     }
 

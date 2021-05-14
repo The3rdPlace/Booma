@@ -583,12 +583,14 @@ bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
     float gain;
     if( level == 0 ) {
         gain = 1;
-    } else if ( level > 0 && level < 2 ) {
+    } else if ( level == 1 ) {
         gain = 4;
     } else if ( level > 1 ) {
         gain = 8;
-    } else {
+    } else if( level == -1 ) {
         gain = 0.25;
+    } else if( level < -1 ) {
+        gain = 0.0625;
     }
 
     _preamp->SetGain(gain);

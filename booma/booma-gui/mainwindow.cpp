@@ -442,14 +442,16 @@ void MainWindow::SetupSettingsMenu() {
                   FL_MENU_RADIO | (_app->GetInputFilterWidth() == 0 ? FL_MENU_VALUE : 0));
 
     // Preamp settings
+    _menubar->add("Receiver/Settings/Preamp/-24 dB", 0, HandleMenuButtonCallback, (void*) this,
+                  FL_MENU_RADIO | (_app->GetPreampLevel() == -2 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Settings/Preamp/-12 dB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetPreampLevel() < 0 ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetPreampLevel() == -1 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Settings/Preamp/Off", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetPreampLevel() == 0 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Settings/Preamp/+12 dB", 0, HandleMenuButtonCallback, (void*) this,
                   FL_MENU_RADIO | (_app->GetPreampLevel() == 1 ? FL_MENU_VALUE : 0));
     _menubar->add("Receiver/Settings/Preamp/+24 dB", 0, HandleMenuButtonCallback, (void*) this,
-                  FL_MENU_RADIO | (_app->GetPreampLevel() > 1 ? FL_MENU_VALUE : 0));
+                  FL_MENU_RADIO | (_app->GetPreampLevel() == 2 ? FL_MENU_VALUE : 0));
 
     // Otherwise show available options
     for( std::vector<Option>::iterator it = _app->GetOptions()->begin(); it != _app->GetOptions()->end(); it++ ) {
@@ -873,7 +875,9 @@ void MainWindow::HandleMenuButtonReceiverPreamp(char* name, char* value) {
     // Set the selected radio button
     const_cast<Fl_Menu_Item*>(_menubar->find_item(const_cast<const char*>(name)))->setonly();
 
-    if( strcmp(value, "/-12 dB") == 0 ) {
+    if( strcmp(value, "/-24 dB") == 0 ) {
+        _app->SetPreampLevel(-2);
+    } else if( strcmp(value, "/-12 dB") == 0 ) {
         _app->SetPreampLevel(-1);
     } else if( strcmp(value, "/+12 dB") == 0 ) {
         _app->SetPreampLevel(1);
