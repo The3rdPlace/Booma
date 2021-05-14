@@ -35,8 +35,26 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _rfFftSize(1024),
         _rfFftGain(nullptr) {
 
+    // If we are using an IQ device as input, then datatype should not be REAL
+    if( opts->GetInputSourceType() == RTLSDR && opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+        HError("Incorrect datatype. Set to read realvalued samples from IQ device");
+        throw new BoomaInputException("Incorrect datatype. Set to read realvalued samples from IQ device");
+    }
+    if( (opts->GetInputSourceType() == PCM_FILE || opts->GetInputSourceType() == WAV_FILE) &&
+        opts->GetOriginalInputSourceType() == RTLSDR &&
+        opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+        HError("Incorrect datatype. Set to read realvalued samples from IQ device");
+        throw new BoomaInputException("Incorrect datatype. Set to read realvalued samples from IQ device");
+    }
+    if( opts->GetInputSourceType() == NETWORK &&
+        opts->GetOriginalInputSourceType() == RTLSDR &&
+        opts->GetInputSourceDataType() == REAL_INPUT_SOURCE_DATA_TYPE ) {
+        HError("Incorrect datatype. Set to read realvalued samples from IQ device");
+        throw new BoomaInputException("Incorrect datatype. Set to read realvalued samples from IQ device");
+    }
+
     // If using a PCM file with IQ data, then always set the frequency to 0 (zero)
-    if( opts->GetInputSourceType() == PCM_FILE && opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE ) {
+    if( (opts->GetInputSourceType() == PCM_FILE || opts->GetInputSourceType() == PCM_FILE) && opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE ) {
         HLog("Input source is a PCM file with I/Q data. Zero'ing frequency, shift and rtlsdr-adjust");
         opts->SetFrequency(0);
         opts->SetShift(0);
