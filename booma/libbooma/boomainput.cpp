@@ -560,21 +560,12 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
 
 HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
-    float gain;
-    if( opts->GetPreamp() == 0 ) {
-        gain = 1;
-    } else if ( opts->GetPreamp() > 0 && opts->GetPreamp() < 2) {
-        gain = 4;
-    } else if ( opts->GetPreamp() > 1 ) {
-        gain = 8;
-    } else {
-        gain = 0.25;
-    }
-
     _preampProbe = new HProbe<int16_t>("input_07_preamp", opts->GetEnableProbes());
-    _preamp = new HGain<int16_t>(previous, gain, BLOCKSIZE, _preampProbe);
-    _rfFftGain->SetGain(gain);
+    _preamp = new HGain<int16_t>(previous, 1, BLOCKSIZE, _preampProbe);
+    _rfFftGain->SetGain(1);
 
+    SetPreampLevel(opts, opts->GetPreamp());
+    
     return _preamp;
 }
 

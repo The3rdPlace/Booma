@@ -699,6 +699,7 @@ bool BoomaApplication::IsRunning() {
 
 bool BoomaApplication::SetPreampLevel(int level) {
     if( _input != nullptr && _input->SetPreampLevel(_opts, level) ) {
+        std::cout << "set preamp\n";
         _opts->SetPreamp(level);
         return true;
     }
