@@ -39,8 +39,8 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _moveBuffer = new uchar[_gw * 3];
 
     for(int i =0; i < 256; i++ ) {
-        if( i < 30 ) {
-            _colorMap[i] = 30;
+        if( i < 20 ) {
+            _colorMap[i] = 0;
         } else {
             _colorMap[i] = i;
         }

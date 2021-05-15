@@ -565,27 +565,33 @@ HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterCons
     _rfFftGain->SetGain(1);
 
     SetPreampLevel(opts, opts->GetPreamp());
-    
+
     return _preamp;
 }
 
 bool BoomaInput::SetPreampLevel(ConfigOptions* opts, int level) {
 
     float gain;
+    float fftGain;
     if( level == 0 ) {
         gain = 1;
+        fftGain = 1;
     } else if ( level == 1 ) {
         gain = 4;
+        fftGain = 2;
     } else if ( level > 1 ) {
         gain = 8;
+        fftGain = 4;
     } else if( level == -1 ) {
         gain = 0.25;
+        fftGain = 0.5;
     } else if( level < -1 ) {
         gain = 0.0625;
+        fftGain = 0.25;
     }
 
     _preamp->SetGain(gain);
-    _rfFftGain->SetGain(gain);
+    _rfFftGain->SetGain(fftGain);
     return true;
 }
 
