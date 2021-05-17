@@ -16,6 +16,7 @@ class BoomaAuroralReceiver : public BoomaReceiver {
         HProbe<int16_t>* _humfilterProbe;
         HProbe<int16_t>* _bandpassProbe;
         HProbe<int16_t>* _averagingProbe;
+        HProbe<int16_t>* _gaussianProbe;
 
         // Preprocessing
         HCombFilter<int16_t>* _humfilter;
@@ -25,7 +26,7 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
         // Postprocessing
         HMovingAverageFilter<int16_t>* _averaging;
-        // ...(empty)...
+        HGaussianFilter<int16_t>* _gaussian;
 
         bool IsDataTypeSupported(InputSourceDataType datatype) {
             switch( datatype ) {

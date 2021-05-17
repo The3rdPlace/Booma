@@ -8,7 +8,9 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
     _bandpass(nullptr),
     _bandpassProbe(nullptr),
     _averaging(nullptr),
-    _averagingProbe(nullptr) {
+    _averagingProbe(nullptr),
+    _gaussian(nullptr),
+    _gaussianProbe(nullptr) {
 
     opts->SetFrequency(5000);
     opts->SetInputFilterWidth(10000);
@@ -22,13 +24,16 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
             OptionValue {"Off", "Disable the bandpass filter", 0}};
     std::vector<OptionValue> MovingAverageFilterValues {
             OptionValue {"On", "Enable the moving average filter (1-10KHz)", 1},
-            OptionValue {"Off", "Disable the movig average filter", 0}};
+            OptionValue {"Off", "Disable the moving average filter", 0}};
+    std::vector<OptionValue> GaussianFilterValues {
+            OptionValue {"On", "Enable the gaussian (noise reduction) filter", 1},
+            OptionValue {"Off", "Disable the gaussian (noise reduction) filter", 0}};
 
     Option HumfilterOption {
             "Humfilter",
             "Humfilter (remove 50Hz and harmonics)",
             HumfilterValues,
-            1
+            0
     };
     Option BandpassFilterOption {
             "Bandpassfilter",
@@ -40,12 +45,19 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
             "MovingAveragefilter",
             "Moving average filter 0 - 10KHz",
             MovingAverageFilterValues,
+            0
+    };
+    Option GaussianFilterOption {
+            "Gaussianfilter",
+            "Gaussian (noise reduction) filter",
+            GaussianFilterValues,
             1
     };
 
     RegisterOption(HumfilterOption);
     RegisterOption(BandpassFilterOption);
     RegisterOption(MovingAverageFilterOption);
+    RegisterOption(GaussianFilterOption);
 }
 
 HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
@@ -89,6 +101,8 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PostProcess(ConfigOptions* opts,
     _averagingProbe = new HProbe<int16_t>("auroralreceiver_03_averaging", _enableProbes);
     _averaging = new HMovingAverageFilter<int16_t>(previous, 3, BLOCKSIZE, _averagingProbe);
 
+    _averagingProbe = new HProbe<int16_t>("auroralreceiver_04_gaussian", _enableProbes);
+    _gaussian = new HGaussianFilter<int16_t>(_averaging->Consumer(), BLOCKSIZE, 2, 1024);
 
     if( GetOption("MovingAveragefilter") == 1 ) {
         _averaging->Enable();
@@ -96,17 +110,25 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PostProcess(ConfigOptions* opts,
         _averaging->Disable();
     }
 
-    return _averaging->Consumer();
+    if( GetOption("Gaussianfilter") == 1 ) {
+        _gaussian->Enable();
+    } else {
+        _gaussian->Disable();
+    }
+
+    return _gaussian->Consumer();
 }
 
 BoomaAuroralReceiver::~BoomaAuroralReceiver() {
     SAFE_DELETE(_bandpass);
     SAFE_DELETE(_humfilter);
     SAFE_DELETE(_averaging);
+    SAFE_DELETE(_gaussian);
 
     SAFE_DELETE(_bandpassProbe);
     SAFE_DELETE(_humfilterProbe);
     SAFE_DELETE(_averagingProbe);
+    SAFE_DELETE(_gaussianProbe);
 }
 
 bool BoomaAuroralReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {
@@ -143,6 +165,16 @@ void BoomaAuroralReceiver::OptionChanged(ConfigOptions* opts, std::string name, 
         } else {
             HLog("Disabled the moving average filter");
             _averaging->Disable();
+        }
+    }
+
+    if( name == "Gaussianfilter" ) {
+        if( value == 1 ) {
+            HLog("Enabled the gaussian (noise reduction) filter");
+            _gaussian->Enable();
+        } else {
+            HLog("Disabled the gaussian (noise reduction) filter");
+            _gaussian->Disable();
         }
     }
 

@@ -6,7 +6,7 @@ project (Booma)
 # Set the framework major and minor version here
 set (Booma_VERSION_MAJOR 1)
 set (Booma_VERSION_MINOR 1)
-set (Booma_VERSION_BUILD 32)
+set (Booma_VERSION_BUILD 33)
 
 # Define the version string
 set (Booma_VERSION Booma_VERSION_MAJOR + "." + Booma_VERSION_MINOR + "." + Booma_VERSION_BUILD)
