@@ -19,9 +19,6 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
     std::vector<OptionValue> HumfilterValues {
             OptionValue {"On", "Enable the humfilter", 1},
             OptionValue {"Off", "Disable the humfilter", 0}};
-    std::vector<OptionValue> BandpassFilterValues {
-            OptionValue {"On", "Enable the bandpass filter (1-10KHz)", 1},
-            OptionValue {"Off", "Disable the bandpass filter", 0}};
     std::vector<OptionValue> MovingAverageFilterValues {
             OptionValue {"On", "Enable the moving average filter (1-10KHz)", 1},
             OptionValue {"Off", "Disable the moving average filter", 0}};
@@ -34,12 +31,6 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
             "Humfilter (remove 50Hz and harmonics)",
             HumfilterValues,
             0
-    };
-    Option BandpassFilterOption {
-            "Bandpassfilter",
-            "Bandpass filter 0 - 10KHz",
-            BandpassFilterValues,
-            1
     };
     Option MovingAverageFilterOption {
             "MovingAveragefilter",
@@ -55,7 +46,6 @@ BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequ
     };
 
     RegisterOption(HumfilterOption);
-    RegisterOption(BandpassFilterOption);
     RegisterOption(MovingAverageFilterOption);
     RegisterOption(GaussianFilterOption);
 }
@@ -68,7 +58,7 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
     _humfilterProbe = new HProbe<int16_t>("auroralreceiver_01_humfilter", _enableProbes);
     _humfilter = new HCombFilter<int16_t>(previous, opts->GetInputSampleRate(), 50, -0.907f, BLOCKSIZE, _humfilterProbe);
 
-    // Narrow butterworth bandpass filter, from 1KHz to 10KHz.
+    // Narrow bandpass filter, from 100Hz to 10KHz.
     HLog("- Bandpass");
     _bandpassProbe = new HProbe<int16_t>("auroralreceiver_02_bandpass", _enableProbes);
     _bandpass = new HFirFilter<int16_t>(_humfilter->Consumer(), HBandpassKaiserBessel<int16_t>(100, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE, _bandpassProbe);
@@ -77,12 +67,6 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
         _humfilter->Enable();
     } else {
         _humfilter->Disable();
-    }
-
-    if( GetOption("Bandpassfilter") == 1 ) {
-        _bandpass->Enable();
-    } else {
-        _bandpass->Disable();
     }
 
     return _bandpass->Consumer();
@@ -145,16 +129,6 @@ void BoomaAuroralReceiver::OptionChanged(ConfigOptions* opts, std::string name, 
         } else {
             HLog("Disabled the humfilter");
             _humfilter->Disable();
-        }
-    }
-
-    if( name == "Bandpassfilter" ) {
-        if( value == 1 ) {
-            HLog("Enabled the bandpass filter");
-            _bandpass->Enable();
-        } else {
-            HLog("Disabled the bandpass filter");
-            _bandpass->Disable();
         }
     }
 
