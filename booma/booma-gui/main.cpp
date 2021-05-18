@@ -6,6 +6,7 @@
 #include "boomaapplication.h"
 
 #include <FL/Fl.H>
+#include <FL/fl_ask.H>
 
 #include "mainwindow.h"
 
@@ -14,12 +15,35 @@ BoomaApplication* app = nullptr;
 
 void SetupSignalHandling()
 {
-    struct sigaction action;
-    action.sa_handler = [](int) { mainWindow->Exit(); };
-    action.sa_flags = 0;
-    sigemptyset (&action.sa_mask);
-    sigaction (SIGINT, &action, NULL);
-    sigaction (SIGTERM, &action, NULL);
+    struct sigaction actionIntTerm;
+    actionIntTerm.sa_handler = [](int) { std::cout << "int/term\n"; mainWindow->Exit(); };
+    actionIntTerm.sa_flags = 0;
+    sigemptyset (&actionIntTerm.sa_mask);
+    sigaction (SIGINT, &actionIntTerm, NULL);
+    sigaction (SIGTERM, &actionIntTerm, NULL);
+
+    struct sigaction actionAbrt;
+    actionAbrt.sa_handler = [](int) {
+        char message[] = "Received SIGABRT, this indicates that there is something\n" \
+                         "really bad with either your input or output!\n" \
+                         "\n" \
+                         "Check that your audio or rtl2832 device is connected\n" \
+                         "\n" \
+                         "If that is not the cause, then try starting booma again with\n" \
+                         "the '-i SILENCE -o -1' options to run with a minimal number of\n" \
+                         "devices, then make the necessary changes to the active input.\n" \
+                         "\n" \
+                         "Otherwise, restart booma with the '-z' switch to reset your\n" \
+                         "configuration and start with a minimal default configuration\n";
+
+        fl_alert("%s", message);
+        std::cout << message;
+
+        exit(1);
+    };
+    actionAbrt.sa_flags = 0;
+    sigemptyset (&actionAbrt.sa_mask);
+    sigaction (SIGABRT, &actionAbrt, NULL);
 }
 
 int main(int argc, char** argv) {
