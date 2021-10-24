@@ -173,7 +173,7 @@ enum DumpFileFormatType {
         int _firFilterSize = 51;
         int _rfAgcLevel = 500;
         int _decimatorAgcLevel = 1000;
-        int _afFftAgcLevel = 400;
+        int _afFftAgcLevel = 100;
 
         // Memory channels
          std::vector<Channel*> _channels;
