@@ -62,6 +62,7 @@ class MainWindow {
         Waterfall* _rfInputWaterfall;
         Waterfall* _afOutputWaterfall;
         Fl_Slider* _signalLevelSlider;
+        Fl_Slider* _signalLevelAverageSlider;
         Analysis* _analysis;
 
         // Compose GUI
@@ -115,6 +116,7 @@ class MainWindow {
         void SetVolumeSliderLabel();
         void UpdateState();
         void UpdateStatusbar();
+        Fl_Color SignalLevelColor(int level);
 
         // Display threads
         std::thread* _signalLevelThread;

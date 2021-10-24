@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <regex>
+#include <numeric>
 
 #include "main.h"
 #include "booma.h"
@@ -262,6 +263,7 @@ MainWindow::~MainWindow() {
     delete _rfInputWaterfall;
     delete _afOutputWaterfall;
     delete _signalLevelSlider;
+    delete _signalLevelAverageSlider;
 
     // Join threads
     _signalLevelThread->join();
@@ -580,11 +582,17 @@ void MainWindow::SetupBookmarks() {
 void MainWindow::SetupDisplays() {
 
     // Signallevel reporting
-    _signalLevelSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 190, _menubar->h() + 150, 180, 30, "S0");
+    _signalLevelSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 190, _menubar->h() + 150, 180, 10, "S0");
     _signalLevelSlider->bounds(0, 11);
     _signalLevelSlider->set_output();
     _signalLevelSlider->scrollvalue(0, 1,0, 12);
     _signalLevelSlider->color(FL_GRAY, FL_GREEN);
+    //
+    _signalLevelAverageSlider = new Fl_Slider(FL_HOR_FILL_SLIDER, _win->w() - 190, _menubar->h() + 160, 180, 20, "S0");
+    _signalLevelAverageSlider->bounds(0, 11);
+    _signalLevelAverageSlider->set_output();
+    _signalLevelAverageSlider->scrollvalue(0, 1,0, 12);
+    _signalLevelAverageSlider->color(FL_GRAY, FL_GREEN);
 
     // RF input waterfall
     _rfInputWaterfall = new Waterfall(10, _menubar->h() + 10, 512, 185, "RF input",
@@ -1327,97 +1335,72 @@ void MainWindow::SetVolumeSliderLabel() {
     _volumeSlider->label(_volumeLabel);
 }
 
+Fl_Color MainWindow::SignalLevelColor(int level) {
+    switch( level ) {
+        case 0:
+            return FL_GRAY;
+        case 1:
+            return FL_YELLOW;
+        case 2:
+            return FL_YELLOW;
+        case 3:
+            return FL_GREEN;
+        case 4:
+            return FL_GREEN;
+        case 5:
+            return FL_GREEN;
+        case 6:
+            return FL_GREEN;
+        case 7:
+            return FL_GREEN;
+        case 8:
+            return FL_GREEN;
+        case 9:
+            return FL_GREEN;
+        case 10:
+            return FL_DARK_YELLOW;
+        case 11:
+            return FL_RED;
+        default:
+            if( level > 11) {
+                return FL_RED;
+            } else {
+                return FL_YELLOW;
+            }
+    }
+}
+
 inline void MainWindow::UpdateSignalLevelDisplay() {
     const char* levels[12] = { "      S0      ", "      S1      ", "      S2      ", "      S3      ", "      S4      ", "      S5      ", "      S6      ", "      S7      ", "      S8      ", "      S9      ", " S9 +10dB ", " S9 +20dB " };
-
+    static std::vector<int> average;
     static int initialize = 0;
+
+    int level = _app->GetSignalLevel();
+    average.push_back(level);
+
     if( initialize < 25 ) {
-        _signalLevelSlider->label(levels[0]);
         _signalLevelSlider->scrollvalue(0, 1,0, 12);
         _signalLevelSlider->color(FL_GRAY, FL_GRAY);
+        //
+        _signalLevelAverageSlider->label(levels[0]);
+        _signalLevelAverageSlider->scrollvalue(0, 1,0, 12);
+        _signalLevelAverageSlider->color(FL_GRAY, FL_GRAY);
+
         initialize++;
         return;
     }
 
-    int level = _app->GetSignalLevel();
-    static int previousLevel = 0;
-    if( level != previousLevel ) {
-        switch( _app->GetSignalLevel() ) {
-            case 0:
-                _signalLevelSlider->label(levels[0]);
-                _signalLevelSlider->scrollvalue(0, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GRAY);
-                break;
-            case 1:
-                _signalLevelSlider->label(levels[1]);
-                _signalLevelSlider->scrollvalue(1, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
-                break;
-            case 2:
-                _signalLevelSlider->label(levels[2]);
-                _signalLevelSlider->scrollvalue(2, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
-                break;
-            case 3:
-                _signalLevelSlider->label(levels[3]);
-                _signalLevelSlider->scrollvalue(3, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 4:
-                _signalLevelSlider->label(levels[4]);
-                _signalLevelSlider->scrollvalue(4, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 5:
-                _signalLevelSlider->label(levels[5]);
-                _signalLevelSlider->scrollvalue(5, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 6:
-                _signalLevelSlider->label(levels[6]);
-                _signalLevelSlider->scrollvalue(6, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 7:
-                _signalLevelSlider->label(levels[7]);
-                _signalLevelSlider->scrollvalue(7, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 8:
-                _signalLevelSlider->label(levels[8]);
-                _signalLevelSlider->scrollvalue(8, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 9:
-                _signalLevelSlider->label(levels[9]);
-                _signalLevelSlider->scrollvalue(9, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_GREEN);
-                break;
-            case 10:
-                _signalLevelSlider->label(levels[10]);
-                _signalLevelSlider->scrollvalue(10, 1,0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_DARK_YELLOW);
-                break;
-            case 11:
-                _signalLevelSlider->label(levels[11]);
-                _signalLevelSlider->scrollvalue(11, 1, 0, 12);
-                _signalLevelSlider->color(FL_GRAY, FL_RED);
-                break;
-            default:
-                if( level > 11) {
-                    _signalLevelSlider->label(levels[11]);
-                    _signalLevelSlider->scrollvalue(11, 1, 0, 12);
-                    _signalLevelSlider->color(FL_GRAY, FL_RED);
-                } else {
-                    _signalLevelSlider->label(levels[0]);
-                    _signalLevelSlider->scrollvalue(0, 1,0, 12);
-                    _signalLevelSlider->color(FL_GRAY, FL_YELLOW);
-                }
-                break;
-        }
-        previousLevel = level;
-        Fl::awake();
-    }
+    average.pop_back();
+    int avgLevel = std::accumulate(average.begin(), average.end(), 0) / average.size();
+
+    _signalLevelSlider->scrollvalue(level <= 11 ? level : 11, 1,0, 12);
+    _signalLevelSlider->color(FL_GRAY, SignalLevelColor(level));
+    //
+    _signalLevelAverageSlider->label(levels[avgLevel <= 11 ? avgLevel : 11]);
+    _signalLevelAverageSlider->scrollvalue(avgLevel <= 11 ? avgLevel : 11, 1,0, 12);
+    _signalLevelAverageSlider->color(FL_GRAY, SignalLevelColor(avgLevel));
+
+    Fl::awake();
 }
 
 inline void MainWindow::UpdateRfSpectrumDisplay() {
