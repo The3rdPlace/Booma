@@ -17,6 +17,7 @@ class Waterfall : public Fl_Widget {
         int _mouseX;
         int _mouseY;
         bool _scheduleScreenshot;
+        int _scale;
 
         BoomaApplication* _app;
         float _hzPerBin;
@@ -56,11 +57,7 @@ class Waterfall : public Fl_Widget {
         }
 
         // Precalculated variables (for speed)
-        int _ghMinusOne;
         int _oneScreenLineLength;
-        int _secondScreenLineStart;
-        int _fullScreenLengthMinusOne;
-        int _ghMinusThree;
         int _gridLines[9];
 
         // Utility methods
@@ -68,7 +65,7 @@ class Waterfall : public Fl_Widget {
 
     public:
 
-        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type);
+        Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type, int scale = 1);
         ~Waterfall();
 
         void ReConfigure(bool iq, int n, int zoom, int center);

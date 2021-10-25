@@ -193,7 +193,7 @@ MainWindow::MainWindow(BoomaApplication* app):
         _threadsAlive++;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         while( _threadsRunning ) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             if( !_threadsPaused ) {
                 Fl::lock();
                 UpdateAfSpectrumDisplay();
@@ -612,7 +612,7 @@ void MainWindow::SetupDisplays() {
                                        _app,
                                        4,
                                        ((_app->GetOutputSampleRate() / 2) / 4) / 2,
-                                       AF);
+                                       AF, 2);
     _afOutputWaterfall->SetScreenshotPrefix("AF_OUTPUT");
 
     // Analysis window

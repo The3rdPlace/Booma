@@ -2,13 +2,11 @@
 
 #include <FL/Fl.H>
 #include <iostream>
-#include <math.h>
-#include <iostream>
 #include <chrono>
 #include <ctime>
 #include <jpeglib.h>
 
-Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type)
+Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, BoomaApplication* app, int zoom, int center, WaterfallType type, int scale)
     : Fl_Widget(X, Y, W, H, L),
     _n(n),
     _iq(iq),
@@ -18,17 +16,14 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
     _gw(W),
     _gh(H - 22),
     _app(app),
-    _ghMinusOne(H - 22 - 1),
-    _secondScreenLineStart(_gw * 1 * 3),
     _oneScreenLineLength(_gw * 3),
-    _fullScreenLengthMinusOne(_gw * (_gh - 1) * 3),
-    _ghMinusThree(_gh - 3),
     _selectedFrequency(_app->GetFrequency()),
     _enableDrawing(true),
     _cb(nullptr),
     _enableNavigation(false),
     _mouseInside(false),
-    _scheduleScreenshot(false) {
+    _scheduleScreenshot(false),
+    _scale(scale) {
 
     _fft = new double[_n];
     memset((void*) _fft, 0, _n * sizeof(double));
@@ -71,11 +66,7 @@ Waterfall::Waterfall(int X, int Y, int W, int H, const char *L, int n, bool iq, 
 #define H h()
 #define GW _gw
 #define GH _gh
-#define GH_MINUS_ONE _ghMinusOne
-#define FULL_SCREEN_LENGT_MINUS_ONE _fullScreenLengthMinusOne
-#define SECOND_SCREEN_LINE_START _secondScreenLineStart
 #define ONE_SCREEN_LINE_LENGTH _oneScreenLineLength
-#define GH_MINUS_THREE _ghMinusThree
 #define GH_PLUS_FIFTEEN _gh + 15
 
 Waterfall::~Waterfall() {
@@ -92,39 +83,41 @@ void Waterfall::draw() {
     // Move waterfall downwards
     _ofscr = fl_create_offscreen(W, H);
     fl_begin_offscreen(_ofscr);
-    fl_draw_image(_screen, 0, 1, GW, GH_MINUS_ONE);
-    memmove((void*) &_screen[SECOND_SCREEN_LINE_START], (void*) _screen, FULL_SCREEN_LENGT_MINUS_ONE);
-    memset((void*) _screen, 0, ONE_SCREEN_LINE_LENGTH);
+    fl_draw_image(_screen, 0, _scale, GW, GH - _scale);
+    memmove((void*) &_screen[ONE_SCREEN_LINE_LENGTH * _scale], (void*) _screen, ONE_SCREEN_LINE_LENGTH * (GH - _scale));
+    memset((void*) _screen, 0, ONE_SCREEN_LINE_LENGTH * _scale);
 
     // Draw new waterfall line
     fl_rectf(0, 0, GW, 1, FL_BLACK);
     uchar* s = _screen;
     uchar c;
-    if( _iq ) {
-        for (int i = _n / 4; i < _n / 2 && i < _gw; i++) {
-            c = colorMap(_fft[i]);
-            fl_color(fl_rgb_color(c));
-            fl_point(i - (i / 4), 0);
-            *(s++) = c;
-            *(s++) = c;
-            *(s++) = c;
-        }
-        for (int i = 0; i < _n / 4 && i < _gw / 2; i++) {
-            c = colorMap(_fft[i]);
-            fl_color(fl_rgb_color(c));
-            fl_point(i + (i / 4), 0);
-            *(s++) = c;
-            *(s++) = c;
-            *(s++) = c;
-        }
-    } else {
-        for (int i = 0; i < _n / 2 && i < _gw; i++) {
-            c = colorMap(_fft[i]);
-            fl_color(fl_rgb_color(c));
-            fl_point(i, 0);
-            *(s++) = c;
-            *(s++) = c;
-            *(s++) = c;
+    for( int j = 0; j < _scale; j++ ) {
+        if( _iq ) {
+            for (int i = _n / 4; i < _n / 2 && i < _gw; i++) {
+                c = colorMap(_fft[i]);
+                fl_color(fl_rgb_color(c));
+                fl_point(i - (i / 4), 0);
+                *(s++) = c;
+                *(s++) = c;
+                *(s++) = c;
+            }
+            for (int i = 0; i < _n / 4 && i < _gw / 2; i++) {
+                c = colorMap(_fft[i]);
+                fl_color(fl_rgb_color(c));
+                fl_point(i + (i / 4), 0);
+                *(s++) = c;
+                *(s++) = c;
+                *(s++) = c;
+            }
+        } else {
+            for (int i = 0; i < _n / 2 && i < _gw; i++) {
+                c = colorMap(_fft[i]);
+                fl_color(fl_rgb_color(c));
+                fl_point(i, 0);
+                *(s++) = c;
+                *(s++) = c;
+                *(s++) = c;
+            }
         }
     }
 
