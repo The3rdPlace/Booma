@@ -56,7 +56,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
 
     // Add audio spectrum calculation
     _audioFftGain = new HAgc<int16_t>(_audioSplitter->Consumer(), opts->GetAfFftAgcLevel(), 3,  BLOCKSIZE);
-    _audioFftWindow = new HRectangularWindow<int16_t>();
+    _audioFftWindow = new HHammingWindow<int16_t>();
     _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _audioFftGain->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), 4, opts->GetOutputSampleRate() / 16);
     _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
 

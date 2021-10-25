@@ -38,7 +38,7 @@ class BoomaOutput {
         HFftOutput<int16_t>* _audioFft;
         HCustomWriter<HFftResults>* _audioFftWriter;
         int AudioFftCallback(HFftResults* result, size_t length);
-        HRectangularWindow<int16_t>* _audioFftWindow;
+        HHammingWindow<int16_t>* _audioFftWindow;
         double* _audioSpectrum;
         int _audioFftSize;
         int _audioSpectrumSize;
