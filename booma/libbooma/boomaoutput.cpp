@@ -12,8 +12,6 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         _audioSplitter(nullptr),
         _audioBreaker(nullptr),
         _audioBuffer(nullptr),
-        _outputVolumeProbe(nullptr),
-        _outputFilterProbe(nullptr),
         _frequencyAlignmentGenerator(nullptr),
         _frequencyAlignmentMixer(nullptr),
         _ifSplitter(nullptr),
@@ -33,43 +31,41 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     memset((void*) _audioSpectrum, 0, sizeof(double) * _audioSpectrumSize);
 
     // Final output filter to remove high frequencies
-    _outputFilterProbe = new HProbe<int16_t>("output_01_output_filter", opts->GetEnableProbes());
-    _outputFilter = new HFirFilter<int16_t>(receiver->GetLastWriterConsumer(), HLowpassKaiserBessel<int16_t>(_outputFilterWidth, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE, _outputFilterProbe);
+    _outputFilter = new HFirFilter<int16_t>("output_high_frequence_fir", receiver->GetLastWriterConsumer(), HLowpassKaiserBessel<int16_t>(_outputFilterWidth, opts->GetOutputSampleRate(), 15, 90).Calculate(), 15, BLOCKSIZE);
 
     // Setup a splitter to split off audio dump
     HLog("Setting up output audio splitter");
-    _audioSplitter = new HSplitter<int16_t>(_outputFilter->Consumer());
-    _audioDelay = new HDelay<int16_t>(_audioSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
-    _audioBreaker = new HBreaker<int16_t>(_audioDelay->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
-    _audioBuffer = new HBufferedWriter<int16_t>(_audioBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
+    _audioSplitter = new HSplitter<int16_t>("output_audio_splitter", _outputFilter->Consumer());
+    _audioDelay = new HDelay<int16_t>("output_audio_delay", _audioSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
+    _audioBreaker = new HBreaker<int16_t>("output_audio_breaker", _audioDelay->Consumer(), !opts->GetDumpAudio(), BLOCKSIZE);
+    _audioBuffer = new HBufferedWriter<int16_t>("output_audio_buffer", _audioBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "OUTPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpAudioFileFormat() == WAV ) {
-        _audioWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _audioBuffer->Consumer(), true);
+        _audioWriter = new HWavWriter<int16_t>("output_audio_wav_writer", (dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _audioBuffer->Consumer(), true);
     } else {
-        _audioWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _audioBuffer->Consumer(), true);
+        _audioWriter = new HFileWriter<int16_t>("output_audio_pcm_writer", (dumpfile + ".pcm").c_str(), _audioBuffer->Consumer(), true);
     }
 
     // Add signallevel measurement just before the volume
     HLog("Setting up signallevel measurement");
-    _signalLevel = new HSignalLevelOutput<int16_t>(_audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 16);
-    _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>(this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
+    _signalLevel = new HSignalLevelOutput<int16_t>("output_signal_level_splitter", _audioSplitter->Consumer(), SIGNALLEVEL_AVERAGING_COUNT, 54, 16);
+    _signalLevelWriter = HCustomWriter<HSignalLevelResult>::Create<BoomaOutput>("output_signal_level_writer", this, &BoomaOutput::SignalLevelCallback, _signalLevel->Consumer());
 
     // Add audio spectrum calculation
-    _audioFftGain = new HAgc<int16_t>(_audioSplitter->Consumer(), opts->GetAfFftAgcLevel(), 3,  BLOCKSIZE);
+    _audioFftGain = new HAgc<int16_t>("output_spectrum_gain", _audioSplitter->Consumer(), opts->GetAfFftAgcLevel(), 3,  BLOCKSIZE);
     _audioFftWindow = new HHammingWindow<int16_t>();
-    _audioFft = new HFftOutput<int16_t>(_audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _audioFftGain->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), 4, opts->GetOutputSampleRate() / 16);
-    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>(this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
+    _audioFft = new HFftOutput<int16_t>("output_spectrum_fft_output", _audioFftSize, AUDIOFFT_AVERAGING_COUNT, AUDIOFFT_SKIP, _audioFftGain->Consumer(), _audioFftWindow, opts->GetOutputSampleRate(), 4, opts->GetOutputSampleRate() / 16);
+    _audioFftWriter = HCustomWriter<HFftResults>::Create<BoomaOutput>("output_spectrum_writer", this, &BoomaOutput::AudioFftCallback, _audioFft->Consumer());
 
     // Add volume control
     HLog("Output volume");
-    _outputVolumeProbe = new HProbe<int16_t>("output_02_output_volume", opts->GetEnableProbes());
-    _outputVolume = new HGain<int16_t>(_audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE, _outputVolumeProbe);
+    _outputVolume = new HGain<int16_t>("output_volume_control", _audioSplitter->Consumer(), opts->GetVolume(), BLOCKSIZE);
 
     // Enable frequency alignment ?
     if( opts->GetFrequencyAlign() ) {
         HLog("Enabling ftl-sdr frequency alignment mode");
-        _frequencyAlignmentGenerator = new HSineGenerator<int16_t>(opts->GetOutputSampleRate(), 800, opts->GetFrequencyAlignVolume());
-        _frequencyAlignmentMixer = new HLinearMixer<int16_t>(_frequencyAlignmentGenerator->Reader(), _outputVolume->Consumer(), BLOCKSIZE);
+        _frequencyAlignmentGenerator = new HSineGenerator<int16_t>("output_frequency_alignment_generator", opts->GetOutputSampleRate(), 800, opts->GetFrequencyAlignVolume());
+        _frequencyAlignmentMixer = new HLinearMixer<int16_t>("output_frequency_alignment_mixer", _frequencyAlignmentGenerator->Reader(), _outputVolume->Consumer(), BLOCKSIZE);
     }
 
     // Select output device
@@ -77,11 +73,11 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         HLog("Writing output audio to %s", opts->GetOutputFilename().c_str());
         if( IsWav(opts->GetOutputFilename()) ) {
             HLog("Creating output wav file");
-            _wavWriter = new HWavWriter<int16_t>(opts->GetOutputFilename().c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), GetOutputVolumeConsumer());
+            _wavWriter = new HWavWriter<int16_t>("output_audio_wav_writer", opts->GetOutputFilename().c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), GetOutputVolumeConsumer());
             _pcmWriter = nullptr;
         } else {
             HLog("Creating output pcm file");
-            _pcmWriter = new HFileWriter<int16_t>(opts->GetOutputFilename().c_str(), GetOutputVolumeConsumer());
+            _pcmWriter = new HFileWriter<int16_t>("output_audio_pcm_writer", opts->GetOutputFilename().c_str(), GetOutputVolumeConsumer());
             _wavWriter = nullptr;
         }
         _soundcardWriter = nullptr;
@@ -89,7 +85,7 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
     }
     else if( opts->GetOutputAudioDevice() == -1 ) {
         HLog("Writing output audio to /dev/null device");
-        _nullWriter = new HNullWriter<int16_t>(GetOutputVolumeConsumer());
+        _nullWriter = new HNullWriter<int16_t>("output_null_writer", GetOutputVolumeConsumer());
         _soundcardWriter = nullptr;
         _pcmWriter = nullptr;
         _wavWriter = nullptr;
@@ -99,10 +95,10 @@ BoomaOutput::BoomaOutput(ConfigOptions* opts, BoomaReceiver* receiver):
         HLog("Initializing multiplexer for 2-channel mono output");
         std::vector<HWriterConsumer<int16_t>*> consumers;
         consumers.push_back(GetOutputVolumeConsumer());
-        _soundcardMultiplexer = new HMux<int16_t>(consumers, BLOCKSIZE, true);
+        _soundcardMultiplexer = new HMux<int16_t>("output_multiplexer", consumers, BLOCKSIZE, true);
 
         HLog("Initializing audio output device %d", opts->GetOutputAudioDevice());
-        _soundcardWriter = new HSoundcardWriter<int16_t>(opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 2, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _soundcardMultiplexer->Consumer());
+        _soundcardWriter = new HSoundcardWriter<int16_t>("output_audio_card_writer", opts->GetOutputAudioDevice(), opts->GetOutputSampleRate(), 2, H_SAMPLE_FORMAT_INT_16, BLOCKSIZE, _soundcardMultiplexer->Consumer());
         _nullWriter = nullptr;
         _pcmWriter = nullptr;
         _wavWriter = nullptr;
@@ -122,8 +118,6 @@ BoomaOutput::~BoomaOutput() {
     SAFE_DELETE(_audioSplitter);
     SAFE_DELETE(_audioBreaker);
     SAFE_DELETE(_audioBuffer);
-    SAFE_DELETE(_outputVolumeProbe);
-    SAFE_DELETE(_outputFilterProbe);
     SAFE_DELETE(_frequencyAlignmentGenerator);
     SAFE_DELETE(_frequencyAlignmentMixer);
     SAFE_DELETE(_ifSplitter);

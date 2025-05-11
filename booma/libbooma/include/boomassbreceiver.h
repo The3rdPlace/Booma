@@ -11,15 +11,6 @@ class BoomaSsbReceiver : public BoomaReceiver {
 
     private:
 
-        bool _enableProbes;
-
-        HProbe<int16_t>* _inputFirFilterProbe;
-        HProbe<int16_t>* _iqMultiplierProbe;
-        HProbe<int16_t>* _iqFirFilterProbe;
-        HProbe<int16_t>* _basebandMultiplierProbe;
-        HProbe<int16_t>* _lowpassFilterProbe;
-        HProbe<int16_t>* _iqAdderProbe;
-
         // Preprocessing
         HIqFirFilter<int16_t>* _inputFirFilter;
         HIqMultiplier<int16_t>* _iqMultiplier;

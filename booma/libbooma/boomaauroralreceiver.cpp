@@ -2,15 +2,10 @@
 
 BoomaAuroralReceiver::BoomaAuroralReceiver(ConfigOptions* opts, int initialFrequency):
     BoomaReceiver(opts, initialFrequency),
-    _enableProbes(opts->GetEnableProbes()),
-    _humfilterProbe(nullptr),
     _humfilter(nullptr),
     _bandpass(nullptr),
-    _bandpassProbe(nullptr),
     _averaging(nullptr),
-    _averagingProbe(nullptr),
-    _gaussian(nullptr),
-    _gaussianProbe(nullptr) {
+    _gaussian(nullptr) {
 
     opts->SetFrequency(5000);
     opts->SetInputFilterWidth(10000);
@@ -55,13 +50,11 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::PreProcess(ConfigOptions* opts, 
 
     // Add a combfilter to kill (more) 50 hz harmonics
     HLog("Adding 50Hz humfilter for audio device input");
-    _humfilterProbe = new HProbe<int16_t>("auroralreceiver_01_humfilter", _enableProbes);
-    _humfilter = new HCombFilter<int16_t>(previous, opts->GetInputSampleRate(), 50, -0.907f, BLOCKSIZE, _humfilterProbe);
+    _humfilter = new HCombFilter<int16_t>("auroral_receiver_pre_process_hum_comb", previous, opts->GetInputSampleRate(), 50, -0.907f, BLOCKSIZE);
 
     // Narrow bandpass filter, from 100Hz to 10KHz.
     HLog("- Bandpass");
-    _bandpassProbe = new HProbe<int16_t>("auroralreceiver_02_bandpass", _enableProbes);
-    _bandpass = new HFirFilter<int16_t>(_humfilter->Consumer(), HBandpassKaiserBessel<int16_t>(100, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE, _bandpassProbe);
+    _bandpass = new HFirFilter<int16_t>("auroral_receiver_pre_process_bandpass_fir", _humfilter->Consumer(), HBandpassKaiserBessel<int16_t>(100, 10000, opts->GetOutputSampleRate(), 115, 96).Calculate(), 115, BLOCKSIZE);
 
     if( GetOption("Humfilter") == 1 ) {
         _humfilter->Enable();
@@ -82,11 +75,8 @@ HWriterConsumer<int16_t>* BoomaAuroralReceiver::Receive(ConfigOptions* opts, HWr
 HWriterConsumer<int16_t>* BoomaAuroralReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AURORAL receiver postprocessing chain");
 
-    _averagingProbe = new HProbe<int16_t>("auroralreceiver_03_averaging", _enableProbes);
-    _averaging = new HMovingAverageFilter<int16_t>(previous, 3, BLOCKSIZE, _averagingProbe);
-
-    _averagingProbe = new HProbe<int16_t>("auroralreceiver_04_gaussian", _enableProbes);
-    _gaussian = new HGaussianFilter<int16_t>(_averaging->Consumer(), BLOCKSIZE, 2, 1024);
+    _averaging = new HMovingAverageFilter<int16_t>("auroral_receiver_post_process_averaging", previous, 3, BLOCKSIZE);
+    _gaussian = new HGaussianFilter<int16_t>("auroral_receiver_post_process_gaussian", _averaging->Consumer(), BLOCKSIZE, 2, 1024);
 
     if( GetOption("MovingAveragefilter") == 1 ) {
         _averaging->Enable();
@@ -108,11 +98,6 @@ BoomaAuroralReceiver::~BoomaAuroralReceiver() {
     SAFE_DELETE(_humfilter);
     SAFE_DELETE(_averaging);
     SAFE_DELETE(_gaussian);
-
-    SAFE_DELETE(_bandpassProbe);
-    SAFE_DELETE(_humfilterProbe);
-    SAFE_DELETE(_averagingProbe);
-    SAFE_DELETE(_gaussianProbe);
 }
 
 bool BoomaAuroralReceiver::SetInternalFrequency(ConfigOptions* opts, int frequency) {

@@ -19,29 +19,20 @@ public:
         HNetworkProcessor<int16_t>* _networkProcessor;
 
         // Decimation
-        HProbe<int16_t>* _decimatorGainProbe;
         HGain<int16_t>* _decimatorGain;
-        HProbe<int16_t>* _decimatorAgcProbe;
         HAgc<int16_t>* _decimatorAgc;
-        HProbe<int16_t>* _ifMultiplierProbe;
         HIqMultiplier<int16_t>* _ifMultiplier;
-        HProbe<int16_t>* _iqFirDecimatorProbe;
         HIqFirDecimator<int16_t>* _iqFirDecimator;
-        HProbe<int16_t>* _iqDecimatorProbe;
         HIqDecimator<int16_t>* _iqDecimator;
-        HProbe<int16_t>* _firDecimatorProbe;
         HFirDecimator<int16_t>* _firDecimator;
-        HProbe<int16_t>* _decimatorProbe;
         HDecimator<int16_t>* _decimator;
 
         // Preamp
-        HProbe<int16_t>* _preampProbe;
         HGain<int16_t>* _preamp;
 
         // Input filtering
         HIqFirFilter<int16_t>* _inputIqFirFilter;
         HFirFilter<int16_t>* _inputFirFilter;
-        HProbe<int16_t>* _inputFirFilterProbe;
 
         // Dumping rf input
         HSplitter<int16_t>* _rfSplitter;

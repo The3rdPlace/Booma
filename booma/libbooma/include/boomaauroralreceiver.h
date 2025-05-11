@@ -11,13 +11,6 @@ class BoomaAuroralReceiver : public BoomaReceiver {
 
     private:
 
-        bool _enableProbes;
-
-        HProbe<int16_t>* _humfilterProbe;
-        HProbe<int16_t>* _bandpassProbe;
-        HProbe<int16_t>* _averagingProbe;
-        HProbe<int16_t>* _gaussianProbe;
-
         // Preprocessing
         HCombFilter<int16_t>* _humfilter;
 

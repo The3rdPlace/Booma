@@ -12,18 +12,6 @@ class BoomaCwReceiver : public BoomaReceiver {
 
     private:
 
-        bool _enableProbes;
-
-        HProbe<int16_t>* _humfilterProbe;
-        HProbe<int16_t>* _iq2IConverterProbe;
-        HProbe<int16_t>* _iqMultiplierProbe;
-        HProbe<int16_t>* _preselectProbe;
-        HProbe<int16_t>* _passbandGainProbe;
-        HProbe<int16_t>* _ifMixerProbe;
-        HProbe<int16_t>* _ifFilterProbe;
-        HProbe<int16_t>* _beatToneMixerProbe;
-        HProbe<int16_t>* _postSelectProbe;
-
         // Preprocessing
         HHumFilter<int16_t>* _humfilter;
         HIq2IConverter<int16_t>* _iq2IConverter;

@@ -10,13 +10,6 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _streamProcessor(nullptr),
         _decimatorGain(nullptr),
         _decimatorAgc(nullptr),
-        _ifMultiplierProbe(nullptr),
-        _iqFirDecimatorProbe(nullptr),
-        _iqDecimatorProbe(nullptr),
-        _firDecimatorProbe(nullptr),
-        _decimatorProbe(nullptr),
-        _decimatorGainProbe(nullptr),
-        _decimatorAgcProbe(nullptr),
         _ifMultiplier(nullptr),
         _iqFirDecimator(nullptr),
         _iqDecimator(nullptr),
@@ -24,10 +17,8 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         _decimator(nullptr),
         _inputIqFirFilter(nullptr),
         _inputFirFilter(nullptr),
-        _inputFirFilterProbe(nullptr),
         _rfDelay(nullptr),
         _preamp(nullptr),
-        _preampProbe(nullptr),
         _rfFft(nullptr),
         _rfFftWindow(nullptr),
         _rfFftWriter(nullptr),
@@ -75,7 +66,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         reader = SetDecimation(opts, reader);
 
         HLog("Initializing network processor with selected input device");
-        _networkProcessor = new HNetworkProcessor<int16_t>(opts->GetRemoteDataPort(), opts->GetRemoteCommandPort(), reader, BLOCKSIZE, isTerminated);
+        _networkProcessor = new HNetworkProcessor<int16_t>("input_network_processor", opts->GetRemoteDataPort(), opts->GetRemoteCommandPort(), reader, BLOCKSIZE, isTerminated);
         return;
     }
 
@@ -92,7 +83,7 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
         reader = SetDecimation(opts, reader);
 
         HLog("Initializing stream processor with selected input device");
-        _streamProcessor = new HStreamProcessor<int16_t>(reader, BLOCKSIZE, isTerminated);
+        _streamProcessor = new HStreamProcessor<int16_t>("input_stream_processor", reader, BLOCKSIZE, isTerminated);
     }
 
     // Calculate RF fft spectrum size
@@ -102,22 +93,22 @@ BoomaInput::BoomaInput(ConfigOptions* opts, bool* isTerminated):
 
     // Setup a splitter to split off rf dump and spectrum calculation
     HLog("Setting up input RF splitter and RF optional output dump");
-    _rfSplitter = new HSplitter<int16_t>((_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
-    _rfDelay = new HDelay<int16_t>(_rfSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
-    _rfBreaker = new HBreaker<int16_t>(_rfDelay->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
-    _rfBuffer = new HBufferedWriter<int16_t>(_rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
+    _rfSplitter = new HSplitter<int16_t>("input_rf_splitter", (_networkProcessor != nullptr ? (HProcessor<int16_t>*) _networkProcessor : (HProcessor<int16_t>*) _streamProcessor)->Consumer());
+    _rfDelay = new HDelay<int16_t>("input_rf_delay", _rfSplitter->Consumer(), BLOCKSIZE, opts->GetOutputSampleRate(), 10);
+    _rfBreaker = new HBreaker<int16_t>("input_rf_breaker", _rfDelay->Consumer(), !opts->GetDumpRf(), BLOCKSIZE);
+    _rfBuffer = new HBufferedWriter<int16_t>("input_rf_buffer", _rfBreaker->Consumer(), BLOCKSIZE, opts->GetReservedBuffers(), opts->GetEnableBuffers());
     std::string dumpfile = "INPUT_" + (opts->GetDumpFileSuffix() == "" ? std::to_string(std::time(nullptr)) : opts->GetDumpFileSuffix());
     if( opts->GetDumpRfFileFormat() == WAV ) {
-        _rfWriter = new HWavWriter<int16_t>((dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _rfBuffer->Consumer(), true);
+        _rfWriter = new HWavWriter<int16_t>("input_rf_wav_writer", (dumpfile + ".wav").c_str(), H_SAMPLE_FORMAT_INT_16, 1, opts->GetOutputSampleRate(), _rfBuffer->Consumer(), true);
     } else {
-        _rfWriter = new HFileWriter<int16_t>((dumpfile + ".pcm").c_str(), _rfBuffer->Consumer(), true);
+        _rfWriter = new HFileWriter<int16_t>("input_rf_pcm_writer", (dumpfile + ".pcm").c_str(), _rfBuffer->Consumer(), true);
     }
 
     // Add RF spectrum calculation
     _rfFftWindow = new HRectangularWindow<int16_t>();
-    _rfFftGain = new HGain<int16_t>(_rfSplitter->Consumer(), 1, BLOCKSIZE);
-    _rfFft = new HFftOutput<int16_t>(_rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfFftGain->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
-    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaInput>(this, &BoomaInput::RfFftCallback, _rfFft->Consumer());
+    _rfFftGain = new HGain<int16_t>("input_rf_spectrum_gain", _rfSplitter->Consumer(), 1, BLOCKSIZE);
+    _rfFft = new HFftOutput<int16_t>("input_rf_spectrum_output", _rfFftSize, RFFFT_AVERAGING_COUNT, RFFFT_SKIP, _rfFftGain->Consumer(), _rfFftWindow, opts->GetInputSourceDataType() != REAL_INPUT_SOURCE_DATA_TYPE);
+    _rfFftWriter = HCustomWriter<HFftResults>::Create<BoomaInput>("input_rf_spectrum_writer", this, &BoomaInput::RfFftCallback, _rfFft->Consumer());
 
     // Add preamp
     HLog("Setting up the preamp");
@@ -139,21 +130,13 @@ BoomaInput::~BoomaInput() {
 
     SAFE_DELETE(_decimatorGain);
     SAFE_DELETE(_decimatorAgc);
-    SAFE_DELETE(_ifMultiplierProbe);
-    SAFE_DELETE(_iqFirDecimatorProbe);
-    SAFE_DELETE(_iqDecimatorProbe);
-    SAFE_DELETE(_firDecimatorProbe);
-    SAFE_DELETE(_decimatorProbe);
     SAFE_DELETE(_ifMultiplier);
     SAFE_DELETE(_iqFirDecimator);
     SAFE_DELETE(_iqDecimator);
     SAFE_DELETE(_firDecimator);
     SAFE_DELETE(_decimator);
-    SAFE_DELETE(_decimatorGainProbe);
-    SAFE_DELETE(_decimatorAgcProbe);
     SAFE_DELETE(_inputIqFirFilter);
     SAFE_DELETE(_inputFirFilter);
-    SAFE_DELETE(_inputFirFilterProbe);
 
     SAFE_DELETE(_inputReader);
     SAFE_DELETE(_rfWriter);
@@ -162,7 +145,6 @@ BoomaInput::~BoomaInput() {
     SAFE_DELETE(_rfBuffer);
     SAFE_DELETE(_rfDelay);
     SAFE_DELETE(_preamp);
-    SAFE_DELETE(_preampProbe);
 
     SAFE_DELETE(_rfFft);
     SAFE_DELETE(_rfFftWriter);
@@ -177,25 +159,25 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
         switch (opts->GetInputSourceType()) {
             case AUDIO_DEVICE:
                 HLog("Initializing audio input device %d", opts->GetInputDevice());
-                _inputReader = new HSoundcardReader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(), 1,
+                _inputReader = new HSoundcardReader<int16_t>("input_soundcard_reader", opts->GetInputDevice(), opts->GetInputSampleRate(), 1,
                                                              H_SAMPLE_FORMAT_INT_16, BLOCKSIZE);
                 break;
             case SIGNAL_GENERATOR:
                 HLog("Initializing signal generator at frequency %d", opts->GetSignalGeneratorFrequency());
-                _inputReader = new HSineGenerator<int16_t>(opts->GetInputSampleRate(),
+                _inputReader = new HSineGenerator<int16_t>("input_signal_generator_reader", opts->GetInputSampleRate(),
                                                            opts->GetSignalGeneratorFrequency(), 200);
                 break;
             case PCM_FILE:
                 HLog("Initializing pcm file reader for input file %s", opts->GetPcmFile().c_str());
-                _inputReader = new HFileReader<int16_t>(opts->GetPcmFile());
+                _inputReader = new HFileReader<int16_t>("input_pcm_reader", opts->GetPcmFile());
                 break;
             case WAV_FILE:
                 HLog("Initializing wav file reader for input file %s", opts->GetWavFile().c_str());
-                _inputReader = new HWavReader<int16_t>(opts->GetWavFile().c_str());
+                _inputReader = new HWavReader<int16_t>("input_wav_reader", opts->GetWavFile().c_str());
                 break;
             case SILENCE:
                 HLog("Initializing nullreader");
-                _inputReader = new HNullReader<int16_t>();
+                _inputReader = new HNullReader<int16_t>("input_null_reader");
                 break;
             case RTLSDR:
                 switch (opts->GetInputSourceDataType()) {
@@ -203,7 +185,7 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
                         HLog("Initializing RTL-2832 device %d for IQ data with offset %d and correction %d and gain %d",
                              opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
                              opts->GetRtlsdrGain());
-                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                        _inputReader = new HRtl2832Reader<int16_t>("input_rtl2832_iq_reader", opts->GetInputDevice(), opts->GetInputSampleRate(),
                                                                    HRtl2832::MODE::IQ_SAMPLES, opts->GetRtlsdrGain(),
                                                                    _hardwareFrequency, BLOCKSIZE, 0,
                                                                    opts->GetRtlsdrCorrection());
@@ -212,7 +194,7 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
                         HLog("Initializing RTL-2832 device %d for I(nphase) data with offset %d and correction %d and gain %d",
                              opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
                              opts->GetRtlsdrGain());
-                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                        _inputReader = new HRtl2832Reader<int16_t>("input_rtl2832_i_reader", opts->GetInputDevice(), opts->GetInputSampleRate(),
                                                                    HRtl2832::MODE::I_SAMPLES, opts->GetRtlsdrGain(),
                                                                    _hardwareFrequency, BLOCKSIZE, 0,
                                                                    opts->GetRtlsdrCorrection());
@@ -221,7 +203,7 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
                         HLog("Initializing RTL-2832 device %d for Q(uadrature) data with offset %d and correction %d and gain %d",
                              opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
                              opts->GetRtlsdrGain());
-                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                        _inputReader = new HRtl2832Reader<int16_t>("input_rtl2832_q_reader", opts->GetInputDevice(), opts->GetInputSampleRate(),
                                                                    HRtl2832::MODE::Q_SAMPLES, opts->GetRtlsdrGain(),
                                                                    _hardwareFrequency, BLOCKSIZE, 0,
                                                                    opts->GetRtlsdrCorrection());
@@ -230,7 +212,7 @@ HReader<int16_t>* BoomaInput::SetInputReader(ConfigOptions* opts) {
                         HLog("Initializing RTL-2832 device %d for REAL data (positive part of IQ spectrum) with offset %d and correction %d and gain %d",
                              opts->GetInputDevice(), opts->GetRtlsdrOffset(), opts->GetRtlsdrCorrection(),
                              opts->GetRtlsdrGain());
-                        _inputReader = new HRtl2832Reader<int16_t>(opts->GetInputDevice(), opts->GetInputSampleRate(),
+                        _inputReader = new HRtl2832Reader<int16_t>("input_rtl2832_real_reader", opts->GetInputDevice(), opts->GetInputSampleRate(),
                                                                    HRtl2832::MODE::REAL_SAMPLES, opts->GetRtlsdrGain(),
                                                                    _hardwareFrequency, BLOCKSIZE, 0,
                                                                    opts->GetRtlsdrCorrection());
@@ -401,12 +383,10 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
     // Decimators require a tiny bit of gain to overcome the loss in the FIR filters
     if( opts->GetDecimatorGain() > 0 ) {
         HLog("Using fixed gain=%d before decimator", opts->GetDecimatorGain());
-        _decimatorGainProbe = new HProbe<int16_t>("input_01_decimator_gain", opts->GetEnableProbes());
-        _decimatorGain = new HGain<int16_t>(previous, opts->GetDecimatorGain(), BLOCKSIZE, _decimatorGainProbe);
+        _decimatorGain = new HGain<int16_t>("input_decimator_gain_fixed", previous, opts->GetDecimatorGain(), BLOCKSIZE);
     } else {
         HLog("Using agc at level=%d before decimator", opts->GetDecimatorAgcLevel());
-        _decimatorAgcProbe = new HProbe<int16_t>("input_02_decimator_agc", opts->GetEnableProbes());
-        _decimatorAgc = new HAgc<int16_t>(previous, opts->GetDecimatorAgcLevel(), 50, BLOCKSIZE, 6, true, _decimatorAgcProbe);
+        _decimatorAgc = new HAgc<int16_t>("input_decimator_gain_agc", previous, opts->GetDecimatorAgcLevel(), 50, BLOCKSIZE, 6, true);
     }
 
     // Decimation for IQ signals
@@ -414,26 +394,24 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d with FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
-        _iqFirDecimatorProbe = new HProbe<int16_t>("input_03_iq_fir_decimator", opts->GetEnableProbes());
         _iqFirDecimator = new HIqFirDecimator<int16_t>(
+            "input_first_decimator_iq_fir",
             (_decimatorGain != nullptr ? _decimatorGain : _decimatorAgc)->Reader(),
             firstFactor,
             HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), opts->GetFirFilterSize(),120).Calculate(),
             opts->GetFirFilterSize(),
             BLOCKSIZE,
-            true,
-            _iqFirDecimatorProbe);
+            true);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _iqDecimatorProbe = new HProbe<int16_t>("input_04_iq_decimator", opts->GetEnableProbes());
             _iqDecimator = new HIqDecimator<int16_t>(
+                    "input_second_decimator_iq",
                     _iqFirDecimator->Reader(),
                     secondFactor,
                     BLOCKSIZE,
-                    true,
-                    _iqDecimatorProbe);
+                    true);
             return _iqDecimator->Reader();
         } else {
             return _iqFirDecimator->Reader();
@@ -445,20 +423,18 @@ HReader<int16_t>* BoomaInput::SetDecimation(ConfigOptions* opts, HReader<int16_t
 
         // First decimation stage - a FIR decimator dropping the samplerate while filtering out-ouf-band frequencies
         HLog("Creating FIR decimator with factor %d = %d -> %d and FIR filter size %d", firstFactor, opts->GetInputSampleRate(), opts->GetInputSampleRate() / firstFactor, opts->GetFirFilterSize());
-        _firDecimatorProbe = new HProbe<int16_t>("input_05_fir_decimator", opts->GetEnableProbes());
         _firDecimator = new HFirDecimator<int16_t>(
+                "input_first_decimator_fir",
                 (_decimatorGain != nullptr ? _decimatorGain : _decimatorAgc)->Reader(),
                 firstFactor,
                 HLowpassKaiserBessel<int16_t>(opts->GetDecimatorCutoff(), opts->GetInputSampleRate(), opts->GetFirFilterSize(),96).Calculate(),
                 opts->GetFirFilterSize(),
-                BLOCKSIZE,
-                _firDecimatorProbe);
+                BLOCKSIZE);
 
         // Second decimation stage, if needed - a regular decimator dropping the samplerate to the output samplerate
         if (secondFactor > 1) {
             HLog("Creating decimator with factor %d = %d -> %d", secondFactor, opts->GetInputSampleRate() / firstFactor, opts->GetOutputSampleRate());
-            _decimatorProbe = new HProbe<int16_t>("input_06_decimator", opts->GetEnableProbes());
-            _decimator = new HDecimator<int16_t>(_firDecimator->Reader(), 3, BLOCKSIZE, _decimatorProbe);
+            _decimator = new HDecimator<int16_t>("input_second_decimator", _firDecimator->Reader(), 3, BLOCKSIZE);
             return _decimator->Reader();
         } else {
             return _firDecimator->Reader();
@@ -486,21 +462,19 @@ HWriterConsumer<int16_t>* BoomaInput::SetInputFilter(ConfigOptions* opts, HWrite
     if( opts->GetOriginalInputSourceType() == RTLSDR ) {
 
         // Add extra filter the removes (mostly) anything outside the FIR cutoff frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_09_inputfirfilter", opts->GetEnableProbes());
-        _inputIqFirFilter = new HIqFirFilter<int16_t>(previous, opts->GetInputFilterWidth() == 0
+        _inputIqFirFilter = new HIqFirFilter<int16_t>("input_iq_fir", previous, opts->GetInputFilterWidth() == 0
                 ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
                 : HLowpassKaiserBessel<int16_t>(opts->GetInputFilterWidth(), opts->GetOutputSampleRate(), 51, 50).Calculate(),
-                51, BLOCKSIZE, _inputFirFilterProbe);
+                51, BLOCKSIZE);
         return _inputIqFirFilter->Consumer();
     } else {
 
         // Add extra filter the removes (mostly) anything outside the current frequency passband frequency
-        _inputFirFilterProbe = new HProbe<int16_t>("input_10_inputfirfilter", opts->GetEnableProbes());
-        _inputFirFilter = new HFirFilter<int16_t>(previous,
+        _inputFirFilter = new HFirFilter<int16_t>("input_fir", previous,
             opts->GetInputFilterWidth() == 0
                 ? HLowpassKaiserBessel<int16_t>(opts->GetOutputSampleRate() / 2, opts->GetOutputSampleRate(), 51, 50).Calculate()
                 : HBandpassKaiserBessel<int16_t>(_ifFrequency - (opts->GetInputFilterWidth() / 2), _ifFrequency + (opts->GetInputFilterWidth() / 2), opts->GetOutputSampleRate(), 51, 50).Calculate(),
-            51, BLOCKSIZE, _inputFirFilterProbe);
+            51, BLOCKSIZE);
 
         return _inputFirFilter->Consumer();
     }
@@ -541,16 +515,15 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
         return previous;
     }
 
-    // If we use an RTL-SDR (or other downconverting devices) we may running with an offset from the requested
+    // If we use an RTL-SDR (or other downconverting devices), we may be running with an offset from the requested
     // tuned frequency to avoid LO leaks
     if( opts->GetOriginalInputSourceType() == RTLSDR && (opts->GetRtlsdrOffset() != 0 || opts->GetRtlsdrCorrection() != 0) ) {
 
         // IQ data is captured with the device center frequency set at a (configurable) distance from the actual
         // physical frequency that we want to capture. This avoids the LO injections that can be found many places
-        // in the spectrum - a small prize for having such a powerfull sdr at this low pricepoint.!
+        // in the spectrum - a small prize for having such a powerful sdr at this low pricepoint.!
         HLog("Setting up IF multiplier for RTL-SDR device (shift %d)", 0 - opts->GetRtlsdrOffset() - (opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor()));
-        _ifMultiplierProbe = new HProbe<int16_t>("input_08_if_multiplier", opts->GetEnableProbes());
-        _ifMultiplier = new HIqMultiplier<int16_t>(previous, opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE, _ifMultiplierProbe);
+        _ifMultiplier = new HIqMultiplier<int16_t>("input_if_multiplier", previous, opts->GetOutputSampleRate(), 0 - opts->GetRtlsdrOffset() - opts->GetRtlsdrCorrection() * opts->GetRtlsdrCorrectionFactor(), 10, BLOCKSIZE);
 
         return _ifMultiplier->Consumer();
     }
@@ -560,8 +533,7 @@ HWriterConsumer<int16_t>* BoomaInput::SetShift(ConfigOptions* opts, HWriterConsu
 
 HWriterConsumer<int16_t>* BoomaInput::SetPreamp(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
 
-    _preampProbe = new HProbe<int16_t>("input_07_preamp", opts->GetEnableProbes());
-    _preamp = new HGain<int16_t>(previous, 1, BLOCKSIZE, _preampProbe);
+    _preamp = new HGain<int16_t>("input_preamp_gain", previous, 1, BLOCKSIZE);
     _rfFftGain->SetGain(1);
 
     SetPreampLevel(opts, opts->GetPreamp());

@@ -2,17 +2,13 @@
 
 BoomaAmReceiver::BoomaAmReceiver(ConfigOptions* opts, int initialFrequency):
         BoomaReceiver(opts, initialFrequency),
-        _enableProbes(opts->GetEnableProbes()),
         _absConverter(nullptr),
-        _collector(nullptr),
-        _absConverterProbe(nullptr),
-        _collectorProbe(nullptr) {}
+        _collector(nullptr) {}
 
 HWriterConsumer<int16_t>* BoomaAmReceiver::PreProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver preprocessing chain");
 
-    _inputFirFilterProbe = new HProbe<int16_t>("amreceiver_01_inputfirfilter", _enableProbes);
-    _inputFirFilter = new HIqFirFilter<int16_t>(previous, HLowpassKaiserBessel<int16_t>(8000, opts->GetOutputSampleRate(), 25, 50).Calculate(), 25, BLOCKSIZE, _inputFirFilterProbe);
+    _inputFirFilter = new HIqFirFilter<int16_t>("am_receiver_preprocess_iq_fir", previous, HLowpassKaiserBessel<int16_t>(8000, opts->GetOutputSampleRate(), 25, 50).Calculate(), 25, BLOCKSIZE);
 
     return _inputFirFilter->Consumer();
 }
@@ -24,14 +20,12 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
     // frequency equal to the received center frequency, so demodulate AM from an IQ signal by
     // taking the absolute amplitude
     HLog("Demodulating AM by way of absolute value of IQ signal at time 't'");
-    _absConverterProbe = new HProbe<int16_t>("amreceiver_02_abs_converter", _enableProbes);
-    _absConverter = new HIq2AbsConverter<int16_t>(previous, BLOCKSIZE, _absConverterProbe);
+    _absConverter = new HIq2AbsConverter<int16_t>("am_receiver_abs_converter", previous, BLOCKSIZE);
 
     // Since the absolute-converter above returns only half the samples (takes a complex sample, returns
     // the magniture) we need to collect two blocks to get back to the original block size
     HLog("Collecting two blocks to reconstruct blocksize %d", BLOCKSIZE);
-    _collectorProbe = new HProbe<int16_t>("amreceiver_03_collector", _enableProbes);
-    _collector = new HCollector<int16_t>(_absConverter->Consumer(), BLOCKSIZE / 2, BLOCKSIZE, _collectorProbe);
+    _collector = new HCollector<int16_t>("am_receiver_block_collector", _absConverter->Consumer(), BLOCKSIZE / 2, BLOCKSIZE);
 
     // End of receiving
     return _collector->Consumer();
@@ -40,17 +34,12 @@ HWriterConsumer<int16_t>* BoomaAmReceiver::Receive(ConfigOptions* opts, HWriterC
 HWriterConsumer<int16_t>* BoomaAmReceiver::PostProcess(ConfigOptions* opts, HWriterConsumer<int16_t>* previous) {
     HLog("Creating AM receiver postprocessing chain");
 
-    _outputFilterProbe = new HProbe<int16_t>("amreceiver_04_outputfilter", _enableProbes);
-    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>(previous, 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE, _outputFilterProbe);
+    _outputFilter = new HBiQuadFilter<HLowpassBiQuad<int16_t>, int16_t>("am_receiver_post_process_bi_quad", previous, 3000, opts->GetOutputSampleRate(), 0.707, 1, BLOCKSIZE);
 
     return _outputFilter->Consumer();
 }
 
 BoomaAmReceiver::~BoomaAmReceiver() {
-
-    SAFE_DELETE(_absConverterProbe);
-    SAFE_DELETE(_collectorProbe);
-
     SAFE_DELETE(_absConverter);
     SAFE_DELETE(_collector);
 }

@@ -244,14 +244,14 @@ bool ConfigOptions::IsVerbose(int argc, char** argv) {
 ConfigOptions::ConfigOptions(std::string appName, std::string appVersion, int argc, char** argv) {
 
     // Initial check - make sure that we have a recent version of Hardt
-    if( !isVersionOrNewer(1, 2, 13) ) {
+    if( !isVersionOrNewer(2, 0, 1) ) {
         std::cout << "The version of Hardt that is installed (" << getVersion() << ") is too old" << std::endl;
-        std::cout << "Please install version 1.2.12 or newer" << std::endl;
+        std::cout << "Please install version 2.0.1 or newer" << std::endl;
         exit(1);
     }
-    if( !isVersionMajorOrOlder(1) ) {
+    if( !isVersionMajorOrOlder(2) ) {
         std::cout << "The version of Hardt that is installed (" << getVersion() << ") is too new" << std::endl;
-        std::cout << "Please install version 1.2.13 older" << std::endl;
+        std::cout << "Please install version 2.0.1 or older" << std::endl;
         exit(1);
     }
 

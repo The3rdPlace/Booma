@@ -125,8 +125,7 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
 
     // Add receiver gain/agc
     _gainValue = opts->GetRfGain();
-    _rfAgcProbe = new HProbe<int16_t>("receiver_01_rf_agc", opts->GetEnableProbes());
-    _rfAgc = new HAgc<int16_t>(input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false, _rfAgcProbe);
+    _rfAgc = new HAgc<int16_t>("receiver_agc", input->GetLastWriterConsumer(), GetRfAgcLevel(opts), 10, BLOCKSIZE, 6, false);
     if( opts->GetRfGain() != 0 ) {
         if( opts->GetRfGainEnabled() ) {
             float g =
@@ -147,7 +146,7 @@ void BoomaReceiver::Build(ConfigOptions* opts, BoomaInput* input, BoomaDecoder* 
     _postProcess = PostProcess(opts, _receive);
 
     // Add a splitter so that we can push fully processed samples through an optional decoder
-    _decoder = new HSplitter<int16_t>(_postProcess->Consumer());
+    _decoder = new HSplitter<int16_t>("receiver_decoder_splitter", _postProcess->Consumer());
     if( decoder != NULL ) {
         _decoder->SetWriter(decoder->Writer());
     }

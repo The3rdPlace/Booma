@@ -16,7 +16,6 @@ class BoomaReceiver {
         // Input gain/agc
         int _gainValue;
         HAgc<int16_t>* _rfAgc;
-        HProbe<int16_t>* _rfAgcProbe;
 
         // Major receiver hooks
         HWriterConsumer<int16_t>* _preProcess;
@@ -60,8 +59,7 @@ class BoomaReceiver {
         BoomaReceiver(ConfigOptions* opts, int initialFrequency):
             _hasBuilded(false),
             _frequency(initialFrequency),
-            _rfAgc(nullptr),
-            _rfAgcProbe(nullptr) {
+            _rfAgc(nullptr) {
 
             HLog("Creating BoomaReceiver with initial frequency %d", _frequency);
         }
@@ -72,7 +70,6 @@ class BoomaReceiver {
 
         virtual ~BoomaReceiver() {
             SAFE_DELETE(_rfAgc);
-            SAFE_DELETE(_rfAgcProbe);
         }
 
         virtual int GetOutputFilterWidth() {

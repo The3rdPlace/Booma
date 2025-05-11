@@ -44,10 +44,6 @@ class BoomaOutput {
         int _audioSpectrumSize;
         HAgc<int16_t>* _audioFftGain;
 
-        // Probes
-        HProbe<int16_t>* _outputVolumeProbe;
-        HProbe<int16_t>* _outputFilterProbe;
-
         // Frequency alignment
         HSineGenerator<int16_t>* _frequencyAlignmentGenerator;
         HLinearMixer<int16_t>* _frequencyAlignmentMixer;

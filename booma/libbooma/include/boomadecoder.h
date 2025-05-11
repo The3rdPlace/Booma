@@ -5,7 +5,7 @@ class BoomaDecoder: public HWriter<int16_t> {
 
     protected:
 
-        BoomaDecoder() {}
+        BoomaDecoder(std::string id) : HWriter(id) {}
 
         virtual void Decode(int16_t* src, int blocksize) = 0;
 
